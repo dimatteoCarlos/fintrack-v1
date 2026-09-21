@@ -1,0 +1,143 @@
+// Shared Zod schemas and number-format parsing for the form validations.
+import {z} from "zod";
+import {ERROR_MESSAGES,
+} from '../utils/constants.ts'
+import { SUPPORTED_CURRENCIES } from "../../helpers/currencyConstants.ts";
+import { CurrencyType } from "../../types/types.ts";
+import { currencyMinorUnit } from "../../helpers/functions.ts";
+
+// Rounds the parsed amount to its currency's decimals (1500,75 JPY -> 1501);
+// object-level because numberSchema cannot see the currency field.
+export function roundAmountToCurrency<T extends { amount: number; currency: string }>(
+  data: T,
+): T {
+  return {
+    ...data,
+    amount: Number(data.amount.toFixed(currencyMinorUnit(data.currency))),
+  };
+}
+
+// Parses a numeric input string into a positive number.
+export const numberSchema = z.string()
+  .min(1, ERROR_MESSAGES.FIELD_REQUIRED)
+  .pipe(z.string().transform((val, ctx) => {
+    const result = checkNumberFormatValueForSchema(val);
+    
+    if (result.isError) {
+      ctx.issues.push({
+        code: "custom",
+        message: result.formatMessage,
+        input: val,
+      });
+      return z.NEVER;
+    }
+
+    if (result.valueToSave <= 0) {
+      ctx.issues.push({
+        code: "custom",
+        message: ERROR_MESSAGES.POSITIVE_NUMBER_REQUIRED,
+        input: val,
+      });
+      return z.NEVER;
+    }
+
+    return result.valueToSave;
+  }));
+
+// Normalises a number string in any supported US or European format.
+export function checkNumberFormatValueForSchema(rawValue: string): {
+  formatMessage: string;
+  valueNumber: string;
+  valueToSave: number;
+  isError: boolean;
+} {
+  const notMatching = /([^0-9.,])/g;
+  const onlyDotDecimalSep = /^\d*(\.\d*)?$/;
+  const onlyCommaDecimalSep = /^\d*(,\d*)$/;
+  const commaSepFormat = /^(\d{1,3})(,\d{3})*(\.\d*)?$/;
+  const dotSepFormat = /^(\d{1,3})(\.\d{3})*(,\d*)?$/;
+
+  const value = rawValue.trim();
+
+  if (notMatching.test(value)) {
+    const matches = value.match(notMatching)
+     const invalidChars = [...new Set(matches)].join(',').replace(' ','blank') || '';
+       return {
+      formatMessage: `${ERROR_MESSAGES.INVALID_NUMBER}:${invalidChars}`,
+      isError: true,
+      valueNumber: value,
+      valueToSave: 0,
+    };
+  }
+  const isNegative = value.startsWith('-');
+  const absValue = isNegative ? value.substring(1) : value;
+
+  // Normal US numeric format (1234.56)
+  if (onlyDotDecimalSep.test(absValue)) {
+    const num = parseFloat(absValue) * (isNegative ? -1 : 1);
+    return {
+      formatMessage: 'decimal point format',
+      valueNumber: value,
+      valueToSave: num,
+      isError: false,
+    };
+  }
+
+  // Only comma as decimal separator (1234,56)
+  if (onlyCommaDecimalSep.test(absValue)) {
+    const num = parseFloat(absValue.replace(',', '.')) * (isNegative ? -1 : 1);
+    return {
+      formatMessage: 'comma as decimal-sep.',
+      valueNumber: value,
+      valueToSave: num,
+      isError: false,
+    };
+  }
+
+  // US format with thousand separators (1,234,567.89)
+  if (commaSepFormat.test(absValue)) {
+    const num = parseFloat(absValue.replace(/,/g, '')) * (isNegative ? -1 : 1);
+    return {
+      formatMessage: 'comma as th-sep, point decimal',
+      valueNumber: value,
+      valueToSave: num,
+      isError: false,
+    };
+  }
+
+  // European format with thousand separators (1.234.567,89)
+  if (dotSepFormat.test(absValue)) {
+    const numStr = absValue.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(numStr) * (isNegative ? -1 : 1);
+    return {
+      formatMessage: 'dot as th-sep, comma as decimal',
+      valueNumber: value,
+      valueToSave: num,
+      isError: false,
+    };
+  }
+
+  return {
+    formatMessage: ERROR_MESSAGES.INVALID_FORMAT,
+    isError: true,
+    valueNumber: value,
+    valueToSave: 0,
+  };
+}
+export const requiredStringSchema = z.string({error: (iss) => iss.input === undefined ? `Please enter a valid ${iss.path}` : `${iss.input} not allowed`}) 
+.min(1, {error:(iss)=>iss.input === ''?`* Please select the ${(iss.path)}`:ERROR_MESSAGES.FIELD_REQUIRED})
+
+export const currencySchema = z.enum(SUPPORTED_CURRENCIES as [CurrencyType,...CurrencyType[]], {
+  error:(issue)=>{
+ if(issue.code === 'invalid_value'){
+  return `Currency ${issue.input} was not found in ${issue.options?.join(', ') ?? 'available options: usd, cop, eur, ves, mxn'}`;
+   }
+    return "Invalid currency input"
+  }
+}
+) 
+export const noteSchema = z.string({error: (iss) => iss.input === undefined || '' ? `Please entered the ${iss.path}` : ``})
+.min(1,{error:(issue)=>issue.input ===''?`* Please enter the ${issue.path}`:ERROR_MESSAGES.FIELD_REQUIRED})
+.max(150, {
+  message: ERROR_MESSAGES.NOTE_MAX_LENGTH,
+});

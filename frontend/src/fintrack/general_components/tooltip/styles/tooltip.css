@@ -1,0 +1,45 @@
+.tooltip__wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip__wrapper--text {
+  font-size: 0.775rem;
+  font-weight: bold;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: 0.25rem;
+
+  background-color: var(--creme, beige);
+  color: var(--dark, black);
+  border-radius: 0.25rem;
+  white-space: nowrap;
+
+  visibility: visible;
+  opacity: 0;
+
+  z-index: 10;
+}
+
+/* :focus-within as well as :hover, so the tip is reachable by keyboard; only `focusable` triggers
+   (Tooltip.tsx) take focus. .is-dismissed is Escape: it closes the tip until leave or blur. */
+.tooltip__wrapper:hover .tooltip__wrapper--text,
+.tooltip__wrapper:focus-within .tooltip__wrapper--text {
+  border: 1px solid var(--dark);
+  opacity: 1;
+}
+
+.tooltip__wrapper.is-dismissed .tooltip__wrapper--text {
+  opacity: 0;
+}
+
+.tooltip__wrapper:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-strong);
+  outline-offset: var(--border-width-thick);
+  border-radius: var(--radius-xs);
+}
+
+/* The rate chip is styled in rateTooltip/styles/rateTooltip.css. */

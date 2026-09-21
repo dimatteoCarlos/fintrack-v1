@@ -1,0 +1,96 @@
+/* Definition chip and its trigger; position, hover/focus and Escape come from tooltip.css. */
+/* --cream and --dark name the surface the trigger sits on; one palette would vanish on one. */
+
+.kpiTooltip__trigger {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ /* The glyph's own box and not a tap target: the row is short, and a control
+    sized for a thumb beside a label would out-weigh the label it explains. */
+ width: var(--font-size-sm);
+ height: var(--font-size-sm);
+ padding: 0;
+ background-color: transparent;
+ border: none;
+ cursor: pointer;
+ /* Both: vertical-align for a wrapper that lays its child out on a line, and
+    line-height so the button adds no leading of its own to that line. */
+ vertical-align: middle;
+ line-height: 1;
+ transition: color var(--motion-fast);
+}
+
+.kpiTooltip__trigger svg {
+ width: 100%;
+ height: 100%;
+}
+
+.kpiTooltip__trigger--dark {
+ color: var(--color-content-on-dark-subtle);
+}
+
+.kpiTooltip__trigger--dark:hover,
+.kpiTooltip__trigger--dark:active {
+ color: var(--color-content-on-dark);
+}
+
+.kpiTooltip__trigger--cream {
+ color: var(--color-content-secondary);
+}
+
+.kpiTooltip__trigger--cream:hover,
+.kpiTooltip__trigger--cream:active {
+ color: var(--color-content-primary);
+}
+
+.kpiTooltip__trigger--dark:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+ border-radius: var(--radius-full);
+}
+
+.kpiTooltip__trigger--cream:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+ border-radius: var(--radius-full);
+}
+
+/* Compound selector so it beats the base chip's rules in another file without !important.
+   nowrap goes because a definition is a sentence. Anchored left: a centred chip would hang off the card. */
+.tooltip__wrapper--text.kpiTooltip__tip {
+ left: 0;
+ transform: none;
+ width: max-content;
+ max-width: 28ch;
+ margin-bottom: var(--space-1);
+ padding: var(--space-2);
+ white-space: normal;
+ text-align: left;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-regular);
+ line-height: 1.45;
+ border-radius: var(--radius-sm);
+ box-shadow: var(--shadow-md);
+ /* The chip stays mounted at opacity 0 over whatever is above the row; nothing in
+    it is clickable, so it must never take a click meant for the element behind. */
+ pointer-events: none;
+}
+
+/* On the app ground the chip is the cream one the base already paints, restated
+   through the token so the pair below reads as one decision. */
+.tooltip__wrapper--text.kpiTooltip__tip--dark {
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+}
+
+/* On a cream card it inverts, or it is a cream chip on a cream ground. */
+.tooltip__wrapper--text.kpiTooltip__tip--cream {
+ background-color: var(--color-surface-raised);
+ color: var(--color-content-on-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .kpiTooltip__trigger {
+  transition: none;
+ }
+}

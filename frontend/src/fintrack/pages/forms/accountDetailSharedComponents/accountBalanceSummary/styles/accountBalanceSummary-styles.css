@@ -1,0 +1,75 @@
+.balance-summary__container{
+  display: flex;
+  justify-content: space-around;
+  background-color: #2a2a2a;
+  padding: .51rem;
+  border-radius:1rem;
+  border: 1px solid var(--creme) ;
+  margin-bottom: 1rem;
+}
+
+.balance-summary__item{
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 0.25rem;
+padding: 0.5rem;
+text-align: center;
+justify-content: center;
+}
+
+.balance-summary__label{
+font-size: 1rem;
+font-weight: 400;
+color: var(--light)
+}
+
+.balance-summary__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--creme);
+}
+
+.balance-summary__date{
+font-size: 0.8rem;
+color: #a0a0a0;
+}
+
+/*Below this width the two readings stop fitting side by side, so each becomes
+  one line instead of a stacked three-line column. 383px and not 480: the
+  columns still fit between the two widths.*/
+@media (max-width: 383px) {
+  .balance-summary__container {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  /*Label, figure and date on one line. baseline and not center: the three sit at
+    different sizes, and centring by box would misalign their text.*/
+  .balance-summary__item {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+    text-align: left;
+  }
+
+  .balance-summary__item.border-left {
+    border-left: none;
+    border-top: 1px dashed var(--light);
+    padding-top: var(--space-2);
+  }
+
+  /*The three parts of the line measure about 270px together and the panel gets
+    roughly 250px inside this screen's double content column.*/
+  .balance-summary__label,
+  .balance-summary__date {
+    font-size: var(--font-size-xs);
+  }
+
+  .balance-summary__value {
+    font-size: var(--font-size-sm);
+  }
+}

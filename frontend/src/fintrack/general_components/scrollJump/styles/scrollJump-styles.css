@@ -1,0 +1,82 @@
+/* Shared scroll jump. position: fixed, so offsets are measured against the viewport and
+   not a capped, centred column; callers render it outside their own container for the
+   same reason. */
+.scrollJump {
+ position: fixed;
+ /* Anchored to the right edge of the column it floats over, since past the width cap the column centres.
+    The page sets --scroll-jump-column; keep --layout-width-max as var()'s fallback, because a custom
+    property declared on this element would beat the inherited page value. */
+ right: max(
+  var(--space-4),
+  calc(50% - var(--scroll-jump-column, var(--layout-width-max)) / 2 + var(--space-4))
+ );
+ bottom: var(--space-4);
+ z-index: var(--z-dropdown);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-touch-target);
+ height: var(--size-touch-target);
+ padding: 0;
+ border: none;
+ border-radius: var(--radius-full);
+ /* Translucent at rest so the content under it stays readable; hover and
+    active restore a solid ground. */
+ background-color: var(--color-scroll-jump-surface);
+ color: var(--color-accent-content);
+ box-shadow: var(--shadow-md);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  transform var(--motion-fast),
+  opacity var(--motion-normal),
+  visibility var(--motion-normal);
+}
+
+/* At rest between scrolls. visibility and not display, so it fades out; hidden
+   also takes it out of the tab order and the accessibility tree. */
+.scrollJump--asleep {
+ opacity: 0;
+ visibility: hidden;
+}
+
+.scrollJump:hover {
+ background-color: var(--color-content-on-dark);
+}
+
+.scrollJump:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.scrollJump:active {
+ background-color: var(--color-content-on-dark-subtle);
+}
+
+.scrollJump:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.scrollJump__glyph {
+ width: var(--size-icon);
+ height: var(--size-icon);
+ transition: transform var(--motion-fast);
+}
+
+.scrollJump__glyph--up {
+ transform: rotate(180deg);
+}
+
+/* The asset hardcodes its stroke, so the button's colour only reaches the
+   drawing by naming the path. */
+.scrollJump__glyph path {
+ stroke: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .scrollJump,
+ .scrollJump__glyph {
+  transition: none;
+ }
+}

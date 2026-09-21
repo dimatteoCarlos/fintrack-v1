@@ -1,0 +1,115 @@
+:root {
+  --primary: var(--dark, black);
+  --text-color: var(--dark, black);
+  --border-radius: 25%;
+  --check-radio-size:0.625rem;
+}
+.radio-input__container {
+  cursor: pointer;
+  background: transparent;
+}
+.radio-input__title {
+  font-size: 0.5rem;
+  font-weight: 200;
+  color: var(--text-color);
+}
+.radio-input__options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.radio-input__option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: 1rem;
+}
+.radio-input__radio {
+  appearance: none;
+  margin-right: 0.25rem;
+  border: 1px solid var(--dark);
+  width: var(--check-radio-size, 0.625rem);
+  height: var(--check-radio-size, 0.625rem);
+  cursor: pointer;
+  background-color: transparent;
+  border-radius: var(--border-radius, 24%);
+}
+
+.radio-input__radio:checked {
+  appearance: none;
+  display: inline-block;
+  background-color: var(--dark, black);
+  border: 1px solid var(--dark);
+  padding: 0;
+  border-radius: var(--border-radius, 24%);
+  width: var(--check-radio-size, 0.625rem);
+  height: var(--check-radio-size, 0.625rem);
+}
+
+/* Near-black ring: every caller (TopCard, Transfer, Debts) renders on the light tracker
+   card, where it measures 13:1. :focus-visible and not :focus, so a pointer press does
+   not draw it. */
+.radio-input__radio:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-strong);
+  outline-offset: var(--border-width-thick);
+}
+.radio-input__label {
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--dark);
+  cursor: pointer;
+  width: fit-content;
+  padding: 0;
+  margin: 0 auto;
+}
+input[type="radio"]:disabled + label,
+input[type="checkbox"]:disabled + label {
+  color: #999999;
+  cursor: not-allowed;
+}
+@media (max-width: 470px) {
+  .radio-input__options--chip {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.25rem;
+    padding: 0.25rem 0;
+    -webkit-overflow-scrolling: touch; /* soft scroll in iOS */
+  }
+  /* The gap spaces the chips, so the option's own margin is dropped. */
+  .radio-input__options--chip .radio-input__option {
+    margin-right: 0;
+  }
+  /* The native radio circle shrinks to an invisible pixel instead of display: none, which
+     would remove it from the focus order and make the account type unreachable by keyboard
+     below 470px; the label beside it wears the focus ring. */
+  .radio-input__options--chip .radio-input__radio {
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    opacity: 0;
+  }
+
+  .radio-input__options--chip
+    .radio-input__radio:focus-visible
+    + .radio-input__label {
+    outline: var(--border-width-thick) solid var(--color-border-strong);
+    outline-offset: var(--border-width-thick);
+  }
+
+  .radio-input__options--chip input:checked + .radio-input__label {
+    background-color: var(--creme);
+    color: var(--dark);
+    border-color: var(--dark);
+    font-weight: 600;
+  }
+
+  .radio-input__options--chip .radio-input__label:active {
+    background-color: rgba(232, 228, 218, 0.3);
+    border-radius: 50%;
+
+  }
+}

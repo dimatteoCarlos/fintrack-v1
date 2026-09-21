@@ -1,0 +1,293 @@
+/* Activity controls: a search field and two selects on one surface, divided by
+   hairlines. Follows debtsToolbar.css. */
+
+.recentActivity {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-3);
+ /* The block owns its top spacing, not the block that precedes it. */
+ margin-top: var(--space-5);
+}
+
+/* One surface for the three controls; --size-control-sm keeps an empty or wrapped
+   row from collapsing onto its text. */
+.recentActivity__controls {
+ display: flex;
+ flex-wrap: nowrap;
+ align-items: stretch;
+ min-height: var(--size-control-sm);
+ background-color: var(--color-surface-sunken);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-xl);
+ overflow: hidden;
+ transition: border-color var(--motion-fast);
+}
+
+.recentActivity__controls:hover {
+ border-color: var(--color-content-on-dark-subtle);
+}
+
+.recentActivity__controls:active {
+ border-color: var(--color-accent);
+}
+
+.recentActivity__query,
+.recentActivity__selectBox {
+ position: relative;
+ display: flex;
+}
+
+/* The field takes what the two selects leave. min-width: 0 is what lets it
+   shrink at 360px instead of pushing the second select out of the row. */
+.recentActivity__query {
+ flex: 1 1 auto;
+ min-width: 0;
+}
+
+.recentActivity__selectBox {
+ flex: 0 0 auto;
+ border-left: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.recentActivity__search,
+.recentActivity__select {
+ background-color: transparent;
+ border: none;
+ border-radius: 0;
+ color: var(--color-content-on-dark);
+ font-family: var(--font-family-sans);
+ font-size: var(--font-size-sm);
+ transition: color var(--motion-fast), background-color var(--motion-fast);
+}
+
+.recentActivity__search {
+ width: 100%;
+ min-width: 0;
+ padding: var(--space-1) var(--space-3);
+ padding-left: var(--space-8);
+}
+
+/* --color-content-placeholder (#5b5b5b) is 5.35:1 on the cream panel but 2.83:1 on this
+   sunken surface, so the dark-surface sibling (6.57:1) is used; it stays a step below
+   the subtle ink so a placeholder does not read as typed text. */
+.recentActivity__search::placeholder {
+ color: var(--color-content-on-dark-placeholder);
+}
+
+/* Hides the browser's clear glyph: this block draws its own, and the native one
+   would empty the field without notifying the query. */
+.recentActivity__search::-webkit-search-cancel-button {
+ display: none;
+}
+
+/* Room for the clear button, and only while there is one to make room for. */
+.recentActivity__query:has(.recentActivity__reset) .recentActivity__search {
+ padding-right: var(--space-8);
+}
+
+/* Padded on the right and not on both sides: these selects carry a trailing
+   chevron and no leading icon. */
+.recentActivity__select {
+ width: auto;
+ max-width: 100%;
+ padding: var(--space-1) var(--space-6) var(--space-1) var(--space-3);
+ color: var(--color-content-on-dark-subtle);
+ appearance: none;
+ cursor: pointer;
+ text-overflow: ellipsis;
+}
+
+.recentActivity__select option {
+ background-color: var(--color-surface-sunken);
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-sm);
+}
+
+.recentActivity__select option:checked,
+.recentActivity__select option:hover {
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+}
+
+/* pointer-events: none so the glyph never eats the click meant for the control
+   underneath it. */
+.recentActivity__icon {
+ position: absolute;
+ top: 50%;
+ left: var(--space-2);
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+ transform: translateY(-50%);
+ color: var(--color-content-on-dark-subtle);
+ pointer-events: none;
+}
+
+.recentActivity__icon--trailing {
+ right: var(--space-2);
+ left: auto;
+}
+
+.recentActivity__reset {
+ position: absolute;
+ top: 50%;
+ right: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-control-sm);
+ height: var(--size-control-sm);
+ transform: translateY(-50%);
+ background-color: transparent;
+ border: none;
+ border-radius: var(--radius-full);
+ color: var(--color-content-on-dark-subtle);
+ cursor: pointer;
+ transition: color var(--motion-fast);
+}
+
+.recentActivity__reset svg {
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+}
+
+.recentActivity__reset:hover,
+.recentActivity__reset:active {
+ color: var(--color-content-on-dark);
+}
+
+.recentActivity__reset:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* The ring is drawn inside the segment: the surface clips its children, so a
+   positive offset is cut off on the field that sits against the edge. */
+.recentActivity__search:focus-visible,
+.recentActivity__select:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+ border-radius: var(--radius-lg);
+}
+
+.recentActivity__reset:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+}
+
+/* Sits beside the title, outside .recentActivity__controls: it acts on the whole
+   list and is not a narrowing. Outlined like .month-badge--trigger, the app's
+   pattern for a small control beside a heading on the dark surface. */
+.recentActivity__export {
+ position: relative;
+ display: flex;
+ flex: 0 0 auto;
+}
+
+.recentActivity__exportTrigger {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-1);
+ width: auto;
+ max-width: 100%;
+ padding: var(--space-1) var(--space-2);
+ background-color: transparent;
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-full);
+ color: var(--color-content-on-dark-subtle);
+ font-family: var(--font-family-sans);
+ font-size: var(--font-size-xs);
+ cursor: pointer;
+ transition: color var(--motion-fast), border-color var(--motion-fast),
+  background-color var(--motion-fast);
+}
+
+.recentActivity__exportLabel {
+ white-space: nowrap;
+}
+
+/* Cancels the absolute position and size .recentActivity__icon has for the
+   fields above: the trigger lays its chevron out with flex gap, at the smaller
+   label's size. */
+.recentActivity__exportTrigger .recentActivity__icon {
+ position: static;
+ transform: none;
+ width: var(--font-size-sm);
+ height: var(--font-size-sm);
+}
+
+.recentActivity__exportTrigger:hover {
+ color: var(--color-content-on-dark);
+ border-color: var(--color-content-on-dark-subtle);
+}
+
+.recentActivity__exportTrigger:active {
+ color: var(--color-content-on-dark);
+ background-color: var(--color-surface-app);
+}
+
+.recentActivity__exportTrigger:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.recentActivity__exportTrigger:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Popover surface: cream and not sunken, like the checked/hovered option of the
+   selects above, so the menu reads as interactive and not as another row. */
+.recentActivity__exportMenu {
+ position: absolute;
+ top: calc(100% + var(--space-1));
+ right: 0;
+ z-index: var(--z-dropdown);
+ display: flex;
+ flex-direction: column;
+ min-width: 100%;
+ background-color: var(--color-surface-panel);
+ border-radius: var(--radius-lg);
+ box-shadow: var(--shadow-md);
+ overflow: hidden;
+}
+
+.recentActivity__exportOption {
+ padding: var(--space-2) var(--space-3);
+ background-color: transparent;
+ border: none;
+ color: var(--color-content-primary);
+ font-family: var(--font-family-sans);
+ font-size: var(--font-size-sm);
+ text-align: left;
+ white-space: nowrap;
+ cursor: pointer;
+ transition: background-color var(--motion-fast);
+}
+
+.recentActivity__exportOption + .recentActivity__exportOption {
+ border-top: var(--border-width-thin) solid var(--color-border-subtle-on-panel);
+}
+
+.recentActivity__exportOption:hover {
+ background-color: var(--color-surface-hover-on-panel);
+}
+
+.recentActivity__exportOption:active {
+ background-color: var(--color-surface-active-on-panel);
+}
+
+.recentActivity__exportOption:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .recentActivity__controls,
+ .recentActivity__search,
+ .recentActivity__select,
+ .recentActivity__reset,
+ .recentActivity__exportTrigger,
+ .recentActivity__exportOption {
+  transition: none;
+ }
+}

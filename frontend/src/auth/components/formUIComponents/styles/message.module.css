@@ -1,0 +1,120 @@
+.messageContainer {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 16px;
+  margin: 8px 0;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: all 0.2s ease-in-out;
+}
+
+.messageError {
+  background-color: var(--color-feedback-error-surface);
+  border: var(--border-width-thin) solid var(--color-feedback-error-border);
+  color: var(--color-feedback-error-content);
+}
+
+.messageSuccess {
+  background-color: var(--color-feedback-success-surface);
+  border: var(--border-width-thin) solid var(--color-feedback-success-border);
+  color: var(--color-feedback-success-content);
+}
+
+.messageWarning {
+  background-color: var(--color-feedback-warning-surface);
+  border: var(--border-width-thin) solid var(--color-feedback-warning-border);
+  color: var(--color-feedback-warning-content);
+}
+
+.messageInfo {
+  background-color: var(--color-feedback-info-surface);
+  border: var(--border-width-thin) solid var(--color-feedback-info-border);
+  color: var(--color-feedback-info-content);
+}
+
+.messageIcon {
+  flex-shrink: 0;
+  margin-right: 8px;
+  font-size: 16px;
+  line-height: 1.2;
+   margin-top: 1px; /* Optical alignment */
+}
+
+.messageText {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+    font-weight: 500;
+}
+
+.messageTextWithIcon {
+  padding-right: 12px;
+}
+
+.dismissButton {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  margin-left: 12px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+}
+
+.dismissButton{
+  transition: all 0.2s;
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;}
+
+.dismissButton:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dismissButton:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+
+.dismissButton:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .messageContainer {
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+  
+  .messageIcon {
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  
+  .dismissButton {
+    font-size: 16px;
+    margin-left: 8px;
+
+  }
+}
+
+@media (min-width: 1200px) {
+  .messageContainer {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+  
+  .messageIcon {
+    font-size: 18px;
+  }
+}

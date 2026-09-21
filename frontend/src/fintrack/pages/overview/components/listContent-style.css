@@ -1,0 +1,155 @@
+.listContent__container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* index.css sizes every element at 16px, so the size is restated to match the
+   account name. */
+.listContent__empty {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-content-on-dark-subtle);
+}
+
+/* The item is a button, so its UA defaults (centred text, border, background,
+   system font) are undone here. index.css sets `button { outline: none }`, which
+   is why :focus-visible below declares the ring. */
+.listContent__item {
+  width: 100%;
+  display: block;
+  text-align: left;
+  padding: 0.5rem 0;
+  border: none;
+  border-bottom: 1px solid var(--creme);
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  /* A row that leads to another screen renders as a link, underlined by default. */
+  text-decoration: none;
+  cursor: pointer;
+ }
+
+ .listContent__item:last-child{
+  border-bottom: none;
+}
+
+/* A wash rather than a cream fill: a fill would invert all four spans to the
+   dark ink, and dark hairlines on cream render with colour fringing. The wash
+   keeps every resting colour. */
+.listContent__item:hover {
+  background-color: var(--color-surface-row-hover);
+  /* Inset shadow, not a border: a border would push the row's text 3px right on hover. */
+  box-shadow: inset 3px 0 0 0 var(--color-border-row-hover);
+}
+
+/* Deeper than the hover wash. */
+.listContent__item:active {
+  background-color: var(--color-surface-row-active);
+}
+
+/* --color-border-inverse is the ring meant for the app surface. */
+.listContent__item:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-inverse);
+  outline-offset: var(--border-width-thick);
+}
+
+/* No caller disables a row; declared so every interactive element defines the state. */
+.listContent__item:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.listContent__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.listContent__account {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--light);
+  text-transform: capitalize;
+}
+
+.listContent__amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--creme);
+  white-space: nowrap;
+}
+
+.listContent__details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.listContent__description {
+  flex: 1;
+  font-size: var(--font-size-xs);
+  /* A 200 weight at this size is thinner than the antialiasing stroke and reads
+     washed out; the weight, not the hue, carries this line. */
+  font-weight: var(--font-weight-regular);
+  line-height: 1.2rem;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  color: var(--creme);
+
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+
+  /* Keeps the date from being pushed out. */
+  min-width: 0;
+  padding-right: 0.5rem;
+}
+
+.listContent__date {
+  font-size: var(--font-size-xs);
+  /* Token, so the date follows every other subdued line; 9.22:1 on the app surface. */
+  color: var(--color-content-on-dark-subtle);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+@media (max-width: 393px) {
+  .listContent__details-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .listContent__description {
+    padding-right: 0;
+    width: 100%;
+  }
+  
+  .listContent__date {
+    align-self: flex-end;
+    padding-top: 0;
+  }
+}
+
+/* Shown while the detail request is open and the modal has not yet opened. A
+   bar, not text, so nothing below it moves. */
+.listContent__pending {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4) 0;
+}
+
+.listContent__pendingBar {
+  width: var(--space-16);
+  height: var(--space-1);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-loading);
+}

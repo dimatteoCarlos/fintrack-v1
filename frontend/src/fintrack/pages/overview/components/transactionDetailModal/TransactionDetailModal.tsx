@@ -1,0 +1,202 @@
+import { useModalDialog } from '../../../../../hooks/useModalDialog';
+import { numberFormatCurrency, formatDate, capitalize, currencyMinorUnit } from '../../../../helpers/functions';
+import { MOVEMENT_TYPES } from '../../../../helpers/constants';
+import { DEFAULT_CURRENCY, CURRENCY_OPTIONS } from '../../../../helpers/currencyConstants';
+import { CurrencyType } from '../../../../types/types';
+import { TransactionDetailType } from '../../../../types/responseApiTypes';
+import './transactionDetailModal.css';
+
+type TransactionDetailModalProps = {
+  transaction: TransactionDetailType | null;
+  onClose: () => void;
+};
+
+// Guard only: ListContent keeps this mounted and passes null until a row is
+// clicked, so the dialog is its own component (a hook cannot follow an early
+// return, and focus returns to the row only because the dialog unmounts on close).
+export const TransactionDetailModal = ({ transaction, onClose }: TransactionDetailModalProps) => {
+  if (!transaction) return null;
+
+  return <TransactionDetailDialog transaction={transaction} onClose={onClose} />;
+};
+
+type TransactionDetailDialogProps = {
+  transaction: TransactionDetailType;
+  onClose: () => void;
+};
+
+const TransactionDetailDialog = ({ transaction, onClose }: TransactionDetailDialogProps) => {
+  // Not portalled, so the page behind is not made inert: aria-modal hides it
+  // from a screen reader and the hook's Tab cycle keeps the caret inside.
+  const { titleId, dialogProps } = useModalDialog({
+    onClose,
+    lockPageBehind: false,
+  });
+
+  const formattedTransactionDate = formatDate(transaction.transaction_actual_date);
+  const formattedTimestamp = transaction.exchange_rate_timestamp
+    ? formatDate(transaction.exchange_rate_timestamp)
+    : 'N/A';
+
+  // Unsigned amounts for the FX card.
+  const absOriginalAmount = Math.abs(transaction.original_amount || 0);
+  const absConvertedAmount = Math.abs(transaction.amount);
+
+  // Each figure uses its own currency's decimals (a raw JPY row would read
+  // "JPY 157.57"); the locale follows the currency, not a fixed 'es-ES'.
+  const originalCurrency = transaction.original_currency_code || DEFAULT_CURRENCY;
+  const originalLocale =
+    CURRENCY_OPTIONS[originalCurrency as CurrencyType] ?? CURRENCY_OPTIONS[DEFAULT_CURRENCY];
+  const formattedOriginalAbs = numberFormatCurrency(absOriginalAmount, currencyMinorUnit(originalCurrency), undefined, originalLocale);
+  const formattedConvertedAbs = numberFormatCurrency(absConvertedAmount, currencyMinorUnit(DEFAULT_CURRENCY), undefined, CURRENCY_OPTIONS[DEFAULT_CURRENCY]);
+
+  const formattedAmountSigned = numberFormatCurrency(transaction.amount, 2, DEFAULT_CURRENCY, CURRENCY_OPTIONS[DEFAULT_CURRENCY]);
+  const isPositive = transaction.amount >= 0;
+  const amountClass = isPositive ? 'fx-amount-positive' : 'fx-amount-negative';
+  const amountPrefix = isPositive ? '+' : '';
+
+  // A rate is a ratio, not money: four decimals would cut 0.00650195 to 0,0065,
+  // which no longer reproduces the 153,80 shown above it; six significant digits do.
+  const formattedExchangeRate = transaction.exchange_rate
+    ? new Intl.NumberFormat(CURRENCY_OPTIONS[DEFAULT_CURRENCY], { maximumSignificantDigits: 6 }).format(transaction.exchange_rate)
+    : 'N/A';
+
+  const movementTypeRaw = MOVEMENT_TYPES[transaction.movement_type_id];
+  const displayMovementType = movementTypeRaw ? capitalize(movementTypeRaw.replace('-', ' ')) : 'Unknown';
+  const displayTransactionType = transaction.transaction_type_name ? capitalize(transaction.transaction_type_name) : 'N/A';
+
+  const isIncoming = (() => {
+    const type = displayTransactionType;
+    if (type === 'Deposit' || type === 'Income' || type === 'Borrow') return true;
+    if (type === 'Withdraw' || type === 'Expense' || type === 'Lend') return false;
+    return transaction.amount >= 0;
+  })();
+  const badgeClass = isIncoming ? 'fx-badge-income' : 'fx-badge-expense';
+
+  // The colour states the impact on Net Worth, a property of the movement type
+  // and not of the amount's sign in this account: a transfer leaves Net Worth
+  // unchanged. pnl is the exception: gain and loss share a type, so the sign decides.
+  const resolveNetEffect = () => {
+    const movement = movementTypeRaw?.toLowerCase();
+    if (movement === 'income') return 'effectPositive';
+    if (movement === 'expense') return 'effectNegative';
+    if (movement === 'debt') return 'effectAttention';
+    if (movement === 'pnl')
+      return transaction.amount >= 0 ? 'effectPositive' : 'effectNegative';
+    return 'effectNeutral';
+  };
+
+  const movementModifier = `fx-movement-badge-large--${resolveNetEffect()}`;
+
+  const showFXCard = transaction.original_currency_code && transaction.original_currency_code !== DEFAULT_CURRENCY;
+
+  // Direct rate for display (e.g., 1 USD = X COP)
+  let directRateFormatted = '';
+  if (showFXCard && transaction.exchange_rate && transaction.exchange_rate > 0) {
+    const directRate = 1 / transaction.exchange_rate;
+    directRateFormatted = numberFormatCurrency(directRate, 2, undefined, CURRENCY_OPTIONS[DEFAULT_CURRENCY]);
+  }
+
+  const displayMovementUpper = displayMovementType.toUpperCase();
+  const displayTransactionUpper = displayTransactionType.toUpperCase();
+
+  // Direction for Rate Clean (original -> target)
+  const rateCleanDirection = transaction.original_currency_code && transaction.exchange_rate
+    ? `${transaction.original_currency_code.toUpperCase()} → ${DEFAULT_CURRENCY.toUpperCase()}`
+    : '';
+
+  return (
+    <div className="fx-modal-overlay" onClick={onClose}>
+      <div className="fx-modal-container" onClick={(e) => e.stopPropagation()} {...dialogProps}>
+
+        <div className="fx-modal-header">
+          <div>
+            <h2 id={titleId} className="fx-modal-id">Transaction #{transaction.transaction_id}</h2>
+            <div className="fx-badge-container">
+              <span className={`fx-movement-badge-large ${movementModifier}`}>{displayMovementUpper}</span>
+              <span className={`fx-modal-badge ${badgeClass}`}>{displayTransactionUpper}</span>
+            </div>
+          </div>
+          <button className="fx-modal-close-btn" onClick={onClose} aria-label="Close modal">✕</button>
+        </div>
+
+        <div className="fx-modal-hero">
+          <span className={`fx-hero-amount ${amountClass}`}>{amountPrefix}{formattedAmountSigned}</span>
+          <span className="fx-hero-date">{formattedTransactionDate}</span>
+        </div>
+
+        <div className="fx-modal-body">
+
+          <div className="fx-details-card">
+            <div className="fx-info-row">
+              <span className="fx-label">Account</span>
+              <span className="fx-value fx-capitalize">{transaction.account_name || 'N/A'}</span>
+            </div>
+
+            {/* Only a transfer has counterparts, so these two are absent on an
+                ordinary deposit or withdrawal rather than rendered empty. */}
+            {transaction.source_account_id !== null && (
+              <div className="fx-info-row">
+                <span className="fx-label">Source Account</span>
+                <span className="fx-value fx-capitalize">
+                  {transaction.source_account_name || 'N/A'} #{transaction.source_account_id}
+                </span>
+              </div>
+            )}
+
+            {transaction.destination_account_id !== null && (
+              <div className="fx-info-row">
+                <span className="fx-label">Destination Account</span>
+                <span className="fx-value fx-capitalize">
+                  {transaction.destination_account_name || 'N/A'} #{transaction.destination_account_id}
+                </span>
+              </div>
+            )}
+            {transaction.description && (
+              <div className="fx-info-row fx-column">
+                <span className="fx-label">Description</span>
+                <span className="fx-value-description">{transaction.description}</span>
+              </div>
+            )}
+          </div>
+
+          {showFXCard && (
+            <div className="fx-container">
+              <div className="fx-header">FOREIGN EXCHANGE</div>
+              <div className="fx-body">
+                <span className="amount-primary">
+                  {transaction.original_currency_code?.toUpperCase()} {formattedOriginalAbs}
+                </span>
+                <svg className="fx-arrow-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+                <span className="amount-secondary">
+                  {DEFAULT_CURRENCY.toUpperCase()} {formattedConvertedAbs}
+                </span>
+              </div>
+              <div className="fx-footer">
+                <div className="fx-footer-row">
+                  <span className="rate-info">
+                    Exchange Rate: 1 {DEFAULT_CURRENCY.toUpperCase()} = {directRateFormatted} {transaction.original_currency_code?.toUpperCase()}
+                  </span>
+                  <span className="rate-timestamp">Rate Lock: {formattedTimestamp}</span>
+                </div>
+                <div className="fx-footer-row">
+                  <span className="rate-clean">
+                    Rate Clean: {formattedExchangeRate} x {rateCleanDirection}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="fx-modal-footer">
+          <button className="fx-btn-primary" onClick={onClose}>Close</button>
+        </div>
+
+      </div>
+    </div>
+  );
+};

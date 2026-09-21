@@ -1,0 +1,688 @@
+// Dictionary (en, es) for the account deletion, closure and closed-account UI texts.
+const languageOptions = ['en','es'] as const
+
+export type LanguageKeyType = typeof languageOptions[number]
+
+// Type guard: checks that a string is a supported language.
+export function isLanguageTypeValid(lang:string):lang is LanguageKeyType {
+ return languageOptions.includes(lang as LanguageKeyType)
+}
+export type DictionaryDataType ={
+ //AccountDeletionPage
+ pageTitle: string;
+
+ //AccountDetailsUI.tsx
+ accountDetailsTitle: string;
+ accountIdLabel: string;
+ accountNameLabel: string;
+ actionLabel: string;
+ accountTypeLabel: string;
+ accountBalanceLabel: string;
+ rtaDeletionAction: string;
+ 
+ pendingDeletionStatus:string;
+
+ reportErrorTitle: string;
+ reportErrorMessage: string;
+ proceedToDeletionButton: string;
+ finalSuccessTitle: string;
+
+ title: string;
+ description: string;
+ affectedAccounts: string;
+ willBeAdjusted: string;
+
+ //Pocket impact block (InitialConfirmationDeleteAccountUI)
+ pocketImpactTitle: string;
+ pocketImpactTotalLabel: string;
+ pocketImpactNote: string;
+ processing: string;
+ apiError: string;
+ clickToConfirm: string;
+ cancel: string;
+ confirmDeletion: string;
+ confirmHardDelete: string;
+ language: string;
+ accountsImpacted: string;
+ loading: string;
+
+//StatusModalUI
+ successTitle:string;
+ errorTitle:string;
+ closeButton:string;
+
+ idleStatusConfirmationTitle:string;
+
+//LoadingReportUI
+ loadingReportText:string;
+reportTitleNoImpact:string;
+reportTitleWithImpact:string;
+
+//NoImpactReportUI
+ noImpactTitle: string;
+ noImpactMessage: string;
+ 
+ //ImpactReportUI
+ impactDetectedTitle: string;
+ impactDetectedMessage: string;
+ tableOfAffectedAccountsDetails:string;
+ affectedAccountColumn: string;
+ affectedAccountTypeColumn:string,
+ currentBalanceColumn: string;
+ netAdjustmentColumn: string;
+ newBalanceColumn: string;
+ tableOfRelatedAccountsDetails: string;
+ backButtonText: string;
+ backWithoutClosingLabel: string;
+ interactionsColumn: string;
+ netMovedColumn: string;
+ lastInteractionColumn: string;
+ totalNetAdjustment: string; 
+ unattributedAmount: string;
+ unattributedNote: string;
+
+ // Movement types for ImpactReportUI's interactions cell. Prefixed because 'investment' is also an
+ // account type. Keys derive from the catalog name via movementLabelKey (hyphens become underscores).
+ movement_expense:string;
+ movement_income:string;
+ movement_investment:string;
+ movement_debt:string;
+ movement_pocket:string;
+ movement_transfer:string;
+ movement_receive:string;
+ movement_account_opening:string;
+ movement_pnl:string;
+ movement_account_closure:string;
+ movement_balance_reversal:string;
+
+ //account types for ImpactReportUI
+ income_source:string;
+ category_budget:string;
+ debtor:string;
+ investment:string;
+ bank:string;
+ // Also needed by the closed-account pill.
+ cash:string;
+ pocket_saving:string;
+
+ autoCloseIn:string;
+
+// PostOperationView
+ postOperationSuccessTitle: string;
+ postOperationSuccessSubtitle: string;
+ postOperationErrorTitle: string;
+ postOperationErrorSubtitle: string;
+ operationIdLabel: string;
+ deletedAccountLabel: string;
+ operationTimeLabel: string;
+ adjustmentResultsTitle: string;
+ affectedAccountsCount: string;
+ resultsTableNote: string;
+ defaultSuccessMessage: string;
+ nextStepsTitle: string;
+ contactAdminInstruction: string;
+ provideErrorIdInstruction: string;
+ tryAgainLaterInstruction: string;
+ accountLabel: string;
+ errorTimeLabel: string;
+ backToActionsButton: string;
+
+// "Other deletion methods" section of AccountDeletionPage: SOFT and HARD alongside RTA.
+ otherMethodsSectionTitle: string;
+ otherMethodsSectionDescription: string;
+
+ // Wording for the screen when CLOSE is the only method offered
+ // (deletionMethodPolicy.ts). Separate keys rather than edits to the four
+ // above, so turning the flag off restores the old wording.
+ closeOnlyPageTitle: string;
+ closeOnlyDetailsTitle: string;
+ closeOnlyBlockedNotice: string;
+ closeNetWorthSectionLabel: string;
+ closeNetWorthBeforeLabel: string;
+ closeNetWorthAfterLabel: string;
+ closeNetWorthUnchangedNote: string;
+ closedAccountsMenuItem: string;
+ closedAccountsPageTitle: string;
+ closedAccountsLede: string;
+ closedAccountsSearchLabel: string;
+ closedAccountsSearchPlaceholder: string;
+ closedAccountsTypeLabel: string;
+ closedAccountsTypeAll: string;
+ closedAccountsSortLabel: string;
+ closedAccountsSortClosedAt: string;
+ closedAccountsSortName: string;
+ closedAccountsSortType: string;
+ closedAccountsSortCreatedAt: string;
+ closedAccountsOrderToggle: string;
+ closedAccountsOrderAsc: string;
+ closedAccountsOrderDesc: string;
+ // What the order button shows; the two sentences above become its aria-label.
+ closedAccountsOrderAscShort: string;
+ closedAccountsOrderDescShort: string;
+ closedAccountsColumnName: string;
+ closedAccountsColumnType: string;
+ closedAccountsColumnClosedAt: string;
+ closedAccountsColumnReason: string;
+ closedAccountsColumnOpened: string;
+ closedAccountsColumnStartingAmount: string;
+ closedAccountsColumnCategory: string;
+ closedAccountsNameUnknown: string;
+ closedAccountsTypeUnknown: string;
+ closedAccountsTotal: string;
+ closedAccountsPageStatus: string;
+ closedAccountsPreviousPage: string;
+ closedAccountsNextPage: string;
+ closedAccountsPerPage: string;
+ closedAccountsEmptyTitle: string;
+ closedAccountsEmptyMessage: string;
+ closedAccountsNoMatchTitle: string;
+ closedAccountsNoMatchMessage: string;
+ closedAccountsClearFilters: string;
+ closedAccountsErrorMessage: string;
+ closedAccountsRetry: string;
+ closedAccountsBackButton: string;
+ relatedAccountsSummary: string;
+ relatedAccountsNote: string;
+ relatedAccountsHeading: string;
+ relatedAccountsTitle: string;
+ relatedAccountsLede: string;
+ relatedAccountsLedeAdjustment: string;
+ relatedAccountsNoneTitle: string;
+ relatedAccountsNoneMessage: string;
+ closeAccountBudgetWarning: string;
+ closeOnlySectionTitle: string;
+ closeOnlySectionDescription: string;
+ closeAccountAction: string;
+
+// SoftDeactivateAccountUI
+ softDeactivateTriggerButton: string;
+ softDeactivateTitle: string;
+ softDeactivateDescription: string;
+ softDeactivateConfirmButton: string;
+ softDeactivateSuccessMessage: string;
+
+// CloseAccountUI
+ closeAccountTriggerButton: string;
+ closeAccountTitle: string;
+ closeAccountDescription: string;
+ closeAccountConfirmButton: string;
+ closeAccountSuccessMessage: string;
+ closeAccountBalanceLabel: string;
+ closeAccountBlockedByBalance: string;
+ closeAccountReverseTriggerButton: string;
+ closeAccountReverseTitle: string;
+ closeAccountReverseDescription: string;
+ closeAccountReverseConfirmButton: string;
+ closeAccountReversalNotice: string;
+ closeReversalBoundaryStatement: string;
+ closeAccountPreviewError: string;
+ closeAccountReasonLabel: string;
+ closeAccountReasonPlaceholder: string;
+ closeAccountReasonHint: string;
+
+// HardDeleteConfirmationUI
+ hardDeleteTriggerButton: string;
+ hardDeleteTitle: string;
+ hardDeleteDescription: string;
+ hardDeleteWarning: string;
+ hardDeleteConfirmButton: string;
+ hardDeleteSuccessMessage: string;
+
+ }
+
+export const defaultLanguage:LanguageKeyType='en';
+
+// Values a sentence needs at render time, keyed by the name inside the entry's
+// braces. Numbers are accepted so callers need not stringify amounts.
+export type TranslationValuesType = Record<string, string | number>;
+
+// Matches a placeholder written as {name}. Word characters only, so a brace in
+// ordinary copy is not treated as the start of one.
+const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
+
+/**
+ * Reads one entry and substitutes its {name} placeholders. Each entry holds the whole sentence because
+ * word order differs between languages. A placeholder with no value stays visible: an empty string
+ * would read correctly and say the wrong thing.
+ */
+export const getLangText = (lang:LanguageKeyType, key:keyof DictionaryDataType, values?:TranslationValuesType):string => {
+ const entry = languages[lang]?.[key] || languages[defaultLanguage][key] || key;
+
+ if (!values) return entry;
+
+ return entry.replace(PLACEHOLDER_PATTERN, (placeholder, name:string) =>
+  Object.prototype.hasOwnProperty.call(values, name)
+   ? String(values[name])
+   : placeholder,
+ );
+};
+
+export const languages:Record<LanguageKeyType,DictionaryDataType> = {
+
+ en:{
+pageTitle: "Deletion and Account Annulment",
+
+accountDetailsTitle: "Target Account Details (Deletion)",
+ accountIdLabel: "ID:",
+ accountNameLabel: "Name:",
+ accountTypeLabel: "Type: ",
+ accountBalanceLabel:'Balance: ',
+ actionLabel:"Action: ",
+ rtaDeletionAction: "RTA Deletion (Annulment with adjustment)",
+ pendingDeletionStatus:"Pending deletion - Awaiting confirmation",
+
+ reportErrorTitle: "Error Loading Report:",
+ reportErrorMessage: "Cannot proceed with annulment.",
+ proceedToDeletionButton: "Delete with adjustment",
+ finalSuccessTitle: "Success!",
+
+title:'Confirm Account Deletion',
+description:'You are about to initiate the Retrospective Total Annulment (RTA) deletion method for this account. ', 
+affectedAccounts:'account(s) will be adjusted.',
+willBeAdjusted:'will be adjusted.',
+
+pocketImpactTitle:'This account currently supports:',
+pocketImpactTotalLabel:'Total allocated:',
+pocketImpactNote:'Deleting this account removes these allocations from the affected pockets. The money itself is not deleted; only the pocket assignments are removed.',
+
+processing:'Processing annulment...',
+apiError: "⚠️ **API Error:**",
+clickToConfirm:'Click Confirm to continue the annulment.',
+
+cancel: 'Cancel',
+confirmDeletion:'Confirm Deletion with financial adjustments (RTA)', 
+confirmHardDelete:'Confirm Hard Deletion',
+
+language:'Language',
+
+accountsImpacted:'accounts impacted.',
+loading:'Loading...',
+
+successTitle:'Annulment Completed!',
+errorTitle:'Deletion Error', 
+closeButton:'Close', 
+
+ idleStatusConfirmationTitle:'Need Your Confirmation',
+
+loadingReportText:'Loading RTA Deletion Method Impact Report...',
+reportTitleNoImpact:"Impact Report: No Accounts Affected",
+reportTitleWithImpact:"Impact on Affected Accounts",
+
+ noImpactTitle: 'No Financial Impact!',
+ noImpactMessage: 'No affected accounts found. Proceeding with **Hard Delete**.',
+ impactDetectedTitle: '⚠️ Impact Detected: {count} Affected Accounts',
+ impactDetectedMessage: 'The annulment will automatically adjust balances to maintain financial consistency.',
+ tableOfAffectedAccountsDetails:'Financial impact details on related accounts',
+ affectedAccountColumn: 'Account',
+ affectedAccountTypeColumn:'Type',
+ currentBalanceColumn: 'Current Balance',
+ netAdjustmentColumn: 'Net Adjustment',
+ newBalanceColumn: 'New Balance',
+ tableOfRelatedAccountsDetails: 'Accounts this one has operated with',
+ backButtonText: 'Back',
+ backWithoutClosingLabel: 'Back, without closing this account',
+ interactionsColumn: 'Interactions',
+ netMovedColumn: 'Net Moved',
+ lastInteractionColumn: 'Last Interaction',
+ totalNetAdjustment: 'Total Net Adjustment:',
+ unattributedAmount: 'Not attributable to any account:',
+ unattributedNote:
+  '{count} transactions an earlier deletion already reversed. Shown beside the total, not added to it.',
+
+ // Labels for the interactions cell; the catalog names are identifiers such as
+ // 'account-opening'.
+ movement_expense: "Expense",
+ movement_income: "Income",
+ movement_investment: "Investment",
+ movement_debt: "Debt",
+ movement_pocket: "Pocket",
+ movement_transfer: "Transfer sent",
+ movement_receive: "Transfer received",
+ movement_account_opening: "Account opening",
+ movement_pnl: "Profit and loss",
+ movement_account_closure: "Account closure",
+ movement_balance_reversal: "Balance reversal",
+
+ income_source:'Income',
+ category_budget:"Expense",
+ debtor:"Debtor/Lender",
+ investment:"Investment",
+ bank:"Bank",
+ cash:"Cash",
+ pocket_saving:"Pocket",
+
+ autoCloseIn:'Auto Close in ',
+
+ postOperationSuccessTitle: "RTA Deletion Completed Successfully",
+  postOperationSuccessSubtitle: "Account {targetAccountName} has been deleted",
+  postOperationErrorTitle: "RTA Deletion Failed", 
+  postOperationErrorSubtitle: "Could not delete account {targetAccountName}",
+  operationIdLabel: "Operation ID",
+  deletedAccountLabel: "Deleted Account",
+  operationTimeLabel: "Operation Time",
+  adjustmentResultsTitle: "Financial Adjustments Results",
+  affectedAccountsCount: "Affected Accounts",
+  resultsTableNote: "The affected accounts have been automatically adjusted to maintain financial consistency.",
+  defaultSuccessMessage: "The RTA annulment has been completed successfully. All affected accounts have been adjusted.",
+  nextStepsTitle: "Next Steps",
+  contactAdminInstruction: "Contact the application administrator",
+  provideErrorIdInstruction: "Provide the error details for investigation",
+  tryAgainLaterInstruction: "Try again later or use a different method",
+  accountLabel: "Account",
+  errorTimeLabel: "Error Time",
+  backToActionsButton: "Back to Accounting Dashboard",
+
+  otherMethodsSectionTitle: "Other deletion methods",
+  otherMethodsSectionDescription: "Prefer not to run the annulment above? Deactivate the account instead, or erase it permanently without reversing its impact on other accounts.",
+
+  closeOnlyPageTitle: "Delete Account",
+  closeOnlyDetailsTitle: "Account to Delete",
+  closeOnlyBlockedNotice: "This account still has a balance. Transfer it to another account first, or use the button below to close it now; that balance will leave your net worth.",
+  relatedAccountsSummary: "Related accounts",
+  relatedAccountsNote: "New balance and net adjustment show what deleting this account with adjustment would do to each of these accounts. The close changes none of these figures.",
+  relatedAccountsHeading: "Accounts this one has moved money with",
+  relatedAccountsTitle: "This account has moved money with {count} accounts",
+  relatedAccountsLede: "How many movements this account shares with each of them, and when the last one was. Closing changes none of these accounts: the movements they share with it keep its name, because the closed account is recorded before its row is removed.",
+  relatedAccountsLedeAdjustment: "Two of the columns belong to the other route on this screen, not to closing. New balance and net adjustment are what deleting this account WITH ADJUSTMENT would leave on each of these accounts. Closing changes none of them.",
+  relatedAccountsNoneTitle: "No shared movements",
+  relatedAccountsNoneMessage: "This account has not moved money with any other account.",
+  closeAccountBudgetWarning: "This account carries a budget. The budget is deleted with the account, and the close cannot be undone.",
+  closeOnlySectionTitle: "Delete this account",
+  closeOnlySectionDescription: "The account is removed and cannot be reopened. Its history is kept: every movement that names it stays readable, under the same name it had. The balance must be zero first.",
+  closeAccountAction: "Delete (the account goes, its history stays)",
+
+  softDeactivateTriggerButton: "Deactivate Account",
+  softDeactivateTitle: "Deactivate this account?",
+  softDeactivateDescription: "This deactivates the account instead of erasing it. Its balance, transactions and history stay exactly as they are, and it can be reactivated later. No financial impact report is needed for this action.",
+  softDeactivateConfirmButton: "Deactivate Account",
+  softDeactivateSuccessMessage: "{targetAccountName} has been deactivated.",
+
+  closeAccountTriggerButton: "Delete Account",
+  closeAccountTitle: "Delete this account?",
+  closeAccountDescription: "Closing removes the account and keeps its history. Its transactions, pocket allocations and budget months stay readable under the same account, and any pockets this account was backing get their commitment back. The account name becomes available again. This cannot be undone: the account is not deactivated, it is removed, and there is no way to reopen it.",
+  closeAccountConfirmButton: "Delete Account",
+  closeAccountSuccessMessage: "{targetAccountName} has been deleted. Its history stays in the registry under the same name.",
+  closeAccountBalanceLabel: "Balance to close with:",
+  closeAccountBlockedByBalance: "This account still holds {residual}. Transfer it out first, or reverse the balance and close in one step.",
+  closeAccountReverseTriggerButton: "Reverse the Balance and Close",
+  closeAccountReverseTitle: "Reverse the Balance and Close",
+  closeAccountReverseDescription: "FinTrack will move the whole balance to the compensation account and close this account in one operation. If either part fails, neither happens.",
+  closeAccountReverseConfirmButton: "Reverse and Close",
+  closeNetWorthSectionLabel: "What this does to your net worth",
+  closeNetWorthBeforeLabel: "Net worth now",
+  closeNetWorthAfterLabel: "After closing this account",
+  closeNetWorthUnchangedNote: "This account is not counted in net worth, so closing it does not change that figure.",
+
+  closedAccountsMenuItem: "Closed Accounts",
+  closedAccountsPageTitle: "Closed Accounts",
+  closedAccountsLede: "Every account you have closed, under the name it had. Closing removes the account and keeps its record, so this list is what a closed account leaves behind: when it was closed, why, and what it was.",
+  closedAccountsSearchLabel: "Search",
+  closedAccountsSearchPlaceholder: "Name, reason or category",
+  closedAccountsTypeLabel: "Type",
+  closedAccountsTypeAll: "All types",
+  closedAccountsSortLabel: "Sort by",
+  closedAccountsSortClosedAt: "Date closed",
+  closedAccountsSortName: "Name",
+  closedAccountsSortType: "Type",
+  closedAccountsSortCreatedAt: "Date opened",
+  closedAccountsOrderToggle: "Reverse the order",
+  closedAccountsOrderAsc: "Oldest first",
+  closedAccountsOrderDesc: "Newest first",
+  closedAccountsOrderAscShort: "ASC",
+  closedAccountsOrderDescShort: "DESC",
+  closedAccountsColumnName: "Account",
+  closedAccountsColumnType: "Type",
+  closedAccountsColumnClosedAt: "Closed",
+  closedAccountsColumnReason: "Reason",
+  closedAccountsColumnOpened: "Opened",
+  closedAccountsColumnStartingAmount: "Started with",
+  closedAccountsColumnCategory: "Category",
+  closedAccountsNameUnknown: "Name not recorded",
+  closedAccountsTypeUnknown: "Type not recorded",
+  closedAccountsTotal: "{total} closed accounts",
+  closedAccountsPageStatus: "Page {page} of {pageCount}",
+  closedAccountsPreviousPage: "Previous page",
+  closedAccountsNextPage: "Next page",
+  closedAccountsPerPage: "Per page",
+  closedAccountsEmptyTitle: "Nothing closed yet",
+  closedAccountsEmptyMessage: "When you close an account, its record appears here and stays readable under the name it had.",
+  closedAccountsNoMatchTitle: "No closed account matches",
+  closedAccountsNoMatchMessage: "Nothing here matches the search and filter you have set. Clearing them brings the whole list back.",
+  closedAccountsClearFilters: "Clear search and filters",
+  closedAccountsErrorMessage: "The closed-account list could not be read.",
+  closedAccountsRetry: "Try again",
+  closedAccountsBackButton: "Back to Accounting Dashboard",
+
+  closeAccountReversalNotice: "{residual} will be moved to the compensation account and this account will be closed. The amount leaves your net worth; the movement stays recorded.",
+  closeReversalBoundaryStatement: "The compensation account is kept by the system and is not one of your accounts, so it sits outside your net worth. If it appears in the list below, that row is past history, not this reversal.",
+  closeAccountPreviewError: "The balance could not be read, so the close cannot be offered yet.",
+  closeAccountReasonLabel: "Reason for closing",
+  closeAccountReasonPlaceholder: "e.g. Bank account closed at the branch",
+  closeAccountReasonHint: "Required. It is stored with the closure and is what a later reader sees instead of the account.",
+
+  hardDeleteTriggerButton: "Erase Without Reversal",
+  hardDeleteTitle: "Erase this account without reversing its impact?",
+  hardDeleteDescription: "This permanently erases the account and its own transactions. It cannot be undone.",
+  hardDeleteWarning: "Every counterparty's historical balance from transacting with this account is left exactly as it is - nothing gets corrected. This is different from the Retrospective Total Annulment above, which reverses that impact first. Choose this only when you explicitly do not want that correction.",
+  hardDeleteConfirmButton: "Erase Without Reversal",
+  hardDeleteSuccessMessage: "{targetAccountName} has been permanently erased.",
+
+ }
+ ,
+
+ es:{
+pageTitle: "Eliminación de Cuenta y Ajuste de Balances",
+
+accountDetailsTitle: "Detalles de la Cuenta Objetivo (Borrar)",
+ accountIdLabel: "ID: ",
+ accountNameLabel: "Nombre: ",
+ accountTypeLabel: "Tipo: ",
+ accountBalanceLabel:'Balance: ',
+ actionLabel: "Acción: ",
+ rtaDeletionAction: "Eliminación de Cuenta y Ajuste de cuentas afectadas",
+ pendingDeletionStatus: "Pendiente por eliminación de la cuenta - Esperando confirmación",
+
+ reportErrorTitle: "Error al Cargar el Reporte:",
+ reportErrorMessage: "No se puede proceder con la anulación.",
+ proceedToDeletionButton: "Eliminar con ajuste",
+ finalSuccessTitle: "¡Éxito!",
+
+title: "Confirmar Eliminación de Cuenta",
+description: "Está a punto de iniciar el proceso de Anulación Retrospectiva Total (ART) para esta cuenta.",
+affectedAccounts: "cuenta(s) impactada(s) será(n) ajustada(s).",
+willBeAdjusted: "serán ajustadas.",
+
+pocketImpactTitle: "Esta cuenta actualmente respalda:",
+pocketImpactTotalLabel: "Total asignado:",
+pocketImpactNote: "Al eliminar esta cuenta se eliminan estas asignaciones de los pockets afectados. El dinero no se elimina; solo se elimina la asignación al pocket.",
+
+processing: "Procesando anulación...",
+apiError: "⚠️ **Error de API:**",
+clickToConfirm: "Haga clic en Confirmar para continuar la anulación.",
+
+cancel: "Cancelar",
+confirmDeletion: "Confirmar Anulación RTA",
+confirmHardDelete: "Confirmar Borrado Permanente",
+language: "Idioma",
+
+accountsImpacted: "cuentas impactadas.",
+loading: "Cargando...", 
+
+successTitle: '¡Anulación Completada!',
+errorTitle: 'Error en la Eliminación',
+closeButton: 'Cerrar',
+
+ idleStatusConfirmationTitle:'Requiere Confirmación',
+
+loadingReportText:"Cargando Reporte de Impacto de cuentas. Metodo ART de eliminacion de cuentas...",
+
+reportTitleNoImpact:"Reporte de Impacto: No hay cuentas Afectadas",
+reportTitleWithImpact:"Reporte de Cuentas Afectadas",
+
+noImpactTitle: '¡Sin Impacto Financiero!',
+noImpactMessage: 'No se encontraron cuentas afectadas. Se procederá con la **Eliminación Permanente de la cuenta (Hard Delete)**.',
+
+impactDetectedTitle: '⚠️ Impacto Detectado: {count} Cuentas Afectadas',
+impactDetectedMessage: 'La anulación ajustará automáticamente los saldos para mantener la consistencia financiera.',
+tableOfAffectedAccountsDetails:'Detalles del impacto financiero en cuentas relacionadas',
+affectedAccountColumn: 'Cuenta',
+affectedAccountTypeColumn:'Tipo',
+currentBalanceColumn: 'Saldo Actual',
+netAdjustmentColumn: 'Ajuste Neto',
+newBalanceColumn: 'Nuevo Saldo',
+tableOfRelatedAccountsDetails: 'Cuentas con las que esta ha operado',
+backButtonText: 'Volver',
+backWithoutClosingLabel: 'Volver sin cerrar esta cuenta',
+interactionsColumn: 'Movimientos',
+netMovedColumn: 'Monto Neto Movido',
+lastInteractionColumn: 'Último Movimiento',
+totalNetAdjustment: 'Ajuste Neto Total:',
+ unattributedAmount: 'No atribuible a ninguna cuenta:',
+ unattributedNote:
+  '{count} transacciones que una eliminación anterior ya revirtió. Se muestra junto al total, no se suma.',
+
+ // Labels for the interactions cell.
+ movement_expense: "Gasto",
+ movement_income: "Ingreso",
+ movement_investment: "Inversión",
+ movement_debt: "Deuda",
+ movement_pocket: "Bolsillo",
+ movement_transfer: "Transferencia enviada",
+ movement_receive: "Transferencia recibida",
+ movement_account_opening: "Apertura de cuenta",
+ movement_pnl: "Pérdidas y ganancias",
+ movement_account_closure: "Cierre de cuenta",
+ movement_balance_reversal: "Reversión de saldo",
+
+ income_source:'Ingreso',
+ category_budget:"Gasto",
+ debtor:"Préstamo",
+ investment:"Inversión",
+ bank:"Banco",
+ cash:"Efectivo",
+ pocket_saving:"Bolsillo",
+
+ autoCloseIn:"Cierre automático en ",
+
+  postOperationSuccessTitle: "Eliminación RTA Completada Exitosamente",
+  postOperationSuccessSubtitle: "La cuenta {targetAccountName} ha sido eliminada",
+  postOperationErrorTitle: "Eliminación RTA Fallida",
+  postOperationErrorSubtitle: "No se pudo eliminar la cuenta {targetAccountName}",
+  operationIdLabel: "ID de Operación",
+  deletedAccountLabel: "Cuenta Eliminada",
+  operationTimeLabel: "Hora de Operación",
+  adjustmentResultsTitle: "Resultados de Ajustes Financieros",
+  affectedAccountsCount: "Cuentas Afectadas",
+  resultsTableNote: "Las cuentas afectadas han sido ajustadas automáticamente para mantener la consistencia financiera.",
+  defaultSuccessMessage: "La anulación RTA se ha completado exitosamente. Todas las cuentas afectadas han sido ajustadas.",
+  nextStepsTitle: "Próximos Pasos",
+  contactAdminInstruction: "Comuníquese con el administrador de la aplicación",
+  provideErrorIdInstruction: "Proporcione los detalles del error para investigación",
+  tryAgainLaterInstruction: "Intente nuevamente más tarde o use un método diferente",
+  accountLabel: "Cuenta",
+  errorTimeLabel: "Hora del Error",
+  backToActionsButton: "Volver a Panel de Cuentas",
+
+  otherMethodsSectionTitle: "Otros métodos de eliminación",
+  otherMethodsSectionDescription: "¿Prefiere no ejecutar la anulación anterior? Desactive la cuenta en su lugar, o elimínela de forma permanente sin revertir su impacto en otras cuentas.",
+
+  closeOnlyPageTitle: "Eliminar Cuenta",
+  closeOnlyDetailsTitle: "Cuenta a Eliminar",
+  closeOnlyBlockedNotice: "Esta cuenta todavía tiene saldo. Transfiéralo primero a otra cuenta, o use el botón de abajo para cerrarla ahora; ese saldo dejará de sumar a su patrimonio.",
+  relatedAccountsSummary: "Cuentas relacionadas",
+  relatedAccountsNote: "El saldo nuevo y el ajuste neto muestran lo que le haría a cada una de estas cuentas eliminar esta con ajuste. El cierre no cambia ninguna de esas cifras.",
+  relatedAccountsHeading: "Cuentas con las que esta ha movido dinero",
+  relatedAccountsTitle: "Esta cuenta ha movido dinero con {count} cuentas",
+  relatedAccountsLede: "Cuántos movimientos comparte esta cuenta con cada una de ellas, y cuándo fue el último. Cerrar no cambia ninguna de estas cuentas: los movimientos que comparten con ella conservan su nombre, porque la cuenta cerrada queda registrada antes de que se elimine su fila.",
+  relatedAccountsLedeAdjustment: "Dos de las columnas son de la otra vía de esta pantalla, no del cierre. El saldo nuevo y el ajuste neto son lo que dejaría en cada una de estas cuentas eliminar esta CON AJUSTE. El cierre no cambia ninguna de las dos.",
+  relatedAccountsNoneTitle: "Sin movimientos compartidos",
+  relatedAccountsNoneMessage: "Esta cuenta no ha movido dinero con ninguna otra cuenta.",
+  closeAccountBudgetWarning: "Esta cuenta tiene un presupuesto asociado. El presupuesto se elimina junto con la cuenta, y el cierre no se puede deshacer.",
+  closeOnlySectionTitle: "Eliminar esta cuenta",
+  closeOnlySectionDescription: "La cuenta se elimina y no se puede reabrir. Su historia se conserva: todo movimiento que la nombra sigue siendo legible, con el nombre que tenía. El saldo debe estar en cero primero.",
+  closeAccountAction: "Eliminación (la cuenta se va, su historia queda)",
+
+  softDeactivateTriggerButton: "Desactivar Cuenta",
+  softDeactivateTitle: "¿Desactivar esta cuenta?",
+  softDeactivateDescription: "Esto desactiva la cuenta en lugar de eliminarla. Su saldo, transacciones e historial permanecen exactamente iguales, y puede reactivarse más adelante. Esta acción no requiere un reporte de impacto financiero.",
+  softDeactivateConfirmButton: "Desactivar Cuenta",
+  softDeactivateSuccessMessage: "{targetAccountName} ha sido desactivada.",
+
+  closeAccountTriggerButton: "Eliminar Cuenta",
+  closeAccountTitle: "\u00bfEliminar esta cuenta?",
+  closeAccountDescription: "Cerrar elimina la cuenta y conserva su historial. Sus transacciones, asignaciones de bolsillos y meses de presupuesto siguen siendo legibles bajo la misma cuenta, y los bolsillos que esta cuenta respaldaba recuperan su compromiso. El nombre de la cuenta vuelve a quedar disponible.",
+  closeAccountConfirmButton: "Eliminar Cuenta",
+  closeAccountSuccessMessage: "{targetAccountName} ha sido eliminada. Su historial permanece en el registro bajo el mismo nombre.",
+  closeAccountBalanceLabel: "Saldo con el que cerrar\u00eda:",
+  closeAccountBlockedByBalance: "Esta cuenta todavía tiene {residual}. Transfiéralo primero, o revierta el saldo y cierre en un solo paso.",
+  closeAccountReverseTriggerButton: "Revertir Saldo y Cerrar",
+  closeAccountReverseTitle: "Revertir el Saldo y Cerrar",
+  closeAccountReverseDescription: "FinTrack moverá todo el saldo a la cuenta de compensación y cerrará esta cuenta en una sola operación. Si una parte falla, no ocurre ninguna.",
+  closeAccountReverseConfirmButton: "Revertir y Cerrar",
+  closeNetWorthSectionLabel: "Lo que esto le hace a su patrimonio",
+  closeNetWorthBeforeLabel: "Patrimonio ahora",
+  closeNetWorthAfterLabel: "Después de cerrar esta cuenta",
+  closeNetWorthUnchangedNote: "Esta cuenta no suma en el patrimonio, así que cerrarla no cambia esa cifra.",
+
+  closedAccountsMenuItem: "Cuentas cerradas",
+  closedAccountsPageTitle: "Cuentas cerradas",
+  closedAccountsLede: "Todas las cuentas que usted ha cerrado, bajo el nombre que tenían. Cerrar elimina la cuenta y conserva su registro, así que esta lista es lo que una cuenta cerrada deja: cuándo se cerró, por qué y qué era.",
+  closedAccountsSearchLabel: "Buscar",
+  closedAccountsSearchPlaceholder: "Nombre, motivo o categoría",
+  closedAccountsTypeLabel: "Tipo",
+  closedAccountsTypeAll: "Todos los tipos",
+  closedAccountsSortLabel: "Ordenar por",
+  closedAccountsSortClosedAt: "Fecha de cierre",
+  closedAccountsSortName: "Nombre",
+  closedAccountsSortType: "Tipo",
+  closedAccountsSortCreatedAt: "Fecha de apertura",
+  closedAccountsOrderToggle: "Invertir el orden",
+  closedAccountsOrderAsc: "Más antiguas primero",
+  closedAccountsOrderDesc: "Más recientes primero",
+  closedAccountsOrderAscShort: "ASC",
+  closedAccountsOrderDescShort: "DESC",
+  closedAccountsColumnName: "Cuenta",
+  closedAccountsColumnType: "Tipo",
+  closedAccountsColumnClosedAt: "Cerrada",
+  closedAccountsColumnReason: "Motivo",
+  closedAccountsColumnOpened: "Abierta",
+  closedAccountsColumnStartingAmount: "Monto inicial",
+  closedAccountsColumnCategory: "Categoría",
+  closedAccountsNameUnknown: "Nombre no registrado",
+  closedAccountsTypeUnknown: "Tipo no registrado",
+  closedAccountsTotal: "{total} cuentas cerradas",
+  closedAccountsPageStatus: "Página {page} de {pageCount}",
+  closedAccountsPreviousPage: "Página anterior",
+  closedAccountsNextPage: "Página siguiente",
+  closedAccountsPerPage: "Por página",
+  closedAccountsEmptyTitle: "Todavía no ha cerrado nada",
+  closedAccountsEmptyMessage: "Cuando usted cierre una cuenta, su registro aparece aquí y sigue siendo legible bajo el nombre que tenía.",
+  closedAccountsNoMatchTitle: "Ninguna cuenta cerrada coincide",
+  closedAccountsNoMatchMessage: "Nada de aquí coincide con la búsqueda y el filtro que usted fijó. Al limpiarlos vuelve la lista completa.",
+  closedAccountsClearFilters: "Limpiar búsqueda y filtros",
+  closedAccountsErrorMessage: "No se pudo leer la lista de cuentas cerradas.",
+  closedAccountsRetry: "Reintentar",
+  closedAccountsBackButton: "Volver al panel de contabilidad",
+
+  closeAccountReversalNotice: "Se moverán {residual} a la cuenta de compensación y esta cuenta se cerrará. El monto sale de su patrimonio; el movimiento queda registrado.",
+  closeReversalBoundaryStatement: "La cuenta de compensación la mantiene el sistema y no es una de sus cuentas, por eso queda fuera de su patrimonio. Si aparece en la lista de abajo, esa fila es historial anterior, no esta reversión.",
+  closeAccountPreviewError: "No se pudo leer el saldo, as\u00ed que el cierre a\u00fan no puede ofrecerse.",
+  closeAccountReasonLabel: "Motivo del cierre",
+  closeAccountReasonPlaceholder: "p. ej. Cuenta bancaria cerrada en la sucursal",
+  closeAccountReasonHint: "Obligatorio. Se guarda junto al cierre y es lo que ver\u00e1 despu\u00e9s quien consulte, en lugar de la cuenta.",
+
+  hardDeleteTriggerButton: "Eliminar Sin Reversión",
+  hardDeleteTitle: "¿Eliminar esta cuenta sin revertir su impacto?",
+  hardDeleteDescription: "Esto elimina permanentemente la cuenta y sus propias transacciones. No se puede deshacer.",
+  hardDeleteWarning: "El saldo histórico de cada contraparte que transaccionó con esta cuenta queda exactamente igual: no se corrige nada. Esto es distinto de la Anulación Retrospectiva Total de arriba, que revierte ese impacto antes de eliminar. Elija esta opción solo cuando explícitamente no quiera esa corrección.",
+  hardDeleteConfirmButton: "Eliminar Sin Reversión",
+  hardDeleteSuccessMessage: "{targetAccountName} ha sido eliminada permanentemente.",
+
+ }
+};
+
+
+
+
+
+

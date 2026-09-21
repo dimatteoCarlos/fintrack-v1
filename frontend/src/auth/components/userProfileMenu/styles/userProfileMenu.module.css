@@ -1,0 +1,357 @@
+.menuOverlay {
+ position: fixed;
+ inset: 0;
+ background-color: var(--color-surface-overlay);
+ z-index: var(--z-overlay);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ animation: fadeIn var(--motion-slow);
+}
+
+/* Sits above the menu overlay so the form is always the topmost of the two. */
+.modalOverlay {
+ position: fixed;
+ inset: 0;
+ background-color: var(--color-surface-overlay);
+ z-index: var(--z-modal);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ animation: fadeIn var(--motion-slow);
+}
+
+/* The menu stays mounted (hidden) while a form is open, so reopening it costs no
+   remount and the overlay behind the form does not shift. */
+.hidden {
+ visibility: hidden;
+}
+
+.menuContainer {
+ cursor: default;
+ background-color: var(--color-surface-raised);
+ border-radius: var(--radius-sm);
+ /* Mobile-first: spans the viewport minus one gutter each side, the same width as
+    the account card. */
+ width: var(--layout-content-width);
+ margin: 0 auto;
+ /* No token covers the floor; the ceiling is the account card width. */
+ min-width: 240px;
+ max-width: var(--layout-card-width);
+ box-shadow: var(--shadow-overlay);
+ overflow: hidden;
+ z-index: var(--z-raised);
+ user-select: none;
+ touch-action: none;
+}
+
+/* Mobile-first: the form fills the phone screen and floats from 480px up. */
+.modalContainer {
+ background-color: var(--color-surface-inverse);
+ width: 100vw;
+ min-width: 100%;
+ height: 100svh;
+ border-radius: 0;
+ overflow-y: auto;
+ animation: slideUp var(--motion-slow);
+}
+
+/* Cream band on the dark card. The surface change is the separator (13.73:1
+   contrast), so no hairline is drawn on top of it. */
+.menuHeader {
+ display: flex;
+ align-items: center;
+ gap: var(--space-3);
+ padding: var(--space-4);
+ background-color: var(--color-surface-panel);
+}
+
+/* The header takes focus (tabIndex 0), so it needs a ring of its own. */
+.menuHeader:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: calc(var(--border-width-thick) * -1);
+}
+
+.menuAvatar {
+ width: var(--size-badge);
+ height: var(--size-badge);
+ background-color: var(--color-surface-app);
+ border: var(--border-width-thick) solid var(--color-border-strong);
+ border-radius: var(--radius-sm);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ /* The design system names no display family, so the script face stays. */
+ font-family: "Style Script", cursive;
+ font-size: var(--font-size-lg);
+ font-weight: var(--font-weight-bold);
+ color: var(--color-content-on-dark);
+ flex-shrink: 0;
+}
+
+.menuUserInfo {
+ display: flex;
+ flex-direction: column;
+ overflow: hidden;
+ flex: 1;
+}
+
+.menuUserName {
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+}
+
+.menuUserEmail {
+ font-size: var(--font-size-sm);
+ color: var(--color-content-secondary);
+ white-space: nowrap;
+ overflow: hidden;
+ text-overflow: ellipsis;
+}
+
+.closeButton {
+ margin-left: auto;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ background-color: transparent;
+ border: none;
+ line-height: 1;
+ color: var(--color-content-primary);
+ cursor: pointer;
+ padding: var(--space-2);
+ border-radius: 50%;
+ flex-shrink: 0;
+ transition: background-color var(--motion-normal),
+  color var(--motion-normal), transform var(--motion-press);
+}
+
+/* Dulled cream, not the accent: the control sits on the cream band, so the rows' fill would match it
+   (contrast 1.64:1). A content token doubles as a surface because no muted-cream surface token exists. */
+.closeButton:hover {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-content-primary);
+}
+
+/* index.css strips the outline from every button, so the ring is declared here;
+   this one sits on the cream band, not on the card. */
+.closeButton:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.closeButton:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-content-primary);
+ transform: scale(0.95);
+}
+
+.closeButton:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Sized in em: index.css pins font-size on every element, so the basis is
+   restated here. */
+.closeIcon {
+ width: 1em;
+ height: 1em;
+ font-size: var(--font-size-xl);
+ flex-shrink: 0;
+}
+
+/* The glyphs stroke in currentColor, so the modifier names the ground they sit
+   on rather than a colour of their own; the same asset serves both surfaces. */
+.light {
+ color: var(--color-content-primary);
+}
+
+.dark {
+ color: var(--color-content-on-dark);
+}
+
+/* The subtle border token is calibrated for dark grounds, which the raised
+   surface is. */
+.menuDivider {
+ height: var(--border-width-thin);
+ background-color: var(--color-border-subtle);
+ margin: 0;
+}
+
+.menuItem {
+ display: flex;
+ align-items: center;
+ width: 100%;
+ min-height: var(--size-touch-target);
+ padding: var(--space-3) var(--space-4);
+ border: none;
+ background-color: transparent;
+ cursor: pointer;
+ text-align: left;
+ font-size: var(--font-size-base);
+ color: var(--color-content-on-dark);
+ gap: var(--space-3);
+ transition: background-color var(--motion-normal),
+  color var(--motion-normal), transform var(--motion-press);
+}
+
+.menuItem:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* Same reason as the close button: index.css removes the browser ring. */
+.menuItem:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.menuItem:active {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+ transform: scale(0.99);
+}
+
+.menuItem:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Same em basis as .closeIcon: index.css pins font-size on every element. */
+.menuItemIcon {
+ width: 1em;
+ height: 1em;
+ font-size: var(--font-size-xl);
+ flex-shrink: 0;
+}
+
+/* index.css pins every element at 16px, so this span does not inherit the
+   row's size unless it says so. */
+.menuItemText {
+ flex: 1;
+ font-size: inherit;
+}
+
+.menuFooter {
+ padding: var(--space-3) var(--space-4);
+ text-align: center;
+ /* Two badges on one line, wrapping together rather than one under the other. */
+ display: flex;
+ flex-wrap: wrap;
+ justify-content: center;
+ gap: var(--space-2);
+ border-top: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.currencyBadge {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+ font-size: var(--font-size-sm);
+ color: var(--color-content-secondary);
+ padding: var(--space-1) var(--space-2);
+ background-color: var(--color-surface-panel);
+ border-radius: var(--radius-xs);
+}
+
+.currencyIcon {
+ width: 1em;
+ height: 1em;
+ font-size: var(--font-size-base);
+ flex-shrink: 0;
+}
+
+/* Nested inline element: without the restatement it renders at the universal
+   selector's 16px inside a badge set to 12px. */
+.currencyBadge strong {
+ color: var(--color-content-primary);
+ font-weight: var(--font-weight-semibold);
+ font-size: inherit;
+}
+
+@keyframes fadeIn {
+ from { opacity: 0; }
+ to { opacity: 1; }
+}
+
+@keyframes slideUp {
+ from {
+  opacity: 0;
+  transform: translateY(var(--space-5));
+ }
+ to {
+  opacity: 1;
+  transform: translateY(0);
+ }
+}
+
+/* The reader asked the system for no animation, and an entrance is one. */
+@media (prefers-reduced-motion: reduce) {
+ .menuOverlay,
+ .modalOverlay,
+ .modalContainer {
+  animation: none;
+ }
+
+ .closeButton,
+ .menuItem {
+  transition: none;
+ }
+
+ .closeButton:active,
+ .menuItem:active {
+  transform: none;
+ }
+}
+
+/* From 480px the form stops filling the screen and floats as a card. */
+@media (min-width: 480px) {
+ .modalContainer {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  max-width: 90%;
+  max-height: 90svh;
+  border-radius: var(--radius-sm);
+ }
+}
+
+@media (min-width: 768px) {
+ .menuContainer {
+  width: auto;
+  margin: 0;
+  min-width: 280px;
+ }
+
+ .menuAvatar {
+  font-size: var(--font-size-lg);
+ }
+
+ .menuUserName {
+  font-size: var(--font-size-base);
+ }
+
+ .menuItem {
+  padding: var(--space-4);
+  font-size: var(--font-size-base);
+ }
+}
+
+@media (min-width: 1024px) {
+ .menuContainer {
+  min-width: 320px;
+ }
+}
+
+/* A coarse pointer gets the full row padding whatever the viewport width. */
+@media (hover: none) and (pointer: coarse) {
+ .menuItem {
+  padding: var(--space-4);
+ }
+}

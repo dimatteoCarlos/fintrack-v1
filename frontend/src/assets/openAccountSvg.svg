@@ -1,0 +1,9 @@
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <!-- Redrawn by hand after the Landmark glyph of the Lucide icon set. Its two horizontal rules stop short of the badge,
+       so the badge reads as sitting in front of them; lines running under a disc would read as a mistake. -->
+  <path d="M8 1.5 15 6H1Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4 7.75v5.25M8 7.75v5.25M12 7.75v5.25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M2 13.4h11M1 16.4h12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- One evenodd path, so the plus is a hole in the disc that shows whatever surface is behind it, not a stroke painted over it. -->
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M23 18.5a4.5 4.5 0 1 0-9 0 4.5 4.5 0 1 0 9 0ZM17.85 16.1h1.3v1.75h1.75v1.3h-1.75v1.75h-1.3v-1.75h-1.75v-1.3h1.75z" fill="currentColor"/>
+</svg>

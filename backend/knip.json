@@ -1,0 +1,24 @@
+{
+  "entry": [
+    "src/index.js",
+    "src/db/migrations/bootstrapping.js",
+    "src/db/migrations/runResetDb.js",
+    "src/db/migrations/runMigrations.js",
+    "src/db/migrations/runAlignment.js",
+    "src/db/migrations/schemaParity.js",
+    "src/db/migrations/runSeeds.js",
+    "src/fintrack_api/services/fx_services/core/detectStalledOfficialRates.js",
+    "scripts/**/*.js",
+    "test/**/*.test.js"
+  ],
+  "project": [
+    "src/**/*.js",
+    "scripts/**/*.js",
+    "test/**/*.js"
+  ],
+  "ignore": [
+    "src/db/docs/**",
+    "src/db/run_time_db_init/**",
+    "src/db/seeds/**"
+  ]
+}

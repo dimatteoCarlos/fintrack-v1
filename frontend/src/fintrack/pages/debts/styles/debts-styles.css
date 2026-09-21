@@ -1,0 +1,407 @@
+/* .bigBox__container styles come from the overview bigBox container. */
+
+/* The shell spreads its three children with space-between, so a board shorter
+   than the viewport would float mid-screen; taking the height the header and the
+   navbar leave keeps it under the header and the navbar at the bottom. */
+.home__layout:has(.debtsLayout) .debtsLayout {
+ flex: 1;
+ min-height: 0;
+}
+
+.debtsLayout {
+ display: flex;
+ flex-direction: column;
+ gap: 1rem;
+}
+
+/* In flow like the other boards, so the card below reserves the hero's real
+   height. Position and anchor come from the shared board-hero rule in
+   generalStyles.css. */
+.debtsLayout .bigBox__container {
+ align-self: center;
+}
+
+.bigBox__mainInfo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--dark);
+}
+
+.debtsLayout .displayScreen.dark {
+  background-color: var(--dark);
+  border: none;
+  border-radius: 0.75rem;
+  min-height: 2.375rem;
+  color: var(--light);
+  width: 86.3%;
+  padding: 0.5rem 0.75rem;
+
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-weight: bolder;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.debtsLayout .debtIndicatorContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dark);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.debtsLayout .debtInfo {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.debtsLayout .displayScreen--concept.light,
+.debtsLayout .displayScreen--result.light {
+  color: var(--light);
+  font-size: 0.875rem;
+  text-transform: capitalize;
+  font-weight: 400;
+}
+
+.debtsLayout .displayScreen--result.light {
+  font-weight: 500;
+  text-align: center;
+}
+
+.debtsLayout .displayScreen--concept.light {
+  text-align: right;
+}
+
+.debtsLayout .presentation__card__title__container {
+  padding: 1.5rem 0 1rem 0;
+}
+.debtsLayout .content__presentation {
+  /* The hero is in flow, so it needs no clearance. */
+  padding-top: 0;
+}
+
+/* A card of its own: the hero above is a separate cream panel, so all four
+   corners are rounded. */
+.debtsLayout .debts.cards__presentation {
+  background-color: var(--color-surface-deep);
+  border-radius: 1rem;
+  padding: var(--space-3);
+}
+
+/* The create button leads this card (it closes the card on the budget and pocket
+   boards), so the shared top margin would only double the card's padding. Scoped
+   to the first-position button to leave the shared rule intact. */
+.debtsLayout .debts.cards__presentation > button.line__container {
+  margin-top: 0;
+}
+
+/* Summary heading and export trigger on one line; the trigger centres against
+   the heading so the row is no taller than the heading alone. */
+.debtsLayout .debtsSummaryBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+a.icon {
+  height: 100%;
+  width: 2rem;
+  z-index: 1;
+}
+
+/* Ceiling for the shell: .home__layout's own max-height (generalStyles.css) only applies from
+   50rem up, so below that the list is never bounded. The :has guard keeps detail and form in flow. */
+.home__layout:has(.debtsLayout .debtorList) {
+ max-height: 100dvh;
+}
+
+/* The list scrolls inside its own panel: .debtsLayout takes the leftover height and these two
+   pass it down. Guarded by :has(.debtorList) because debtor detail and form reuse these classes. */
+.debtsLayout .content__presentation:has(.debtorList),
+.debtsLayout .cards__presentation:has(.debtorList) {
+ display: flex;
+ flex-direction: column;
+ flex: 1;
+ min-height: 0;
+}
+
+/* Where the height handoff ends. Its own class because .list__main__container is shared by six
+   lists through global stylesheets, and a rule there would confine all six. */
+.debtsLayout .debtorList {
+ flex: 1;
+ min-height: 0;
+ overflow-y: auto;
+ /* Reserve the scrollbar gutter: otherwise filtering the list short removes the
+    bar and every row widens at once. No effect on overlay scrollbars. */
+ scrollbar-gutter: stable;
+ padding: var(--space-1);
+}
+
+/* The debtor list's three fetch states (loading, error, empty); none of them is
+   a debtor row. Design tokens only. */
+
+.debtorList__state {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-4);
+ padding: var(--space-8) var(--space-4);
+ text-align: center;
+}
+
+.debtorList__stateText {
+ margin: 0;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-regular);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* Retry separates an error from an empty list: the reader can act on it. */
+.debtorList__retry {
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.debtorList__retry:hover {
+ background-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+}
+
+.debtorList__retry:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.debtorList__retry:active {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.debtorList__retry:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Holds the space the rows will take so the page does not jump; aria-hidden in
+   the markup because empty bars mean nothing to a screen reader. */
+.debtorList__skeleton {
+ pointer-events: none;
+}
+
+.debtorList__skeletonRow {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ gap: var(--space-4);
+}
+
+.debtorList__skeletonBar {
+ width: 30%;
+ height: var(--font-size-sm);
+ margin: var(--space-1) 0;
+ border-radius: var(--radius-xs);
+ background-color: var(--color-border-subtle);
+ animation: debtorList__pulse var(--motion-slow) ease-in-out infinite alternate;
+}
+
+.debtorList__skeletonBar--title {
+ width: 45%;
+ height: var(--font-size-base);
+}
+
+.debtorList__skeletonBar--status {
+ width: 20%;
+ height: var(--font-size-xs);
+}
+
+@keyframes debtorList__pulse {
+ from {
+  opacity: 0.5;
+ }
+ to {
+  opacity: 1;
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .debtorList__skeletonBar {
+  animation: none;
+ }
+
+ .debtorList__retry {
+  transition: none;
+ }
+}
+
+/* Mobile-first from 360px; the state box gets more padding from 480px, the list
+   itself does not reflow. */
+@media (min-width: 480px) {
+ .debtorList__state {
+  padding: var(--space-12) var(--space-6);
+ }
+}
+
+/* The headline board's three fetch states. The hero keeps its shape in all three
+   so the card under it does not jump. It sits on a light surface, so the content
+   tokens are the panel-paired ones, not those the dark debtor list uses. */
+
+/* Scoped for specificity (0,2,0): the hero's own rule sets gap in another
+   stylesheet, so at one class each the winner would depend on load order. */
+.debtsLayout .debtsBoard__state {
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-4);
+ padding-block: var(--space-8);
+ text-align: center;
+}
+
+.debtsBoard__stateText {
+ margin: 0;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-regular);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-secondary);
+}
+
+/* Retry separates an error from an empty board: the reader can act on it. */
+.debtsBoard__retry {
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid var(--color-border-strong);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-primary);
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.debtsBoard__retry:hover {
+ background-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+}
+
+.debtsBoard__retry:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.debtsBoard__retry:active {
+ background-color: var(--color-surface-app);
+ color: var(--color-content-on-dark);
+}
+
+.debtsBoard__retry:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Holds the height the four rows of figures will take; aria-hidden in the markup
+   because empty bars mean nothing to a screen reader. */
+.debtsBoard__skeleton {
+ pointer-events: none;
+}
+
+.debtsBoard__skeletonBar {
+ width: 60%;
+ height: var(--font-size-sm);
+ border-radius: var(--radius-xs);
+ background-color: var(--color-surface-disabled);
+ animation: debtsBoard__pulse var(--motion-slow) ease-in-out infinite alternate;
+}
+
+.debtsBoard__skeletonBar--title {
+ width: 45%;
+ height: var(--font-size-xl);
+}
+
+.debtsBoard__skeletonBar--total {
+ width: 100%;
+ height: var(--font-size-2xl);
+ border-radius: var(--radius-md);
+}
+
+.debtsBoard__skeletonBar--wide {
+ width: 100%;
+ height: var(--font-size-lg);
+}
+
+@keyframes debtsBoard__pulse {
+ from {
+  opacity: 0.5;
+ }
+ to {
+  opacity: 1;
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .debtsBoard__skeletonBar {
+  animation: none;
+ }
+
+ .debtsBoard__retry {
+  transition: none;
+ }
+}
+
+/* Mobile-first from 360px; the state panel gets more padding from 480px, the
+   hero's own width does not change. */
+@media (min-width: 480px) {
+ .debtsLayout .debtsBoard__state {
+  gap: var(--space-6);
+  padding-block: var(--space-12);
+ }
+}
+
+/* The direction sits beside the counterparty's role (who they are vs which way the money runs).
+   Its own span because .box__subtitle capitalises every word, turning the sentence into "You Owe". */
+.debtorRow__direction {
+ text-transform: none;
+ /* index.css sets font-size on the universal selector, so an inline element
+    does not inherit the size of the line it sits in unless it restates it. */
+ font-size: inherit;
+}
+
+/* The figure is unsigned, so colour carries direction but never alone (words say the same, for
+   colour-blind readers). Teal and rose, not red and green. Two classes beat .box__title, no !important. */
+.box__title.debtorRow__amount--owed {
+ color: var(--color-amount-positive);
+}
+
+.box__title.debtorRow__amount--owing {
+ color: var(--color-amount-negative);
+}
+
+/* Same teal/rose pair as the debtor rows (contrast on --dark about 4.9:1 and 5.6:1). The net and the
+   counts take no colour. Same specificity as the overridden rule, placed after it, so no !important. */
+.debtsLayout .displayScreen--result.debtsBoard__amount--owed {
+ color: var(--color-amount-positive);
+}
+
+.debtsLayout .displayScreen--result.debtsBoard__amount--owing {
+ color: var(--color-amount-negative);
+}

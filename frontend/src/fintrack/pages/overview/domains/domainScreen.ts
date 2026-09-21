@@ -1,0 +1,69 @@
+// Contract between the level-2 shell (heading, fetch states, movement list) and one
+// domain's composition, which owns only what sits between the heading and the list.
+
+import { ComponentType } from 'react';
+
+import { FullAnalysisStatus } from '../hooks/useOverviewDomain';
+import {
+ GetOverviewDomainData,
+ OverviewAnalysis,
+ OverviewDomain,
+ OverviewDomainCard,
+} from '../../../types/overviewTypes';
+
+export type CardOf<D extends OverviewDomain> = Extract<
+ OverviewDomainCard,
+ { domain: D }
+>;
+
+export type AnalysisOf<D extends OverviewDomain> = Extract<
+ OverviewAnalysis,
+ { domain: D }
+>;
+
+// A flow is summed over the month; a position is read at the month's close.
+// "closing balance", not "at month end", which reads as a sum up to that day.
+export type HeadlineNature = 'this month' | 'closing balance';
+
+export type DomainCompositionProps<D extends OverviewDomain> = {
+ card: CardOf<D>;
+ // Null until an answer for this domain and month carries one.
+ analysis: AnalysisOf<D> | null;
+ answer: GetOverviewDomainData;
+ // True while any request of the screen is on the wire, the first one included.
+ isLoading: boolean;
+ onRetry: () => void;
+ // The screen's one full request: its state, and the call every full section's
+ // viewport trigger and retry make.
+ fullStatus: FullAnalysisStatus;
+ onRequestFullAnalysis: () => void;
+ selectedCategory: string | null;
+ onSelectCategory: (next: string | null) => void;
+};
+
+export type DomainScreen<D extends OverviewDomain> = {
+ label: string;
+ headline: {
+  nature: HeadlineNature;
+  amountOf: (card: CardOf<D>) => number;
+ };
+ // The list under the composition: movements on five domains, allocations on pockets.
+ list: {
+  title: string;
+  itemLabel: string;
+ };
+ Composition: ComponentType<DomainCompositionProps<D>>;
+};
+
+// Keyed by domain so the registry cannot hand one domain another's card type.
+export type DomainScreens = { [D in OverviewDomain]: DomainScreen<D> };
+
+export const isCardOf = <D extends OverviewDomain>(
+ card: OverviewDomainCard,
+ domain: D,
+): card is CardOf<D> => card.domain === domain;
+
+export const isAnalysisOf = <D extends OverviewDomain>(
+ analysis: OverviewAnalysis | null,
+ domain: D,
+): analysis is AnalysisOf<D> => analysis?.domain === domain;

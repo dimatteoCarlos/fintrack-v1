@@ -1,0 +1,196 @@
+.transaction-item {
+  /* BoxContainer already sets a solid border-bottom and padding; !important
+     overrides both with a subtler dashed line. */
+  border-bottom: 1px dashed var(--creme) !important;
+  padding: 0.8rem 0.5rem !important;
+}
+
+.transaction-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Interactive only when the screen mounting the list hands the row a handler. */
+.transaction-item--clickable {
+ cursor: pointer;
+}
+
+/* The shared row wash rather than --color-surface-raised: it lifts whatever
+   ground the list sits on, so both lists answer the pointer the same way. */
+.transaction-item--clickable:hover {
+ background-color: var(--color-surface-row-hover);
+ box-shadow: inset 3px 0 0 0 var(--color-border-row-hover);
+}
+
+.transaction-item--clickable:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-interactive-hover);
+ outline-offset: var(--border-width-thick);
+}
+
+.transaction-item--clickable:active {
+ opacity: 0.7;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.transaction-movement-type {
+  font-size: 1rem;
+  font-weight: 600;
+  color:white;
+  flex: 1;
+}
+
+.transaction-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-left: 1rem;
+  color: var(--creme);
+}
+
+.transaction-date {
+  font-size: var(--font-size-sm);
+  color: var(--color-content-on-dark-subtle);
+  margin-left: 0.8rem;
+}
+
+.transaction-description {
+  /* Complemented by an inline style in the component. */
+  color: var(--creme);
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* One figure per line instead of two side by side: at 360px the balance and the
+   accumulated spend did not fit on the same row without compressing. */
+.transaction-item__totals {
+ flex-direction: column;
+ gap: var(--space-1);
+}
+
+/* The name at one end, the number at the other, so the two lines read as a
+   column of figures and not as two sentences. */
+.transaction-item__figure {
+ display: flex;
+ align-items: baseline;
+ justify-content: space-between;
+ gap: var(--space-2);
+ width: 100%;
+}
+
+/* Restates its size for the reason index.css documents: a font-size on the
+   universal selector matches a span and beats the line it sits in. */
+.transaction-item__figureLabel {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* The month's spend up to and including this row. Smaller than the balance
+   above it: the balance is an accounting fact, this one is an indicator. */
+.transaction-item__accumulated-spent {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* Share of the budget consumed by this row; same tokens and threshold as the summary box.
+   font-size is restated because index.css sets one on the universal selector. */
+.transaction-item__spentShare {
+ font-size: inherit;
+ font-weight: inherit;
+}
+
+.transaction-item__spentShare--over {
+ color: var(--color-financial-negative);
+}
+
+.transaction-item__spentShare--left {
+ color: var(--color-financial-positive);
+}
+
+/* The row where the month's spend passed its budget. The stripe is what finds
+   it while scrolling a long list; the line below is what explains it. */
+.transaction-item--overBudget {
+ border-left: var(--border-width-thick) solid var(--color-status-alert);
+}
+
+/* The same stripe in the warning token: the two rows differ by which side of the
+   budget the month is on, not by emphasis, so weight and position are identical. */
+.transaction-item--nearBudget {
+ border-left: var(--border-width-thick) solid var(--color-status-warning);
+}
+
+.transaction-item__breakRow,
+.transaction-item__nearRow {
+ margin-top: var(--space-2);
+}
+
+/* No frame around it: the row is already a card carrying an alert stripe, and a
+   badge here would draw a second border around the same statement. */
+.transaction-item__budgetBreak {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+ font-size: var(--font-size-sm);
+ color: var(--color-status-alert);
+}
+
+/* Same rule, same reason it carries no frame. Only the token differs. */
+.transaction-item__budgetNear {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+ font-size: var(--font-size-sm);
+ color: var(--color-status-warning);
+}
+
+.transaction-balance-after {
+  color: #bdb1b1; /* Similar to .tile__subtitle */
+  font-weight: 400;
+}
+
+.no-transactions {
+  text-align: center;
+  color: var(--creme);
+  padding: 1rem;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .transaction-header {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .transaction-movement-type {
+    font-size: 0.95rem;
+  }
+
+  .transaction-amount {
+    font-size: 1rem;
+    margin-left: 0.5rem;
+  }
+
+  .transaction-item {
+    padding: 0.6rem 0.4rem !important;
+  }
+}
+
+/* The sign stays and colour only repeats it: movements accumulate against the opening balance,
+   so the sign lets the owner check the total. Two classes deep to beat .box__title without !important. */
+.box__title.transactionRow__amount--in {
+ color: var(--color-amount-positive);
+}
+
+.box__title.transactionRow__amount--out {
+ color: var(--color-amount-negative);
+}
+
+/* A zero movement, or an amount the answer did not carry, takes no colour: it
+   keeps the row's own ink. Left as a comment because a rule would only name the
+   colour already inherited. */

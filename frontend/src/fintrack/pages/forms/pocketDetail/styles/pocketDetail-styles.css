@@ -1,0 +1,526 @@
+/* Pocket detail screen. Own sheet, not forms-styles.css, which every form imports.
+   The screen sits on the dark surface (on-dark tokens); the cream panel paints its own. */
+
+/* The content column, so this screen starts at the same x as the other detail
+   screens. Same geometry the budget detail borrows, as a modifier on the shared
+   .page__container rather than an edit to forms-styles. */
+.page__container--pocket {
+ width: var(--layout-content-width);
+ padding: 0 var(--space-3);
+}
+
+/* Full column width, so the back arrow and overflow menu sit on the same edges
+   as the cream panel. The shared rule gives this block 85%, which insets the
+   controls from the panel; the budget detail corrects it the same way. */
+.page__container--pocket .page__content {
+ width: 100%;
+}
+
+.pocketDetail__state {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: var(--space-4);
+ padding: var(--space-8) var(--space-4);
+ text-align: center;
+}
+
+.pocketDetail__stateText {
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+ margin: 0;
+}
+
+/* One rule for the button and the link, because the two states differ in what
+   they offer and not in what they look like: a request that failed offers to
+   retry, an id that is not a pocket offers the way back. */
+.pocketDetail__retry {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-5);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-sm);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ text-decoration: none;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.pocketDetail__retry:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.pocketDetail__retry:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketDetail__retry:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+.pocketDetail__retry:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Placeholders, not spinners: they hold the answer's space so the page does not jump,
+   and claim no figure (a 0 while loading would read as an empty pocket). */
+.pocketDetail__skeletonHero {
+ height: var(--space-16);
+ width: 100%;
+ border-radius: var(--radius-lg);
+ background-color: var(--color-surface-raised);
+}
+
+.pocketDetail__skeletonRow {
+ height: var(--space-8);
+ width: 100%;
+ margin-bottom: var(--space-3);
+ border-radius: var(--radius-sm);
+ background-color: var(--color-surface-raised);
+}
+
+.pocketDetail__section {
+ margin-top: var(--space-6);
+}
+
+/* Clearance under the last section: sections declare space only above, so the
+   allocation history that ends the page would touch the viewport edge and read
+   as cut off. */
+.pocketDetail__section:last-child {
+ padding-bottom: var(--space-6);
+}
+
+/* A rule under the heading so the section reads as a band, on the title's own
+   container, which holds only the heading. */
+.pocketDetail__section .presentation__card__title__container {
+ padding-bottom: var(--space-2);
+ border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+ /* Clearance under the rule. --space-3 against the heading's own --space-2
+    keeps the rule closer to the words it underlines than to the content it
+    introduces. */
+ margin-bottom: var(--space-3);
+}
+
+.pocketDetail__list {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ margin: 0;
+ padding: 0;
+ list-style: none;
+}
+
+.pocketDetail__row {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: var(--space-4);
+ padding: var(--space-3) var(--space-4);
+ border-radius: var(--radius-sm);
+ background-color: var(--color-surface-raised);
+}
+
+.pocketDetail__rowLeft {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+.pocketDetail__rowRight {
+ display: flex;
+ flex-direction: column;
+ align-items: flex-end;
+ gap: var(--space-1);
+ flex-shrink: 0;
+}
+
+.pocketDetail__rowTitle {
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ overflow: hidden;
+ text-overflow: ellipsis;
+ white-space: nowrap;
+}
+
+.pocketDetail__rowSubtitle {
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+ font-variant-numeric: tabular-nums;
+}
+
+/* Tabular figures so a column of amounts lines up on the decimal. */
+.pocketDetail__rowAmount {
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ font-variant-numeric: tabular-nums;
+}
+
+/* A release. The row already says the word, so the colour repeats it rather
+   than carrying it alone. */
+.pocketDetail__rowAmount--negative {
+ color: var(--color-financial-negative);
+}
+
+/* The account no longer covers everything committed to it — its own state, not
+   this pocket's share of it. The attention colour and not the error one:
+   nothing failed. */
+.pocketDetail__flag {
+ padding: 0 var(--space-2);
+ border-radius: var(--radius-full);
+ background-color: var(--color-financial-attention-surface);
+ color: var(--color-financial-attention-content);
+ /* index.css sets font-size on the universal selector, so an inline element
+    does not inherit the size of the line it sits in and has to restate one. */
+ font-size: var(--font-size-2xs);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ white-space: nowrap;
+}
+
+/* Left, not centred: on the same edge as the rows that will replace it, it reads
+   as the list's first line rather than a decorative placeholder. */
+.pocketDetail__empty {
+ margin: 0;
+ padding: var(--space-3) 0;
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-sm);
+ line-height: 1.5;
+}
+
+/* Values inside the source and history rows, which sit on the dark app surface,
+   so they use the on-dark ink; the cream-panel ink would be near-black on black. */
+.pocketDetail__value {
+ padding: var(--space-2);
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+}
+
+@media (min-width: 480px) {
+ .pocketDetail__row {
+  padding: var(--space-3) var(--space-5);
+ }
+}
+
+/* Quiet control that asks the deletion question without performing it.
+   Unreferenced: deletion is in the header's overflow menu. */
+.pocketDetail__delete {
+ align-self: center;
+ min-height: var(--size-touch-target);
+ margin-top: var(--space-6);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid var(--color-status-alert);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-status-alert);
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+.pocketDetail__delete:hover {
+ background-color: var(--color-status-alert);
+ color: var(--color-content-on-dark);
+}
+
+.pocketDetail__delete:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketDetail__delete:active {
+ background-color: var(--color-financial-negative-surface);
+ color: var(--color-content-on-dark);
+}
+
+.pocketDetail__delete:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pocketDetail__delete {
+  transition: none;
+ }
+}
+
+/* The two money decisions, side by side. Committing is the primary one — a
+   pocket that nothing is committed to reports zero on every screen — and
+   releasing is offered only when something is actually held. */
+.pocketDetail__actions {
+ display: flex;
+ flex-wrap: wrap;
+ gap: var(--space-3);
+ justify-content: center;
+ margin-top: var(--space-6);
+}
+
+/* The square keeps its size against a sentence that wraps to three lines, and
+   sits on the first line rather than centred on the whole block. */
+.pocketDetail__paceVerdict .status__square {
+ flex-shrink: 0;
+ margin-top: var(--space-1);
+}
+
+/* The pace card is raised off the app surface rather than bordered: it is a
+   block of figures, not a sentence about the pocket's state. */
+.pocketDetail__pace {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-3);
+ margin-top: var(--space-4);
+ padding: var(--space-3) var(--space-4);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-raised);
+}
+
+/* The verdict of the comparison: the only line that answers the question the
+   two figures raise, so it leads. The square carries the tone, never the text. */
+.pocketDetail__paceVerdict {
+ display: flex;
+ align-items: flex-start;
+ gap: var(--space-2);
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ line-height: 1.45;
+}
+
+/* Border and not bullets: the two figures exist to be compared, and a bullet
+   between them separates them where they have to be read together. */
+.pocketDetail__paceFigures {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: var(--space-3) var(--space-4);
+ margin: 0;
+ padding-top: var(--space-3);
+ border-top: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.pocketDetail__paceFigure {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+.pocketDetail__paceFigure dt {
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-on-dark-subtle);
+}
+
+.pocketDetail__paceFigure dd {
+ margin: 0;
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-on-dark);
+ font-variant-numeric: tabular-nums;
+}
+
+.pocketDetail__paceProjection {
+ display: flex;
+ align-items: baseline;
+ justify-content: space-between;
+ gap: var(--space-3);
+ margin: 0;
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* index.css sets font-size on the universal selector, so these do not inherit
+   the size of the line they sit in and have to restate it. */
+.pocketDetail__paceProjection > span {
+ font-size: inherit;
+ font-variant-numeric: tabular-nums;
+}
+
+
+.pocketDetail__action {
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+/* Not the cream of the filled sibling, which marks the operation in hand. Borrows
+   --color-border-subtle (cream at 0.26 alpha): no attenuated-surface token exists. */
+.pocketDetail__action:hover {
+ background-color: var(--color-border-subtle);
+ color: var(--color-content-on-dark);
+}
+
+.pocketDetail__action:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketDetail__action:active {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.pocketDetail__action:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Pins the overflow control opposite the back link; otherwise it sits wherever
+   the centred title's auto margins leave it. Scoped to this header, the only
+   one that mounts the trigger. */
+.main__title--container .accountActionsTrigger {
+ position: absolute;
+ right: 0;
+}
+
+.pocketDetail__action--primary {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.pocketDetail__action--primary:hover {
+ background-color: var(--color-content-on-dark-muted);
+ color: var(--color-accent-content);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pocketDetail__action {
+  transition: none;
+ }
+}
+
+/* A history row that opens the decision in full. It is a button, so it resets
+   the ones a button brings and declares the five states a control owes: the row
+   above it is a plain layout rule and carries none of them. */
+.pocketDetail__row--open {
+ width: 100%;
+ border: var(--border-width-thin) solid transparent;
+ color: inherit;
+ font-family: inherit;
+ text-align: left;
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  border-color var(--motion-fast);
+}
+
+.pocketDetail__row--open:hover {
+ border-color: var(--color-border-subtle);
+ background-color: var(--color-surface-sunken);
+}
+
+.pocketDetail__row--open:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketDetail__row--open:active {
+ background-color: var(--color-surface-app);
+}
+
+.pocketDetail__row--open:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pocketDetail__row--open {
+  transition: none;
+ }
+}
+
+/* Unreferenced: the note is now its own section headed by CardTitle, and nothing
+   renders these five metadata rules (block, item, row, label, value). Kept
+   until the note section has been seen on screen; delete them together. */
+.pocketDetail__meta {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-4);
+ padding: var(--space-4) 0;
+}
+
+.pocketDetail__metaItem {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+/* A date and a currency code are short, so they share a row rather than
+   spreading four words down the screen. */
+.pocketDetail__metaRow {
+ display: flex;
+ flex-wrap: wrap;
+ gap: var(--space-4) var(--space-8);
+}
+
+.pocketDetail__metaLabel {
+ /* index.css sets a font size on the universal selector, so an inline element
+    does not inherit the size of the line it sits in and must restate one. */
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-on-dark-subtle);
+}
+
+.pocketDetail__metaValue {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark);
+}
+
+/* pre-wrap keeps the owner's line breaks; overflow-wrap: anywhere stops an unbroken
+   string (URL, account number) widening the panel. No ellipsis: one pocket, full note. */
+.pocketDetail__note {
+ margin: 0;
+ /* The only prose on a screen of rows, so it alone gets a measure; 60ch follows the font. */
+ max-width: 60ch;
+ font-size: var(--font-size-sm);
+ /* Looser than the 1.5 the rows take. This is the only text here anyone reads
+    line after line rather than looking up. */
+ line-height: 1.6;
+ color: var(--color-content-on-dark-muted);
+ white-space: pre-wrap;
+ overflow-wrap: anywhere;
+}
+
+/* The figure as the owner typed it, under the one the pocket counts in. Smaller
+   and muted so it is not read as a second amount to add up. Its tooltip carries
+   the rate, source and read time, keeping the audit trail out of the row. */
+.pocketDetail__rowOrigin {
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-on-dark-subtle);
+ font-variant-numeric: tabular-nums;
+ white-space: nowrap;
+ cursor: help;
+}

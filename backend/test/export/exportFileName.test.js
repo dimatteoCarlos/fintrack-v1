@@ -1,0 +1,50 @@
+// Contract tests for export_api/core/exportFileName.js: the name carries the
+// months the data is about, not the day it was downloaded.
+
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import { exportFileName, statementFileName } from '../../src/export_api/core/exportFileName.js';
+
+test('no bounds names the file all-time', () => {
+ assert.equal(
+  exportFileName({ from: null, to: null, format: 'csv', username: 'user' }),
+  'fintrack-movements-user-all-time.csv',
+ );
+});
+
+test('the same month on both bounds names a single month', () => {
+ assert.equal(
+  exportFileName({ from: '2026-09-01', to: '2026-09-01', format: 'xlsx', username: 'user' }),
+  'fintrack-movements-user-2026-09.xlsx',
+ );
+});
+
+test('different months name a range', () => {
+ assert.equal(
+  exportFileName({ from: '2026-01-01', to: '2026-03-01', format: 'csv', username: 'user' }),
+  'fintrack-movements-user-2026-01_2026-03.csv',
+ );
+});
+
+test('only one bound present names that month', () => {
+ assert.equal(
+  exportFileName({ from: '2026-05-01', to: null, format: 'csv', username: 'user' }),
+  'fintrack-movements-user-2026-05.csv',
+ );
+ assert.equal(
+  exportFileName({ from: null, to: '2026-05-01', format: 'csv', username: 'user' }),
+  'fintrack-movements-user-2026-05.csv',
+ );
+});
+
+test('a statement names its single reference month, never a range', () => {
+ assert.equal(
+  statementFileName({ referenceMonth: '2026-09-01', format: 'xlsx', username: 'user' }),
+  'fintrack-statement-user-2026-09.xlsx',
+ );
+ assert.equal(
+  statementFileName({ referenceMonth: '2026-01-01', format: 'pdf', username: 'user' }),
+  'fintrack-statement-user-2026-01.pdf',
+ );
+});

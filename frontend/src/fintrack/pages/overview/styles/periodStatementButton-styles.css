@@ -1,0 +1,265 @@
+/* Period-statement download control. Its menu and notice float over the dark app
+   ground, so they use the popover surface (--color-surface-app, --color-border-subtle,
+   --shadow-overlay) and not the light-band tokens. */
+
+.statementTrigger__anchor {
+ position: relative;
+ display: flex;
+}
+
+.statementTrigger {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-1);
+ padding: 0 var(--space-2);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-full);
+ background-color: var(--color-accent);
+ color: var(--color-content-primary);
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-bold);
+ line-height: var(--line-height-heading);
+ white-space: nowrap;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), border-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+.statementTrigger__icon {
+ flex-shrink: 0;
+ width: var(--space-4);
+ height: var(--space-4);
+}
+
+/* Below 480px the short "Statement" label replaces "Period statement", which would
+   be wider than 88% of a 360px viewport; the button carries the accessible name.
+   Size and weight are restated: index.css sets font-size on the universal selector. */
+.statementTrigger__label {
+ font-size: inherit;
+ font-weight: inherit;
+}
+
+.statementTrigger__label--full {
+ display: none;
+}
+
+.statementTrigger__chevron {
+ font-size: var(--font-size-2xs);
+ line-height: 1;
+ transition: transform var(--motion-fast);
+}
+
+@media (min-width: 480px) {
+ .statementTrigger {
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+ }
+
+ .statementTrigger__label--short {
+  display: none;
+ }
+
+ .statementTrigger__label--full {
+  display: inline;
+ }
+}
+
+/* Hover inverts the way the month badge beside it does on the same cream row. */
+.statementTrigger:hover,
+.statementTrigger.is-active {
+ background-color: var(--color-content-primary);
+ border-color: var(--color-content-primary);
+ color: var(--color-accent);
+}
+
+/* The button straddles white and the dark ground, so a dark ring alone
+   vanishes on its lower half: a white halo fills the 2px offset beneath it. */
+.statementTrigger:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+ box-shadow: 0 0 0 calc(var(--border-width-thick) * 2) var(--color-border-inverse);
+}
+
+.statementTrigger:active {
+ background-color: var(--color-content-secondary);
+ border-color: var(--color-content-secondary);
+ color: var(--color-accent);
+}
+
+.statementTrigger:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.statementTrigger.is-active .statementTrigger__chevron {
+ transform: rotate(180deg);
+}
+
+/* Popover surface, the same one the month picker's own calendar uses. */
+.statementMenu {
+ position: absolute;
+ top: calc(100% + var(--space-2));
+ right: 0;
+ z-index: var(--z-dropdown);
+ min-width: calc(var(--space-16) * 3 + var(--space-8));
+ margin: 0;
+ padding: var(--space-1);
+ list-style: none;
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-app);
+ box-shadow: var(--shadow-overlay);
+}
+
+.statementMenu__item {
+ display: flex;
+ flex-direction: column;
+ align-items: flex-start;
+ gap: 0;
+ width: 100%;
+ padding: var(--space-2) var(--space-3);
+ border: none;
+ border-radius: var(--radius-sm);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-family: inherit;
+ text-align: left;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.statementMenu__format {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+}
+
+.statementMenu__file {
+ font-family: var(--font-family-mono);
+ font-size: var(--font-size-2xs);
+ color: var(--color-content-on-dark-subtle);
+}
+
+.statementMenu__item:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.statementMenu__item:hover .statementMenu__file {
+ color: var(--color-content-secondary);
+}
+
+.statementMenu__item:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: calc(var(--border-width-thick) * -1);
+}
+
+.statementMenu__item:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+.statementMenu__item:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Failed-download notice: same popover surface as the menu. */
+.statementNotice {
+ position: absolute;
+ top: calc(100% + var(--space-2));
+ left: 50%;
+ z-index: var(--z-dropdown);
+ display: grid;
+ grid-template-columns: var(--space-4) minmax(0, 1fr);
+ align-items: start;
+ column-gap: var(--space-2);
+ width: 16rem;
+ max-width: calc(100vw - var(--space-6));
+ padding: var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-app);
+ box-shadow: var(--shadow-overlay);
+ text-align: left;
+ transform: translateX(-50%);
+}
+
+.statementNotice__icon {
+ display: block;
+ width: var(--space-4);
+ height: var(--space-4);
+ /* Red calibrated for the dark ground; --color-feedback-error-content is the
+    light-band variant. */
+ color: var(--color-status-error);
+}
+
+.statementNotice__body {
+ display: flex;
+ flex-direction: column;
+ align-items: flex-start;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+/* Body line height, so the first line matches the icon's height. */
+.statementNotice__text {
+ margin: 0;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-semibold);
+ line-height: var(--line-height-body);
+ color: var(--color-status-error);
+}
+
+.statementNotice__reason {
+ margin: 0;
+ font-size: var(--font-size-2xs);
+ line-height: var(--line-height-body);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* The dark-ground retry pattern of .boardState__retry, sized by its own line and
+   not by a 44px touch floor. */
+.statementNotice__retry {
+ margin-top: var(--space-1);
+ padding: var(--space-1) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-semibold);
+ line-height: var(--line-height-heading);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.statementNotice__retry:hover {
+ background-color: var(--color-content-on-dark);
+ color: var(--color-content-primary);
+}
+
+.statementNotice__retry:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.statementNotice__retry:active {
+ background-color: var(--color-accent);
+ color: var(--color-content-primary);
+}
+
+.statementNotice__retry:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .statementTrigger,
+ .statementTrigger__chevron,
+ .statementMenu__item,
+ .statementNotice__retry {
+  transition: none;
+ }
+}

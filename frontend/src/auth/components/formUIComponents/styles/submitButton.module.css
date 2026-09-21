@@ -1,0 +1,136 @@
+/* Submit button of the profile-modal forms (on white): uses only content tokens valid on inverse. */
+
+.submitButton {
+ position: relative;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-2);
+ /* Near-black fill with white text reads 18.42:1 and matches the sign-in card button. */
+ color: var(--color-content-on-dark);
+ background-color: var(--color-content-primary);
+ border: var(--border-width-thin) solid var(--color-content-primary);
+ border-radius: var(--radius-sm);
+ padding: var(--space-3) var(--space-6);
+ min-height: var(--size-touch-target);
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ line-height: 1.5;
+ text-align: center;
+ white-space: nowrap;
+ vertical-align: middle;
+ user-select: none;
+ cursor: pointer;
+ transition: background-color var(--motion-normal), border-color var(--motion-normal);
+}
+
+.submitButton:not(:disabled):hover {
+ background-color: var(--color-content-secondary);
+ border-color: var(--color-content-secondary);
+ text-decoration: none;
+}
+
+/* index.css sets outline: none on every button, so the focus ring is declared here. */
+.submitButton:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+.submitButton:not(:disabled):active {
+ background-color: var(--color-surface-sunken);
+ border-color: var(--color-surface-sunken);
+}
+
+.submitButton:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.submitButton.loading {
+ color: transparent;
+ pointer-events: none;
+}
+
+/* index.css pins font-size on the universal selector, so this inline element must
+   restate it with inherit instead of receiving the line's size. */
+.buttonContent {
+ display: inline-block;
+ font-size: inherit;
+ transition: opacity var(--motion-normal);
+}
+
+.submitButton.loading .buttonContent {
+ opacity: 0;
+}
+
+.loadingSpinner {
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-1);
+}
+
+.spinnerDot {
+ width: var(--space-2);
+ height: var(--space-2);
+ background-color: currentColor;
+ border-radius: var(--radius-full);
+ animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.spinnerDot:nth-child(2) {
+ animation-delay: -0.32s;
+}
+
+.spinnerDot:nth-child(3) {
+ animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+ 0%, 80%, 100% {
+  transform: scale(0);
+ }
+ 40% {
+  transform: scale(1);
+ }
+}
+
+.srOnly {
+ position: absolute;
+ width: 1px;
+ height: 1px;
+ padding: 0;
+ margin: -1px;
+ overflow: hidden;
+ clip: rect(0, 0, 0, 0);
+ white-space: nowrap;
+ border: 0;
+}
+
+/* No success or danger variants: no consumer uses them, and no destructive-tone
+   token reaches 4.5:1 on white. */
+
+/* Mobile first: the base rule is the small screen; wider screens only trim the
+   touch padding. */
+@media (min-width: 768px) {
+ .submitButton {
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-xs);
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .submitButton {
+  transition: none;
+ }
+
+ .spinnerDot {
+  animation: none;
+  opacity: 0.6;
+ }
+}

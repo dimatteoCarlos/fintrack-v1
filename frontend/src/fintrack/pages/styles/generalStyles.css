@@ -1,0 +1,485 @@
+:root {
+  --figmaWidth: var(--layout-width-min);
+  --topSpaceHeight: var(--layout-top-space);
+  --dark: #141414;
+  --light: white;
+  --creme: #e8e4da;
+  --textColor: #141414;
+
+  --square: var(--color-status-ok);
+  --squareAlert: var(--color-status-alert);
+  --error: var(--color-status-error);
+  --warn: orange;
+
+  --lightSuccess: lightgreen;
+  --success: var(--color-status-success);
+  --hoverColor: var(--color-interactive-hover);
+  --secondary: var(--color-content-placeholder);
+  --bgBodyColor: var(--color-surface-app);
+}
+
+/* Layout variables for height-based responsive design. */
+
+  :root{
+  --header-height: var(--layout-header-height);
+  --navbar-top-height: var(--layout-navbar-top);/* TrackerNavbar - default 64px */
+  --navbar-bottom-height: var(--layout-navbar-bottom);/* MainNavbar - default 56px */
+
+  --header-content-height: 6.8rem;
+  --gap-between: 1.0rem ; /* spacing between header, navbar and card */
+  --header-total-height: calc(var(--topSpaceHeight) + var(--header-content-height));/* positions the navbar and the card */
+
+  }
+
+
+/* These read the --space-* scale. */
+.vertical-spacing-large {
+  margin-bottom: var(--space-4);
+}
+
+.vertical-spacing-medium {
+  margin-bottom: var(--space-3);
+}
+
+.vertical-spacing-small {
+  margin-bottom: var(--space-2);
+}
+
+.vertical-spacing-tiny {
+  margin-bottom: var(--space-1);
+}
+body {
+  color: var(--dark);
+  background-color: var(--bgBodyColor);
+}
+
+[class*='icon'] {
+  cursor: pointer;
+}
+
+.iconContainer {
+  padding: 0;
+  margin: 0;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.p, .paragraph {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    font-size: inherit;
+    text-align:justify; 
+    white-space: normal;
+  }
+
+
+.flx-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.flex-col-sb {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.flx-row-jc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flx-row-sb {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.flx-row-end {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding: 0;
+}
+.flx-row-start {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  padding: 0;
+}
+
+.pt-2 {
+  padding-top: 2rem;
+}
+
+.home__layout {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  min-width: var(--figmaWidth);
+  min-width: 0;
+  max-width: 40rem;
+
+  padding-bottom: 1rem;
+  overflow-x: auto;
+
+  width: 100%;
+
+}
+
+.home__layout {
+  position: relative;
+  min-height: 100dvh;
+}
+
+.home__header {
+  width: 100%;
+  background-color: var(--light);
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  /* height from figma*/
+  min-height: 12.5rem;
+  height: 12.5rem;
+}
+
+/* Board hero, anchored from the two header tokens so it follows --topSpaceHeight. Scoped by layout to hold
+   (0,2,0): injection order depends on the entry route and a class-level rule could lose to the absolute
+   positioning in tracker-style.css. margin-top cancels the header's fixed height. */
+.budgetLayout .total__container,
+.pocketLayout .total__container,
+.debtsLayout .bigBox__container,
+.overviewLayout .bigBox__container {
+ position: static;
+ /* The base rules centre with left: 50% plus a translate; left dies with position: static, but the
+    transform would still shift the hero half its width left. */
+ transform: none;
+ height: auto;
+ margin-top: calc(var(--header-total-height) - var(--header-height));
+ min-height: calc(
+  var(--header-height) - var(--header-total-height) + var(--space-4)
+ );
+}
+
+.content__presentation {
+  display: flex;
+  flex-direction: column;
+  padding: 5rem 0 1.5rem 0;
+  padding: 4rem 0 1.5rem 0;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cards__presentation {
+  width: 88%;
+  margin: 0 auto;
+  border-radius: 1rem;
+  padding: 1rem 0;
+}
+
+.layout__header {
+  width: 100%;
+  position: absolute;
+  top: var(--topSpaceHeight);
+  left: 0;
+  background-color: var(--light);
+  z-index: 1;
+}
+
+.headerContent__container {
+  display: flex;
+  flex-direction: column;
+  width: 88%;
+  margin: 0 auto;
+  justify-content: center;
+  align-items: center;
+  --vertSpace:0.8rem;
+  padding: var(--vertSpace, 0.8rem) 0;
+  gap:var(--vertSpace,0.8rem);
+  transition: all 0.2s ease;
+}
+
+.status__square{
+  height: 0.75rem;
+  width: 0.75rem;
+  background-color: var(--square, #5b8c93);
+
+  border: none;
+  border-radius: 0.125rem;
+}
+
+.status__square.alert {
+  background-color: var(--squareAlert, #c97474);
+}
+
+/* Third budget reading: spent past the threshold and not yet over. Written on the token. */
+.status__square.warning {
+  background-color: var(--color-status-warning);
+}
+
+/* Notable, not wrong: a pocket committed past its target. Amber already means the clock is running out,
+   so reusing it would make one colour say two things. */
+.status__square.info {
+  background-color: var(--color-status-info);
+}
+
+/* Short of the plan, not yet at risk. Violet, not a second amber: the warm end is spent on the two more
+   severe levels and the existing ambers measure 1.21 apart, too close at 12px. */
+.status__square.behind {
+  background-color: var(--color-status-behind);
+}
+
+/* Running ahead of the plan. The only quiet-half square with a hue: on track paints the base teal and
+   completed is a tick. */
+.status__square.ahead {
+  background-color: var(--color-status-ahead);
+}
+
+/* Keeping up with the plan: the one pending level painted off the semaphore, so it needs an explicit
+   rule or it falls through to the ok teal. */
+.status__square.neutral {
+  background-color: var(--color-status-neutral);
+}
+
+/* A met goal, marked by shape: two borders on a rotated box, the only mark on this scale that survives
+   colour blindness (five of seven levels sit within 1.11:1). Off the sizing scale, which has no entry
+   between the status square and the icon; the right margin offsets the rotation's spill past 0.5rem. */
+.status__tick {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.8rem;
+  border-right: var(--border-width-thick) solid var(--color-status-complete);
+  border-bottom: var(--border-width-thick) solid var(--color-status-complete);
+  transform: rotate(45deg) translateY(-0.1rem);
+  margin-right: var(--space-1);
+}
+
+textarea::placeholder,
+textarea.input__note__description::placeholder,
+input::placeholder
+{
+  color: var(--secondary, gray);
+  background: transparent;
+  outline: none;
+  font-weight: lighter;
+  font-size: 1rem;
+}
+
+/* Hide the number input arrows (WebKit and Blink here, Firefox below). */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type='number'] {
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.validation__errMsg {
+  /* Not --error (--color-status-error, tuned for the dark page): only 3.18:1 on the light card, floor
+     4.5:1. --color-feedback-error-content is the light-surface sibling, 5.89:1 on white. */
+  color: var(--color-feedback-error-content);
+  font-size: 0.7rem;
+  font-style: italic;
+  font-weight: normal;
+}
+/* The red above measures 3.26:1 on the dark forms at 0.7rem italic. Every page under pages/forms sits in
+   .form__box on the dark body; --color-status-alert is that surface's sibling at 5.70:1. */
+.form__box .validation__errMsg {
+  color: var(--color-status-alert);
+}
+
+/* The same span also states an accepted format, so it needs the opposite meaning; a class, because only a
+   stylesheet can pick the value per surface. */
+.validation__errMsg--ok {
+  color: var(--color-feedback-success-content);
+}
+
+.form__box .validation__errMsg--ok {
+  color: var(--color-status-complete);
+}
+
+.form__title1 .validation__errMsg {
+  width: 100%;
+}
+
+/* Informative message style for non-blocking validation (e.g., duplicate account name) */
+.validation__msg--info {
+  color: #60b1d6; 
+  letter-spacing: 1px;
+  font-style: normal !important;
+}
+
+.hover:hover {
+  color: var(--hoverColor, cyan);
+  cursor: pointer;
+}
+
+/* Panel shown in place of a board's totals when the request failed; shared by budget and pocket. Tuned for
+   --color-surface-deep (.total__container); Debts keeps .debtsBoard__state because its cream hero
+   (.bigBox__container) would make these values invisible. */
+.boardState {
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding-block: var(--space-8);
+  text-align: center;
+}
+
+.boardState__text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-content-on-dark-subtle);
+}
+
+/* Raw server reason under the failure sentence, printed on purpose for whoever has to fix it. Breaks
+   anywhere so a long message cannot push the retry off the box. */
+.boardState__detail {
+  margin: 0;
+  max-width: 40ch;
+  font-size: var(--font-size-2xs);
+  color: var(--color-content-on-dark-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Retry separates a failure from an empty board. The touch target is stated, not counted from padding, so
+   the control clears the floor whatever the label says. */
+.boardState__retry,
+.boardState__action {
+  min-height: var(--size-touch-target);
+  padding: var(--space-2) var(--space-6);
+  border: var(--border-width-thin) solid var(--color-border-inverse);
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  color: var(--color-content-on-dark);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-wide);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.boardState__retry:hover,
+.boardState__action:hover {
+  background-color: var(--color-content-on-dark);
+  color: var(--color-content-primary);
+}
+
+.boardState__retry:focus-visible,
+.boardState__action:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-inverse);
+  outline-offset: var(--border-width-thick);
+}
+
+.boardState__retry:active,
+.boardState__action:active {
+  background-color: var(--color-accent);
+  color: var(--color-content-primary);
+}
+
+.boardState__retry:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* The same control as a link: an empty board's way out is another page. An
+   anchor is inline, so min-height needs a flex box to apply. */
+.boardState__action {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.box__container, .box__row { 
+ width: 100%; 
+}
+
+/* Utility classes prefixed utility-, gradually replacing the flx- classes. */
+
+.utility-flex-row-center {
+ display: flex;
+ flex-direction: row;
+ align-items: center;
+ justify-content: center;
+}
+
+.utility-flex-row-between {
+ display: flex;
+ flex-direction: row;
+ align-items: center;
+ justify-content: space-between;
+}
+
+.utility-flex-row-start {
+ display: flex;
+ flex-direction: row;
+ align-items: center;
+ justify-content: flex-start;
+}
+
+.utility-flex-row-end {
+ display: flex;
+ flex-direction: row;
+ align-items: center;
+ justify-content: flex-end;
+}
+
+.utility-flex-col-center {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+}
+
+.utility-flex-col-space-between {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+ .home__header {
+ /* back to Figma style in tablet/desktop */
+   min-height: 12.5rem;
+   height: 12.5rem;
+ }
+}
+
+@media screen and (min-height: 50rem) {
+  .home__layout {
+    max-height: 55rem;
+  }
+}
+
+@media screen and (max-height: 735px) {
+  :root {
+    --topSpaceHeight: 0rem;
+  }
+ }

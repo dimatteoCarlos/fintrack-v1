@@ -1,0 +1,453 @@
+/* [class*='icon'] is defined in generalStyles.css - avoid duplication */
+
+.page__container {
+  min-height: 50rem;
+  min-width: 22.5rem;
+  width: 100%;
+  max-width: 33.3rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem;
+}
+
+.page__content {
+  margin: 0;
+  padding: 0;
+  width: 85%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 1rem;
+}
+
+.page__content .main__title--container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 2.5rem;
+  padding: 1rem 0;
+  width: 100%;
+}
+
+/* .backArrow is absolute, so align-items never reaches it and top/transform centres it. The menu is
+   also out of flow, or .form__title (margin: 0 auto) would centre on the space left beside it. */
+.page__content .main__title--container > .backArrow,
+.page__content .main__title--container > .accountActionsTrigger {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.page__content .main__title--container > .accountActionsTrigger {
+  position: absolute;
+  right: 0;
+}
+
+.labelText,
+label,
+.forms__label {
+  color: var(--light);
+  font-size: 1.25rem;
+  width: 100%;
+  text-align: left;
+}
+
+.main__title--container .form__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--creme, white);
+  text-align: center;
+  max-width: calc(100% - 4rem);
+  margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.5rem;
+  position: static;
+}
+
+/* Uppercase marks a record name (an account, a category) versus a screen name, so it is a modifier,
+   never the base rule: 'New Account' and 'Edit Account' stay as authored. */
+.main__title--container .form__title--recordName {
+ text-transform: uppercase;
+}
+
+/* The month badge lives whole in general_components/monthPicker/styles: it is
+   rendered on four screens, and a class split across two stylesheets invites
+   divergence. */
+
+/* Puts the currency badge beside the amount it denominates. */
+.form__amount-row {
+ display: flex;
+ align-items: center;
+ gap: 0.5rem;
+}
+
+.form__amount-row .input__container {
+ flex: 1;
+ min-width: 0;
+}
+
+/* Label on the left, conversion message on the right. Also keeps the tooltip
+   wrapper at the width of its own text: as a direct child of the column it
+   would stretch, and the chip would be positioned off the form. */
+.form__label-row {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 0.5rem;
+}
+
+/* The shared label declares width: 100%, which inside this row would leave the
+   message no space at all. */
+.form__label-row .forms__label {
+ width: auto;
+ flex: 1 1 auto;
+ min-width: 0;
+}
+
+/* The message keeps its own width, so the tooltip anchors to its text. */
+.form__label-row .tooltip__wrapper {
+ flex: 0 0 auto;
+}
+
+/* The converted figure, which is what the backend will store. Sits under the
+   amount and opens the rate tooltip on hover. */
+.form__fx-preview {
+ font-size: 0.8rem;
+ font-weight: 300;
+ color: var(--creme);
+ opacity: 0.75;
+ white-space: nowrap;
+ cursor: help;
+}
+
+.input__box .forms__label {
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  white-space: normal;
+}
+
+label,
+.labelText {
+  text-align: left;
+}
+
+.container--categoryName,
+.form__container {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0rem 1rem 0;
+  gap: 1rem;
+}
+
+.input__box {
+  text-align-last: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.input__container {
+  border: 1px solid var(--creme);
+  height: 2.625em;
+  border-radius: 1rem;
+  color: var(--creme);
+  background-color: transparent;
+  padding: 0.25rem;
+  box-sizing: border-box;
+}
+
+/* A 90-character note needs four lines at 360px (measured with the 0 glyph), covering every breakpoint.
+   Fixed height on purpose: the box looks the same empty or full, like a form field. The lh unit
+   follows the font; border-box means the height includes padding and borders. */
+
+/* Two hooks: detail screens also put one-line values in divs with this class, which four lines
+   would make three times too tall, so the read-only note asks for the height by name. */
+textarea.input__container,
+.input__container--note {
+  height: calc(4lh + var(--space-2) + var(--border-width-thin) * 2);
+}
+
+textarea.input__container {
+  /* The height is fixed by decision, and the browser default of `both` also
+     lets the control be dragged out of the form's width. */
+  resize: none;
+  /* maxLength stops a 91st character, but a manual line break can still push
+     the text past four lines. */
+  overflow-y: auto;
+}
+
+.input__container::placeholder {
+  color: var(--color-content-on-dark-placeholder);
+  font-size: 0.875rem;
+  padding-left: 0.5em;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.input__container.input__container--amount {
+  padding: 0.75rem;
+  height: 2rem;
+}
+
+.input__container.input__container--amount::placeholder {
+  position: absolute;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.form__title--tiles {
+  text-align-last: left;
+}
+
+.tiles__container {
+  gap: 1rem 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.nature__tiles {
+  gap: 1rem;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tile__button {
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: 2px solid #f7f7f7;
+  color: #f7f7f7;
+  height: 2.5rem;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.submit__btn__container {
+  padding-top: 2.5rem;
+}
+
+.submit__btn {
+  height: 3.125rem;
+  width: 100%;
+  color: var(--dark);
+  background-color: var(--creme);
+  border-radius: 0.75em;
+  font-size: 1rem;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.targetAmount.input__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 1rem 0.5rem 0.5rem;
+  gap: 0.25rem;
+  height: 4.25rem;
+  width: 100%;
+  text-transform: capitalize;
+}
+
+.label__target {
+  flex: 40%;
+  font-size: 1rem;
+}
+
+.target__label__amount {
+  display: flex;
+}
+
+.target__label__saved {
+  width: 100%;
+  color: #857f7f;
+  line-height: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.input__targetAmount {
+  flex: 60%;
+  text-align-last: right;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+/* The on-dark placeholder token, not --color-content-placeholder (#5b5b5b),
+   which is calibrated for the cream panel and measures 2.83:1 over a transparent
+   field on the app surface, under the 4.5:1 floor. */
+.input__targetAmount::placeholder {
+  background-color: transparent;
+  color: var(--color-content-on-dark-placeholder);
+  text-transform: capitalize;
+}
+
+textarea:invalid {
+  border: 1px dashed tomato;
+}
+
+.input__box--datepicker {
+  text-align-last: center;
+}
+
+.account__dateAndCurrency {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.account__date,
+.account__currency {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: start;
+  gap: 0.5rem;
+}
+
+.icon3dots {
+  padding: 0.5rem 0 0.5rem 0.5rem;
+}
+
+.inputAmountAndPlusSign {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input__container--amount {
+  background-color: transparent;
+  font-size: 1.25rem;
+  padding: 0 0.75rem;
+  height: 2rem;
+}
+
+.iconPlusSign {
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+  border: 1px solid #f7f7f7;
+  background-color: transparent;
+}
+
+.container--nature {
+  padding: 0.5rem 0 1rem 0;
+}
+
+/* Height breakpoints, tallest to shortest: each level overrides the one before,
+   so keep this order. */
+@media screen and (max-height: 800px) {
+  #root .page__content {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  #root .form__container {
+    box-sizing: border-box;
+    padding-top: 14px;
+    padding-bottom: 12px;
+    gap: 12px;
+  }
+}
+
+@media screen and (max-height: 733px) {
+  #root .main__title--container {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    height: auto;
+  }
+
+  #root .form__container {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    gap: 10px;
+  }
+
+  #root .container--nature {
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+}
+
+@media screen and (max-height: 646px) {
+  #root .page__content {
+    padding-top: 4px;
+    padding-bottom: 8px;
+  }
+
+  #root .main__title--container {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  #root .form__container {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    gap: 8px;
+  }
+
+  #root .container--nature {
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding: 0;
+    width: 100%;
+  }
+
+  #root .nature__tiles,
+  #root .tiles__container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  #root .tile__button {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px;
+    padding-right: 4px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  #root .submit__btn__container {
+    margin-top: auto;
+    padding-top: 10px;
+  }
+}
+
+/* index.css strips the outline from these elements and every button, so the ring is restored here.
+   White on the dark surface (17.9:1); the offset keeps the ring from reading as a thicker border. */
+.input__container:focus-visible,
+.submit__btn:focus-visible,
+.tile__button:focus-visible,
+.iconPlusSign:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-inverse);
+  outline-offset: var(--border-width-thick);
+}

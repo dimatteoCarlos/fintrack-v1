@@ -1,0 +1,563 @@
+/* Commit and release modal: one panel for both directions, a cream data panel
+   over the dark app. Written on tokens only. */
+
+/* flex-start plus margin: auto on the panel, not align-items: center: a centred item taller than
+   its container overflows past the scroll origin and its first line is unreachable. */
+.pocketAllocation__overlay {
+ position: fixed;
+ inset: 0;
+ z-index: var(--z-modal);
+ display: flex;
+ align-items: flex-start;
+ justify-content: center;
+ overflow-y: auto;
+ padding: var(--space-4);
+ background-color: var(--color-surface-overlay);
+}
+
+.pocketAllocation__panel {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-3);
+ width: 100%;
+ /* Wider than the account card's 350px: at 350 the three figures of each
+    account row wrapped onto a second line. Below this width the overlay's
+    padding decides, so a phone is unaffected. */
+ max-width: var(--layout-modal-width);
+ /* Scrolls inside the panel so a long account list cannot push it off a short
+    viewport. dvh, not vh: on a phone vh ignores the visible browser bars, so
+    the amount field and buttons would fall past the bottom edge. */
+ max-height: 85dvh;
+ margin: auto;
+ overflow-y: auto;
+ padding: var(--space-6) var(--space-5);
+ border-radius: var(--radius-xl);
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+ box-shadow: var(--shadow-overlay);
+}
+
+.pocketAllocation__panel:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Two lines: what the panel does, then which pocket it does it to. */
+.pocketAllocation__title {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ margin: 0;
+ color: var(--color-content-primary);
+}
+
+/* Quieter line, repeating the confirm button. --font-size-base, as -sm falls below the body text.
+   font-size is restated because index.css sets one on the universal selector. */
+.pocketAllocation__action {
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-secondary);
+}
+
+/* The subject of the panel, on a line of its own and never cut: a pocket name
+   is chosen by the owner and half of one names nothing. */
+.pocketAllocation__pocketName {
+ font-size: var(--font-size-lg);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ line-height: 1.2;
+ text-transform: capitalize;
+ text-wrap: balance;
+ overflow-wrap: anywhere;
+}
+
+.pocketAllocation__body {
+ margin: 0;
+ font-size: var(--font-size-base);
+ line-height: 1.5;
+ color: var(--color-content-secondary);
+}
+
+/* The plan (target, date) and position (allocated, left) as two columns. Ruled top and bottom so it
+   reads as context, not as the first control of the form. */
+.pocketAllocation__plan {
+ display: grid;
+ grid-template-columns: repeat(2, minmax(0, 1fr));
+ gap: var(--space-2) var(--space-4);
+ margin: 0;
+ padding: var(--space-3) 0;
+ border-top: var(--border-width-thin) solid var(--color-border-strong);
+ border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+}
+
+.pocketAllocation__planItem {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+.pocketAllocation__planLabel {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-secondary);
+}
+
+/* The only changing label; its word carries the sign, so it must stand out. Info colour as in
+   pocketStatus.ts, not error: over-funding a goal is a fact, not a fault. */
+.pocketAllocation__planLabel--overTarget {
+ color: var(--color-feedback-info-content);
+ font-weight: var(--font-weight-semibold);
+}
+
+/* The value carries the weight; the label above it says what it is. Tabular
+   figures so the two columns line up on the decimal. */
+.pocketAllocation__planValue {
+ margin: 0;
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+ font-variant-numeric: tabular-nums;
+}
+
+.pocketAllocation__empty {
+ margin: 0;
+ padding: var(--space-4) 0;
+ font-size: var(--font-size-base);
+ color: var(--color-content-secondary);
+ text-align: center;
+}
+
+.pocketAllocation__error {
+ margin: 0;
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-medium);
+ color: var(--color-feedback-error-content);
+}
+
+/* The list scrolls, not the panel, so the amount field and buttons stay visible; dvh because that is
+   a share of the screen. 28dvh: it always cuts a card at the lower edge, signalling more below.
+   padding-inline-end keeps the scrollbar off the cards' border. */
+.pocketAllocation__picker {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ max-height: 28dvh;
+ overflow-y: auto;
+ padding-inline-end: var(--space-1);
+ /* Settles on a card edge, never halfway through one, so no card shows its
+    figures under a half-cut name. */
+ scroll-snap-type: y proximity;
+}
+
+.pocketAllocation__picker > .pocketAllocation__source {
+ scroll-snap-align: start;
+}
+
+.pocketAllocation__source {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ /* A flex item shrinks to fit the picker's ceiling by default, which clipped
+    each card's name; the list scrolls instead of the cards shrinking. */
+ flex-shrink: 0;
+ width: 100%;
+ min-height: var(--size-touch-target);
+ padding: var(--space-3);
+ border: var(--border-width-thin) solid var(--color-content-secondary);
+ border-radius: var(--radius-md);
+ background-color: transparent;
+ color: var(--color-content-primary);
+ font-family: inherit;
+ text-align: left;
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  border-color var(--motion-fast);
+}
+
+.pocketAllocation__source:hover {
+ border-color: var(--color-border-strong);
+ background-color: var(--color-surface-inverse);
+}
+
+.pocketAllocation__source:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketAllocation__source:active {
+ background-color: var(--color-accent);
+}
+
+.pocketAllocation__source:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.pocketAllocation__source.is-selected {
+ border-color: var(--color-border-strong);
+ border-width: var(--border-width-thick);
+ background-color: var(--color-surface-inverse);
+}
+
+.pocketAllocation__sourceName {
+ /* index.css sets a font size on the universal selector, so an inline element
+    does not inherit the size of the line it sits in and must restate one. */
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: capitalize;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ white-space: nowrap;
+}
+
+/* Three figures on one line, wrapping rather than truncating: each is a
+   complete statement and half of one says nothing. */
+.pocketAllocation__sourceFigures {
+ display: flex;
+ flex-wrap: wrap;
+ gap: var(--space-1) var(--space-3);
+ font-size: var(--font-size-2xs);
+}
+
+.pocketAllocation__sourceFigure {
+ font-size: var(--font-size-xs);
+ font-variant-numeric: tabular-nums;
+ color: var(--color-content-secondary);
+}
+
+/* The one the decision is bounded by. */
+.pocketAllocation__sourceFigure--ceiling {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+}
+
+.pocketAllocation__label {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-secondary);
+}
+
+/* Amount and unit are ONE field, so the border belongs to the row. Colours are set here, not in the
+   shared component's sheet. Known gap: the unit control is a clickable div, so no keyboard or focus ring. */
+.pocketAllocation__amountRow {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ /* Both ends inset: the date control leads the row, the unit closes it. */
+ padding: 0 var(--space-2);
+ border: var(--border-width-thin) solid var(--color-content-secondary);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-inverse);
+}
+
+/* The date control's divider, declared here and not on the shared component:
+   it separates the control from the figure beside it, an arrangement only this
+   field has. It mirrors the unit's border at the far end. */
+.pocketAllocation__amountRow .transactionDateControl {
+ padding-inline-end: var(--space-2);
+ border-inline-end: var(--border-width-thin) solid
+  var(--color-content-secondary);
+}
+
+/* The whole control answers the pointer, not just the button: the divider
+   belongs to the control, so a fill stopping at the button would leave the gap
+   beside it unlit. */
+.pocketAllocation__amountRow
+ .transactionDateControl:has(.transactionDateTrigger:hover) {
+ border-inline-end-color: var(--color-content-primary);
+}
+
+/* The row is the frame, so the input keeps only its typing area; the date
+   control and the row's gap already inset the figure. */
+.pocketAllocation__amountRow .pocketAllocation__amount {
+ padding-left: 0;
+ border: none;
+ border-radius: 0;
+ background-color: transparent;
+}
+
+.pocketAllocation__amountRow .pocketAllocation__amount:focus {
+ outline: none;
+}
+
+/* The whole field shows focus when the input inside it has it. */
+.pocketAllocation__amountRow:focus-within {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thin);
+}
+
+/* The tracker's square, one step down the control scale: this field's figure is
+   a step smaller than the tracker's, so a 40px box beside it looked heavier. */
+.pocketAllocation__amountRow .icon-currency {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ flex-shrink: 0;
+ width: var(--size-control-sm);
+ height: var(--size-control-sm);
+ padding: 0;
+}
+
+/* One step up, only here: beside a --font-size-lg figure the tracker's
+   --font-size-sm read as a caption. The shared sheet keeps its own size. */
+.pocketAllocation__amountRow .transactionDateTrigger__day {
+ font-size: var(--font-size-base);
+}
+
+.pocketAllocation__amount {
+ flex: 1;
+ min-width: 0;
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-content-secondary);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+ font-family: inherit;
+ font-size: var(--font-size-lg);
+ font-variant-numeric: tabular-nums;
+}
+
+.pocketAllocation__amount:hover {
+ border-color: var(--color-border-strong);
+}
+
+.pocketAllocation__amount:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketAllocation__amount:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Exists only as the rate chip's positioning context: the chip belongs centred
+   on the field while the figure that opens it sits on the label line above. */
+.pocketAllocation__amountBlock {
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+}
+
+/* Groups the label with its leading control so the converted figure keeps the
+   right end of the row; without it space-between would put the figure in the
+   middle. */
+.pocketAllocation__labelGroup {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ min-width: 0;
+}
+
+/* The converted figure rides the label line; space-between because the label
+   owns the left and the figure is a second reading. */
+.pocketAllocation__labelRow {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: baseline;
+ justify-content: space-between;
+ gap: var(--space-1) var(--space-3);
+ min-width: 0;
+}
+
+/* Scoped to this panel: the shared tooltip has other callers. position: static lets the chip anchor
+   to .pocketAllocation__amountBlock and sit against the field, not the label-row figure. */
+.pocketAllocation__labelRow .tooltip__wrapper {
+ position: static;
+}
+
+/* Centred on the field. Measured from the block's BOTTOM because the label row above has no fixed
+   height: half the field height (badge plus two borders) plus the 50% translate centres the chip. */
+.pocketAllocation__amountBlock .tooltip__wrapper--text.rateTooltip__chip {
+ top: auto;
+ bottom: calc((var(--size-badge) + var(--border-width-thin) * 2) / 2);
+ left: 50%;
+ transform: translate(-50%, 50%);
+ margin-top: 0;
+ margin-bottom: 0;
+}
+
+.pocketAllocation__ceiling {
+ margin: 0;
+ font-size: var(--font-size-xs);
+ font-variant-numeric: tabular-nums;
+ color: var(--color-content-secondary);
+ white-space: nowrap;
+}
+
+/* The typed figure in the stored currency, on tokens rather than copied from
+   .form__fx-preview, which hardcodes size, weight and colour. The help cursor
+   signals the rate chip behind it. */
+.pocketAllocation__fxPreview {
+ font-size: var(--font-size-xs);
+ font-variant-numeric: tabular-nums;
+ color: var(--color-content-secondary);
+ white-space: nowrap;
+ cursor: help;
+}
+
+/* Request in flight: holds the line the answer will take so the row does not
+   jump, and carries no tooltip since there is nothing to explain yet. */
+.pocketAllocation__fxPreview--querying {
+ cursor: default;
+ opacity: 0.7;
+}
+
+/* The rate could not be resolved. Stated, not silent, and it says what still
+   happens on submit so the owner is not left guessing whether to wait. */
+.pocketAllocation__fxFailure {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+.pocketAllocation__fxFailureText {
+ font-size: var(--font-size-xs);
+ color: var(--color-feedback-error-content);
+}
+
+.pocketAllocation__fxRetry {
+ padding: var(--space-1) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-strong);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-primary);
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.pocketAllocation__fxRetry:hover {
+ background-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+}
+
+.pocketAllocation__fxRetry:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketAllocation__fxRetry:active {
+ background-color: var(--color-surface-app);
+ color: var(--color-content-on-dark);
+}
+
+.pocketAllocation__fxRetry:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.pocketAllocation__skeleton {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ pointer-events: none;
+}
+
+.pocketAllocation__skeletonRow {
+ height: var(--size-badge);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-disabled);
+ animation: pocketAllocation__pulse var(--motion-slow) ease-in-out infinite alternate;
+}
+
+@keyframes pocketAllocation__pulse {
+ from {
+  opacity: 0.5;
+ }
+ to {
+  opacity: 1;
+ }
+}
+
+.pocketAllocation__actions {
+ display: flex;
+ gap: var(--space-3);
+ justify-content: flex-end;
+ flex-wrap: wrap;
+ margin-top: var(--space-2);
+}
+
+.pocketAllocation__button {
+ min-height: var(--size-touch-target);
+ padding: var(--space-2) var(--space-5);
+ border: var(--border-width-thin) solid transparent;
+ border-radius: var(--radius-full);
+ font-family: inherit;
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+.pocketAllocation__button:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketAllocation__button:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.pocketAllocation__button--quiet {
+ border-color: var(--color-border-strong);
+ background-color: transparent;
+ color: var(--color-content-primary);
+}
+
+.pocketAllocation__button--quiet:hover {
+ background-color: var(--color-surface-inverse);
+}
+
+.pocketAllocation__button--quiet:active {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.pocketAllocation__button--confirm {
+ background-color: var(--color-content-primary);
+ color: var(--color-content-on-dark);
+}
+
+.pocketAllocation__button--confirm:hover {
+ background-color: var(--color-surface-raised);
+}
+
+.pocketAllocation__button--confirm:active {
+ background-color: var(--color-surface-app);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pocketAllocation__button,
+ .pocketAllocation__source,
+ .pocketAllocation__skeletonRow {
+  transition: none;
+  animation: none;
+ }
+}
+
+@media (min-width: 480px) {
+ .pocketAllocation__panel {
+  padding: var(--space-8) var(--space-6);
+ }
+}

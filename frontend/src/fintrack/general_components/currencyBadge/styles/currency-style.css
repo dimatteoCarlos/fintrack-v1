@@ -1,0 +1,41 @@
+/* Rounded square: --radius-sm is a fifth of the 40px side, where a corner is
+   plainly a corner; --radius-xl read as a circle with four flat spots. */
+.icon-currency {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-sm);
+
+  width: var(--size-badge);
+  height: var(--size-badge);
+
+  padding: var(--space-3) var(--space-2);
+}
+
+.icon-currency.tracker {
+  border: 2px solid var(--dark);
+  color: var(--dark);
+}
+
+/* Same ink as .tracker but no border: dark text at 13:1 on the cream panel needs
+   none, and the focus ring below covers focus. An explicit 'light' makes the
+   pocket allocation modal agree by rule, not by stylesheet load order. */
+.icon-currency.light {
+  border: 0;
+  color: var(--color-content-primary);
+}
+
+.icon-currency.form, .icon-currency.dark {
+  border: 2px solid var(--creme);
+  color: var(--creme);
+}
+
+.icon-currency:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+
+.icon-currency:disabled {
+  opacity: 0.5;
+  /* No cursor: not-allowed: with pointer-events: none no cursor ever resolves here. */
+  pointer-events: none;
+}

@@ -1,0 +1,31 @@
+.header__logoAndIcon {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.iconContainer.exit:hover,
+.iconContainer.edit:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease
+
+}
+
+/* Keyboard ring for both controls: index.css strips the outline from the sign-out
+   <button>, and the edit <a> lacks the product's own ring. The header is white,
+   so the ring takes the strong border token. */
+.iconContainer.exit:focus-visible,
+.iconContainer.edit:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-strong);
+  outline-offset: var(--border-width-thick);
+  border-radius: var(--radius-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconContainer.exit:hover,
+  .iconContainer.edit:hover {
+    transform: none;
+    transition: none;
+  }
+}

@@ -1,0 +1,131 @@
+/* The glyph that opens the transaction's date. It sits only inside the light tracker card,
+   so there is no .light / .dark modifier. The resting ink is the secondary content colour,
+   a step below the account label beside it, which is what keeps it discreet. */
+
+.transactionDateTrigger {
+ display: inline-flex;
+ /* baseline, not center: the parent aligns by baseline, and a centred glyph (an SVG, no text
+    baseline) would synthesise one at its bottom edge and ride high. The day <span> supplies
+    the baseline instead; the glyph opts out below. */
+ align-items: baseline;
+ justify-content: center;
+ /* Anchors the ::after that gives the tappable area back below. */
+ position: relative;
+ /* The glyph plus --space-1 on each side. A minimum and not a width, because the box grows
+    to carry the day label. */
+ min-width: calc(var(--font-size-base) + var(--space-1) * 2);
+ height: calc(var(--font-size-base) + var(--space-1) * 2);
+ flex-shrink: 0;
+ gap: var(--space-1);
+ padding: var(--space-1);
+ border: none;
+ border-radius: var(--radius-xs);
+ background-color: transparent;
+ color: var(--color-content-secondary);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+/* The tappable area the small painted box gives up. Unpainted and hit-testable,
+   so a finger still gets --size-touch-target while only the glyph shows. */
+.transactionDateTrigger::after {
+ content: '';
+ position: absolute;
+ inset: calc(
+  (var(--size-touch-target) - var(--font-size-base) - var(--space-1) * 2) / -2
+ );
+}
+
+/* The asset is drawn on a square viewBox with stroke='currentColor', so the
+   colour above reaches it and the box needs no aspect correction. */
+.transactionDateTrigger__glyph {
+ height: var(--font-size-base);
+ width: var(--font-size-base);
+ /* Centred, so it drops out of baseline alignment and the day text becomes the button's
+    baseline instead of this glyph's bottom edge. */
+ align-self: center;
+}
+
+.transactionDateTrigger:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.transactionDateTrigger:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Cream on near-black. Pairing --color-content-primary with --color-accent-content, as the
+   neighbouring trigger's light modifier does, is near-black twice and hides the glyph. */
+.transactionDateTrigger:active {
+ background-color: var(--color-content-primary);
+ color: var(--color-accent);
+}
+
+.transactionDateTrigger:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Means the date is not today (back-dated), despite the name. The day prints either way,
+   so this only changes how it is drawn. */
+.transactionDateTrigger.is-active {
+ color: var(--color-content-primary);
+ padding-inline-end: var(--space-2);
+}
+
+/* Same size as the account label beside it (--font-size-sm). font-size is restated because
+   index.css sets it on the universal selector, so an inline element does not inherit the line's. */
+.transactionDateTrigger__day {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ line-height: 1;
+ white-space: nowrap;
+}
+
+/* The date control as a whole. A block of its own because it wraps
+   .transactionDateTrigger, and an element may not contain its own block. */
+
+.transactionDateControl {
+ display: inline-flex;
+ /* Centred, not baseline-aligned: the amount field aligns its items on their centres, and
+    the figure beside it is set at a different size and would drag the glyph off the row's
+    middle. */
+ align-items: center;
+ gap: var(--space-1);
+}
+
+.transactionDateControl {
+ flex-shrink: 0;
+}
+
+/* The divider between the control and the amount field is not here: only the tracker has
+   that arrangement, and a shared component must not paint one caller's decision (see
+   tracker-style.css). */
+
+@media (prefers-reduced-motion: reduce) {
+ .transactionDateTrigger {
+  transition: none;
+ }
+}
+
+/* Overrides the library's scrim and its 2147483647 z-index, which would cover toasts. One step above
+   --z-modal, not equal: react-datepicker never removes its portal host, so from the second open
+   it predates the modal and equal values would paint the calendar behind it. */
+.react-datepicker__portal {
+ background-color: var(--color-surface-overlay);
+ z-index: var(--z-modal-popover);
+}
+
+/* The library inflates day cells to 3rem inside a portal. Set to --size-control-sm (2rem):
+   the 1.7rem of the in-place PnL calendar has no token, and 2rem reads at the same
+   density. */
+.react-datepicker__portal .react-datepicker__day-name,
+.react-datepicker__portal .react-datepicker__day,
+.react-datepicker__portal .react-datepicker__time-name {
+ width: var(--size-control-sm);
+ line-height: var(--size-control-sm);
+}

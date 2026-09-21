@@ -1,0 +1,41 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.vercel/
+coverage/
+storybook-static/
+
+# Environment files and key material; only the .env.example templates are committed
+.env
+.env.*
+!.env.example
+*.pem
+*.crt
+*.cert
+*.key
+
+# Logs, caches and compiler output
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.tsbuildinfo
+.cache/
+.temp/
+.tmp/
+.eslintcache
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.stackdump
+.DS_Store
+Thumbs.db
+
+# Local database dump
+backup_fintrack.sql

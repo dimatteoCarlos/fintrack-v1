@@ -1,0 +1,41 @@
+import express from 'express';
+import accountRoutes from './accountRoutes.js';
+import transactionRoutes from './transactionRoute.js';
+import dashboardRoutes from './dashboardRoutes.js';
+import currencyRoutes from './currencyRoutes.js';
+import budgetRoutes from './budgetRoutes.js';
+import pocketRoutes from './pocketRoutes.js';
+import overviewRoutes from './overviewRoutes.js';
+import debtRoutes from './debtRoutes.js';
+
+const router = express.Router();
+router.use('/currency',
+ currencyRoutes); //handling currency catalog and exchange rates
+
+router.use('/account',
+ accountRoutes); //create, edit and read(get) accounts
+
+router.use('/transaction',
+ transactionRoutes);//movements between accounts
+
+router.use('/dashboard',
+ dashboardRoutes);//overview info
+
+router.use('/budget',
+ budgetRoutes);//budget policies, allocations and summaries
+
+router.use('/pocket',
+ pocketRoutes);//the savings board: every pocket of the caller, folded once
+
+//Mounted beside /dashboard, not inside it: /dashboard is the legacy aggregate being
+//replaced, and both must answer while the frontend switches screen by screen.
+router.use('/overview',
+ overviewRoutes);//per-domain overview calculators
+
+//Mounted beside /overview, not inside it: the debt export is a file download, not a
+//domain payload, and /overview/:domain reserves its path for the six domains.
+router.use('/debt',
+ debtRoutes);//the per-counterparty debt export
+
+
+export default router;

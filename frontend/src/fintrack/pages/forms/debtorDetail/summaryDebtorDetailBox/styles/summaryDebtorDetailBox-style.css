@@ -1,0 +1,72 @@
+.summaryDebtor__container {
+  background-color: var(--creme);
+  color: var(--dark);
+  font-weight: 600;
+  border-radius: 0.875rem;
+  padding: 0.5rem 1.75rem;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+}
+.summaryDebtor__title {
+  font-size: 1.25rem;
+  color: var(--dark);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.summaryDebtor__data {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 0.25rem;
+}
+
+/* The shared formatter emits the amount as one string, so it is a single flex item
+   aligned to the rule under it. */
+.summaryDebtor__data--amount {
+  display: flex;
+  justify-content: flex-end;
+  width: 85%;
+  letter-spacing: 1.5px;
+  /* Same rule and tokens as the shared summary box; both sit on the same cream
+     panel and must not diverge. */
+  border-bottom: var(--border-width-thin) solid var(--color-content-primary);
+}
+
+/* index.css sets font-size on the universal selector, so this inline element
+   does not inherit the size of the line it sits in unless it restates it. */
+.summaryDebtor__amount {
+  font-size: inherit;
+}
+/* Muted content colour of the cream panel; keeps the subtitles' contrast against
+   --creme. */
+.summaryDebtor__data--subtitle1 {
+  color: var(--color-content-secondary);
+  font-size: 0.75rem;
+}
+.summaryDebtor__data--status {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.summaryDebtor__data--subtitle2 {
+  color: var(--color-content-secondary);
+  font-size: 0.75rem;
+  /* The line is a sentence, not a single role word, so capitalize would title-case
+     every word of it. */
+  text-transform: none;
+  text-align: right;
+}
+
+/* Panel variants: on cream the app-surface pair measures 2.98 and 2.64 to 1, under the 3:1 floor
+   (these give 4.94 and 4.74). Colour is a second carrier; the line beneath states the direction. */
+.summaryDebtor__amount--owed {
+  color: var(--color-amount-positive-on-panel);
+}
+
+.summaryDebtor__amount--owing {
+  color: var(--color-amount-negative-on-panel);
+}

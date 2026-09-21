@@ -1,0 +1,208 @@
+.form__datepicker__container {
+ border: var(--border-width-thin) solid var(--color-content-on-dark-muted);
+ height: 2.625em;
+ border-radius: var(--radius-xl);
+ padding: var(--space-2);
+ width: 100%;
+
+ background-color: transparent;
+ display: flex;
+ flex-direction: column;
+ margin-bottom: var(--space-4);
+}
+
+.tracker__inside__datepicker,
+.form__inside__datepicker {
+ background-color: transparent;
+ width: 100%;
+
+ padding: 0;
+ margin: 0;
+ font-weight: var(--font-weight-regular);
+ cursor: pointer;
+ transition: font-weight var(--motion-fast), color var(--motion-fast);
+}
+
+/* The two names below are the surface pair: tracker sits on the cream card,
+   form on the dark app page. */
+
+.tracker__inside__datepicker {
+ text-align: center;
+ color: var(--color-content-primary);
+}
+
+.tracker__inside__datepicker:hover,
+.tracker__inside__datepicker:focus,
+.tracker__inside__datepicker:active {
+ font-weight: var(--font-weight-semibold);
+}
+
+/* index.css clears the outline on every input, so the keyboard ring only exists
+   where a component declares it. Dark ring on the cream card. */
+.tracker__inside__datepicker:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+ border-radius: var(--radius-xs);
+}
+
+.tracker__inside__datepicker:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.form__inside__datepicker {
+ color: var(--color-content-on-dark-muted);
+ text-align: left;
+}
+
+.form__inside__datepicker:hover,
+.form__inside__datepicker:focus,
+.form__inside__datepicker:active {
+ color: var(--color-content-on-dark);
+}
+
+/* Light ring: this one sits on the dark page. */
+.form__inside__datepicker:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+ border-radius: var(--radius-xs);
+}
+
+.form__inside__datepicker:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.react-datepicker {
+ transition: transform var(--motion-normal);
+}
+
+.react-datepicker__tab-loop {
+ position: relative;
+}
+
+.pnl-datepicker-popper {
+ transform: translate(-55%, -85%) !important;
+}
+
+.pocket-datepicker-popper {
+ transform: translate(5%, -85%) !important;
+}
+
+.react-datepicker__triangle {
+ display: none;
+}
+
+.react-datepicker__month-container {
+ background-color: #5b5b5b;
+ color: #f7f7f7;
+}
+
+.react-datepicker__day {
+ color: var(--color-content-on-dark) !important;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ transition: background-color var(--motion-fast);
+}
+
+/* The day text above is pinned to white, and the teal semaphore ground carried
+   only 3.74:1 under it. The sunken surface takes that pair to 19.56:1. */
+.react-datepicker__day.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+ background-color: var(--color-surface-sunken) !important;
+ border-radius: 50% !important;
+}
+
+/* Same contrast fix for hover, on every day. The dark neutrals sit within 1.12:1
+   of each other, so the ring, not the fill, separates hover from selected. */
+.react-datepicker__day:hover {
+ background-color: var(--color-surface-raised) !important;
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+ border-radius: 50% !important;
+ font-weight: var(--font-weight-bold) !important;
+}
+
+/* A day is reachable by keyboard, and the library only paints the selected one.
+   Without this the arrow keys move an invisible cursor. */
+.react-datepicker__day:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+ border-radius: 50%;
+}
+
+.react-datepicker__day--disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.react-datepicker__day-name {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+}
+
+.react-datepicker__year-option {
+ color: var(--color-content-primary);
+ font-weight: var(--font-weight-medium);
+ background-color: var(--color-surface-panel);
+}
+
+.react-datepicker__year-select,
+.react-datepicker__month-select {
+
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+
+ border: var(--border-width-thin) solid var(--color-border-strong);
+ border-radius: var(--radius-sm);
+
+ padding: 0.2rem var(--space-6) 0.2rem var(--space-2);
+
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+
+ cursor: pointer;
+ transition: background-color var(--motion-fast), border-color var(--motion-fast);
+}
+
+.react-datepicker__year-select:hover,
+.react-datepicker__month-select:hover {
+ background-color: var(--color-accent);
+}
+
+.react-datepicker__year-select:focus-visible,
+.react-datepicker__month-select:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.react-datepicker__year-select:active,
+.react-datepicker__month-select:active {
+ background-color: var(--color-surface-disabled);
+}
+
+.react-datepicker__year-select:disabled,
+.react-datepicker__month-select:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.react-datepicker__year-select option,
+.react-datepicker__month-select option {
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+}
+
+/* The popper's entry glide and the day and dropdown hovers are the only motion
+   here; the reader asked for none. */
+@media (prefers-reduced-motion: reduce) {
+ .react-datepicker,
+ .react-datepicker__day,
+ .react-datepicker__year-select,
+ .react-datepicker__month-select,
+ .tracker__inside__datepicker,
+ .form__inside__datepicker {
+  transition: none;
+ }
+}

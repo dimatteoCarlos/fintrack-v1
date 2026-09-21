@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+
+body,
+:root,
+:after,
+:before,
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+:root {
+  /* Overrides the 16px above for the root only, so every rem (type and spacing
+     scales, header and navbar heights) follows the viewport. Every other element
+     stays pinned at 16px; one that looks stuck there never declared a size. */
+  font-size: var(--font-size-root);
+  /* Reserves the scrollbar track so a section growing past the viewport does not
+     shift centred layouts. */
+  scrollbar-gutter: stable;
+  /* Smooths only programmatic jumps (scrollIntoView, scrollTo, anchors), not the
+     wheel or touch. It sits on the root because the document is the scrolling
+     box for every route; it is ignored on elements without overflow. */
+  scroll-behavior: smooth;
+
+  font-synthesis: weight;
+  color-scheme: light dark;
+
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Global, not per route: the scrollbar gutter shows the document behind, white on a route that does not
+     paint the body (generalStyles.css covers fintrack; auth never loads it). */
+  background-color: var(--color-surface-app);
+}
+
+/* Route cross-fade driven by React Router's View Transitions integration
+   (NavLink/navigate with `viewTransition`). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-route-transition-duration);
+}
+
+/* Smooth scrolling and the route cross-fade are animation; honour the reduced-motion setting. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    scroll-behavior: auto;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+input,
+span {
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+}
+
+* {
+  font-family: inherit;
+}
+
+button {
+  background-color: transparent;
+  outline: none;
+  font-family: inherit;
+  padding: 0;
+  cursor: pointer;
+  border: none;
+}
+
+.bordered {
+  border: 2px solid red;
+}
+
+.tile__left .tile__subtitle,
+.flx-row-sb .box__subtitle
+{
+ width:100%;
+ overflow-wrap:anywhere;
+ word-break:break-word;
+ white-space: normal;
+ overflow:hidden;
+}

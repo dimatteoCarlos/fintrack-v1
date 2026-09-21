@@ -1,0 +1,393 @@
+/* Budget list controls bar: one row on a single surface. Imported by BudgetListControls.tsx. */
+
+/* The margins are written unequal and land equal, 16px on each side: the title above already pads a
+   rem under itself (cardTitle.css --title), so declaring --space-4 twice would render 32 above against
+   16 below. */
+.budgetListControls {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ margin-top: 0;
+ margin-bottom: var(--space-4);
+}
+
+/* The design system's 735px step, taken here so this one component's spacing degrades once rather than
+   once per level. Air is worth less than rows on a short screen. */
+@media (max-height: 735px) {
+ .budgetListControls {
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+ }
+}
+
+/* Anchors the menu: the strip clips what is drawn inside it (overflow: hidden), so the menu cannot be
+   positioned against the strip. The wrapper is a plain block, so the strip and status row stack as
+   before. */
+.budgetListControls__bar {
+ position: relative;
+}
+
+/* Hung under the trigger's end of the strip: the trigger is the last segment, so the menu opens beneath
+   the pressed control. Sized by its longest entry, with a floor so a two-word entry does not draw a
+   menu narrower than a tap. */
+.budgetListControls__menu {
+ position: absolute;
+ inset-block-start: calc(100% + var(--space-1));
+ inset-inline-end: 0;
+ z-index: var(--z-dropdown);
+ min-inline-size: 12rem;
+ margin: 0;
+ padding: var(--space-1);
+ list-style: none;
+ background-color: var(--color-surface-raised);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ /* --radius-xl, not --radius-lg: the deletion chunk redeclares --radius-lg on :root, so its value
+    depends on whether that chunk has loaded. */
+ border-radius: var(--radius-xl);
+ box-shadow: var(--shadow-overlay);
+}
+
+/* Left-aligned and full width: an entry as wide as its text leaves dead space in the row that looks
+   pressable and is not. */
+.budgetListControls__menuItem {
+ display: block;
+ inline-size: 100%;
+ padding: var(--space-2) var(--space-3);
+ border: none;
+ border-radius: var(--radius-md);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-family: var(--font-family-sans);
+ font-size: var(--font-size-sm);
+ text-align: start;
+ white-space: nowrap;
+ cursor: pointer;
+ transition: background-color var(--motion-fast);
+}
+
+.budgetListControls__menuItem:hover {
+ background-color: var(--color-surface-sunken);
+}
+
+.budgetListControls__menuItem:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+}
+
+/* Only the filter entry can be checked, so the mark is drawn on demand rather than reserving a column
+   that would indent the other entry. */
+.budgetListControls__menuItem[aria-checked='true']::before {
+ content: '✓';
+ margin-inline-end: var(--space-2);
+ color: var(--color-financial-negative);
+}
+
+/* One row, always, on one surface: the box lives here, not on each control (four boxes meant eight
+   border edges and three gaps of chrome). The sort keeps its width and the search takes the rest, so no
+   wrap threshold exists to drift. A hairline tells the segments apart, below. */
+.budgetListControls__fields {
+ display: flex;
+ flex-wrap: nowrap;
+ align-items: stretch;
+ min-height: var(--size-control-sm);
+ background-color: var(--color-surface-sunken);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-xl);
+ /* Segments are square and the strip round: without this the filled last segment would square off the
+    strip's rounded corner. */
+ overflow: hidden;
+ transition: border-color var(--motion-fast);
+}
+
+/* The strip, not one segment, answers the pointer: it is a single surface. */
+.budgetListControls__fields:hover {
+ border-color: var(--color-content-on-dark-subtle);
+}
+
+/* Loading disables all four controls together, so the strip is dimmed once; dimming each compounds
+   into three different greys for one state. */
+.budgetListControls__fields:has(.budgetListControls__search:disabled) {
+ opacity: 0.5;
+}
+
+/* Hold the icons, which are positioned against the field, not the bar. */
+.budgetListControls__query,
+.budgetListControls__selectBox {
+ position: relative;
+ display: flex;
+}
+
+/* The elastic side of the row: a narrow search field still works (the term scrolls inside it), while
+   the key and direction would be cut. No width floor: an <input> reports about twenty characters of
+   content width, so min-width: 0 is what lets it shrink. */
+.budgetListControls__query {
+ flex: 1 1 auto;
+ min-width: 0;
+}
+
+/* The key takes exactly the width of its longest option and neither grows nor shrinks, so the search is
+   the only thing the viewport changes. */
+.budgetListControls__sort,
+.budgetListControls__selectBox {
+ flex: 0 0 auto;
+}
+
+/* Close enough that the key and its direction read as one control. */
+.budgetListControls__sort {
+ display: flex;
+ align-items: center;
+ gap: var(--space-1);
+}
+
+/* The strip carries border, fill and radius; these carry type and colour. Height is --size-control-sm,
+   not --size-touch-target: the four fit on one line at 360px only at 32px, which clears the 24px AA
+   target (SC 2.5.8). */
+.budgetListControls__search,
+.budgetListControls__select,
+.budgetListControls__direction,
+.budgetListControls__filter {
+ background-color: transparent;
+ border: none;
+ border-radius: 0;
+ color: var(--color-content-on-dark);
+ font-family: var(--font-family-sans);
+ font-size: var(--font-size-sm);
+ transition: color var(--motion-fast), background-color var(--motion-fast);
+}
+
+/* Three segments, not four: the key and its direction are one control, so no hairline between them. A
+   rule rather than a gap, which costs the term pixels and leaves the boundary ambiguous. Declared after
+   the reset above, which sets border: none on the filter and would otherwise wipe this. */
+.budgetListControls__sort,
+.budgetListControls__filter {
+ border-left: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+/* padding-left leaves room for the leading icon. min-width: 0 for the same reason as its wrapper: an
+   input's automatic minimum is its ~20-character content width. Block padding is --space-1 because
+   --space-2 would push line box, padding and border past the 32px min-height. */
+.budgetListControls__search {
+ width: 100%;
+ min-width: 0;
+ padding: var(--space-1) var(--space-3);
+ padding-left: var(--space-8);
+}
+
+.budgetListControls__search::placeholder {
+ color: var(--color-content-placeholder);
+}
+
+/* WebKit's clear button cannot be styled and would sit beside the one drawn below, so it is hidden to
+   leave a single way to empty the field. */
+.budgetListControls__search::-webkit-search-cancel-button {
+ display: none;
+}
+
+/* Reserved only while there is something to clear; held open permanently it would be dead space on an
+   empty field. */
+.budgetListControls__query:has(.budgetListControls__reset)
+ .budgetListControls__search {
+ padding-right: var(--space-8);
+}
+
+/* The OS-drawn arrow ignores page colours, so it is removed and redrawn as an icon; the right padding
+   keeps the longest key from running under it. Left padding is --space-8 because the icon ends at
+   --space-6. Grey, not white: the value is app state; the field beside it holds the reader's words. */
+.budgetListControls__select {
+ width: auto;
+ padding: var(--space-1) var(--space-6);
+ padding-left: var(--space-8);
+ color: var(--color-content-on-dark-subtle);
+ appearance: none;
+ cursor: pointer;
+}
+
+/* Square, with the same box as the key beside it so the two read as one control. The arrow points down
+   for descending and is rotated for ascending: the glyph is the state. */
+.budgetListControls__direction {
+ flex: 0 0 auto;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-control-sm);
+ cursor: pointer;
+}
+
+/* The status filter, square like the direction and outside the sort group on purpose: it orders
+   nothing. The hairline states that boundary. */
+.budgetListControls__filter {
+ flex: 0 0 auto;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-control-sm);
+ color: var(--color-content-on-dark-subtle);
+ cursor: pointer;
+}
+
+/* Red matches the row's square for the same fact, and the raised fill is what says "engaged": on a dark
+   strip a glyph colour change alone reads as hover. Border colour is not used, since the only border
+   here is the divider hairline. */
+.budgetListControls__filter.is-active {
+ background-color: var(--color-surface-raised);
+ color: var(--color-status-alert);
+}
+
+.budgetListControls__direction svg,
+.budgetListControls__filter svg {
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+ transition: transform var(--motion-fast);
+}
+
+.budgetListControls__direction.is-ascending svg {
+ transform: rotate(180deg);
+}
+
+/* Sized off --font-size-base, not --size-icon: the glyphs draw inside ~60% of their box. Also the
+   ceiling: the field reserves --space-8 on the left, and a larger icon would take room from the term. */
+.budgetListControls__icon {
+ position: absolute;
+ top: 50%;
+ left: var(--space-2);
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+ transform: translateY(-50%);
+ color: var(--color-content-on-dark-subtle);
+ pointer-events: none;
+}
+
+.budgetListControls__icon--trailing {
+ right: var(--space-2);
+ left: auto;
+}
+
+/* index.css sets font-size on the universal selector, which matches <option> directly, so the size is
+   restated to make the popup agree with the closed box; the grey follows it too, so the popup is not
+   brighter than its control. Honoured by Chromium and Firefox; Safari ignores option styling. */
+.budgetListControls__select option {
+ background-color: var(--color-surface-sunken);
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-sm);
+}
+
+/* Overrides the OS accent on the hovered and selected rows. Both selectors are needed: Chromium tracks
+   the pointer by moving :checked and ignores :hover on options, Firefox honours :hover. No padding
+   here: customising it drops Chromium out of the rendering path that follows :checked. */
+.budgetListControls__select option:checked,
+.budgetListControls__select option:hover {
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+}
+
+/* Positioned against the field rather than laid out in it, so its height must follow the field's box (a
+   taller one would hang out of both ends). 32 by 32 clears the 24px minimum, and the field reserves
+   exactly --space-8 for it. */
+.budgetListControls__reset {
+ position: absolute;
+ top: 50%;
+ right: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--space-8);
+ height: var(--size-control-sm);
+ transform: translateY(-50%);
+ background-color: transparent;
+ border: none;
+ border-radius: var(--radius-full);
+ color: var(--color-content-on-dark-subtle);
+ cursor: pointer;
+ transition: color var(--motion-fast);
+}
+
+.budgetListControls__reset svg {
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+}
+
+/* Hover and active border states belong to the strip; per control only the glyph colour changes, and
+   only where the glyph is the whole control. */
+.budgetListControls__direction:hover,
+.budgetListControls__direction:active,
+.budgetListControls__filter:hover,
+.budgetListControls__filter:active,
+.budgetListControls__reset:hover,
+.budgetListControls__reset:active {
+ color: var(--color-content-on-dark);
+}
+
+/* The lit filter keeps its red on hover; the neutral rule above would otherwise override it. */
+.budgetListControls__filter.is-active:hover,
+.budgetListControls__filter.is-active:active {
+ color: var(--color-status-alert);
+}
+
+.budgetListControls__fields:active {
+ border-color: var(--color-accent);
+}
+
+/* The design system's 2px ring, drawn inward with a negative offset: a positive offset would paint over
+   the neighbouring hairline and past the strip's rounded ends, and the reader must see which segment
+   has focus. */
+.budgetListControls__search:focus-visible,
+.budgetListControls__select:focus-visible,
+.budgetListControls__direction:focus-visible,
+.budgetListControls__filter:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+ border-radius: var(--radius-lg);
+}
+
+/* The cross keeps its round shape; only the ring is added. */
+.budgetListControls__reset:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(-1 * var(--border-width-thick));
+}
+
+/* Loading disables all four controls at once, so only pointer-events are declared here; the dimming is
+   the strip's (one layer, above) and dimming here too would compound. */
+.budgetListControls__search:disabled,
+.budgetListControls__select:disabled,
+.budgetListControls__direction:disabled,
+.budgetListControls__filter:disabled,
+.budgetListControls__reset:disabled {
+ pointer-events: none;
+}
+
+/* No reserved row: the counter only appears while the reader is typing, and on a short screen the row
+   is worth more to the list than the shift costs. */
+.budgetListControls__status {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: var(--space-2);
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+/* display: none, not just zero height: the bar is a flex column with a gap, and a zero-height child
+   still takes the gap (8px above the list). */
+.budgetListControls__status:empty {
+ display: none;
+}
+
+/* Restates its size: index.css sets font-size on the universal selector, so an inline element does not
+   inherit the line's size. */
+.budgetListControls__message {
+ font-size: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .budgetListControls__fields,
+ .budgetListControls__search,
+ .budgetListControls__select,
+ .budgetListControls__direction,
+ .budgetListControls__direction svg,
+ .budgetListControls__filter,
+ .budgetListControls__filter svg,
+ .budgetListControls__reset {
+  transition: none;
+ }
+}

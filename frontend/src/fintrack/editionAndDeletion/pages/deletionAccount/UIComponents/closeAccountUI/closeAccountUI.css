@@ -1,0 +1,157 @@
+/* Fields CLOSE adds inside the shared deletion dialog. The frame around them (overlay,
+   panel, title, actions row) belongs to standardDeletionDialog.css. The panel is dark, so
+   every colour below is an on-dark token. */
+
+.close-account__fields {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-3);
+ margin-block-start: var(--space-4);
+}
+
+.close-account__balance-row {
+ display: flex;
+ align-items: baseline;
+ justify-content: space-between;
+ gap: var(--space-3);
+ margin: 0;
+ padding: var(--space-3);
+ background-color: var(--color-surface-sunken);
+ border-radius: var(--radius-sm);
+}
+
+.close-account__balance-label {
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+}
+
+.close-account__balance-value {
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+}
+
+/* Before/after pair grouped so the two rows read as one statement. */
+.close-account__net-worth {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+}
+
+.close-account__net-worth-title {
+ margin: 0;
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+}
+
+/* Why the two figures are the same, said in words: an unchanged pair otherwise reads as
+   a figure that failed to update. */
+.close-account__net-worth-note {
+ margin: 0;
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+}
+
+/* The balance that refuses the close, coloured as the blocking figure. */
+.close-account__balance-value--blocking {
+ color: var(--color-financial-negative-content);
+}
+
+/* Loading is its own state, distinct from error and from empty: a figure that
+   has not arrived is never rendered as 0. */
+.close-account__balance-skeleton {
+ display: inline-block;
+ inline-size: var(--layout-content-width);
+ max-inline-size: 40%;
+ block-size: var(--size-glyph-inline);
+ border-radius: var(--radius-sm);
+ background-color: var(--color-surface-deep);
+ animation: close-account-skeleton var(--motion-normal) ease-in-out infinite
+  alternate;
+}
+
+@keyframes close-account-skeleton {
+ from {
+  opacity: 0.4;
+ }
+ to {
+  opacity: 0.8;
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .close-account__balance-skeleton {
+  animation: none;
+ }
+}
+
+.close-account__preview-error {
+ margin: 0;
+ color: var(--color-status-error);
+ font-size: var(--font-size-sm);
+}
+
+/* The budget that goes with the account. Warning rather than error: it is
+   what the close does, not something going wrong. */
+.close-account__budget-warning {
+ margin: 0;
+ padding: var(--space-2) var(--space-3);
+ border-left: var(--border-width-thick) solid var(--color-feedback-warning-border);
+ background-color: var(--color-feedback-warning-surface);
+ color: var(--color-feedback-warning-content);
+ font-size: var(--font-size-sm);
+ line-height: 1.5;
+}
+
+.close-account__label {
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+}
+
+.close-account__reason {
+ inline-size: 100%;
+ min-block-size: var(--size-touch-target);
+ padding: var(--space-3);
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-base);
+ font-family: inherit;
+ background-color: var(--color-surface-sunken);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-sm);
+ resize: vertical;
+ transition: border-color var(--motion-fast) ease;
+}
+
+/* Placeholder ink, not the subtle ink: --color-content-on-dark-subtle (9.40:1 on this
+   field) reads as loud as a typed reason, so an empty box looked filled. The placeholder
+   token measures 6.70:1 here: quieter than content and still above the 4.5:1 floor. */
+.close-account__reason::placeholder {
+ color: var(--color-content-on-dark-placeholder);
+}
+
+.close-account__reason:hover {
+ border-color: var(--color-border-inverse);
+}
+
+.close-account__reason:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: var(--border-width-thick);
+ border-color: var(--color-accent);
+}
+
+.close-account__reason:active {
+ border-color: var(--color-accent);
+}
+
+.close-account__reason:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.close-account__hint {
+ margin: 0;
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+}

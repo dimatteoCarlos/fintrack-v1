@@ -1,0 +1,150 @@
+/*Shape only: the two modifiers below carry the surface, like .month-badge. baseline, not start: the
+  title (1.25rem) and amount (1rem) would otherwise have misaligned baselines.*/
+.summary__container {
+  font-weight: 600;
+  border-radius: 0.875rem;
+  padding: 0.5rem 1.75rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+/*The cream panel of budget levels 2 and 3.*/
+.summary__container--light {
+  background-color: var(--creme);
+  color: var(--dark);
+}
+
+/*The app surface. Matches .input__container on the same screen: no fill, a
+  cream outline, cream text.*/
+.summary__container--dark {
+  background-color: transparent;
+  border: var(--border-width-thin) solid var(--color-content-on-dark-muted);
+  color: var(--color-content-on-dark-muted);
+}
+
+/*Holds the title and whatever the caller hands over as `action`. Declares no
+  colours: the slot's contents style themselves against the surface.*/
+.summary__titleRow {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+.summary__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.summary__container--light .summary__title {
+  color: var(--dark);
+}
+
+/*White, like .forms__label on the fields below it.*/
+.summary__container--dark .summary__title {
+  color: var(--color-content-on-dark);
+}
+.summary__data {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 0.25rem;
+}
+
+.summary__data--amount {
+  display: flex;
+  justify-content: space-between;
+  width: 85%;
+  letter-spacing: 1.5px;
+  border-bottom: var(--border-width-thin) solid var(--color-content-primary);
+}
+
+.summary__container--dark .summary__data--amount {
+  border-bottom-color: var(--color-content-on-dark-muted);
+}
+
+/*--font-size-sm is the token file's default UI size; at 0.75rem the row read as
+  switched off next to the figure above it (contrast is not the issue: #bdb1b1 on
+  the app surface is 9.3:1).*/
+.summary__data--subtitle1 {
+  color: var(--color-content-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.summary__data--status {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary__data--subtitle2 {
+  color: var(--color-content-secondary);
+  font-size: var(--font-size-sm);
+  text-transform: capitalize;
+}
+
+/*#5b5b5b is a panel colour and disappears on the app surface.*/
+.summary__container--dark .summary__data--subtitle1,
+.summary__container--dark .summary__data--subtitle2 {
+  color: var(--color-content-on-dark-subtle);
+}
+
+/*font-size is restated because the universal selector in index.css sets one on
+  every element, so a bare span does not inherit the line it sits in.*/
+.summary__remainWord,
+.summary__percentage {
+  font-size: inherit;
+}
+
+/*Lowercase inside .summary__data--subtitle2, which capitalises every word it
+  holds. Matches the budget lists.*/
+.summary__remainWord {
+  text-transform: none;
+}
+
+/*Same financial semaphore colours as the budget status.*/
+.summary__percentage--over {
+  color: var(--color-financial-negative);
+}
+
+.summary__percentage--left {
+  color: var(--color-financial-positive);
+}
+
+/*The breakdown below is a second row, so the box wraps. Every caller passes this
+  modifier, so it could fold into .summary__container.*/
+.summary__container--stacked {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+/*Full width drops it below the title and amount and puts each reading at its own
+  end of the box; inside .summary__data they would stack in the right half.*/
+.summary__breakdown {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/*Each reading is one unit: without this the row breaks between a label and its
+  figure ("Spent" / amount). The readings wrap against each other instead, side
+  by side while both fit and one per line otherwise.*/
+.summary__breakdown > .summary__data--status,
+.summary__breakdown > .summary__data--subtitle1 {
+  white-space: nowrap;
+}
+
+/*Below 400px the right half stops fitting on one line and would split Spent from
+  its figure.*/
+@media (max-width: 400px) {
+  .summary__breakdown .summary__data--subtitle1,
+  .summary__breakdown .summary__data--subtitle2 {
+    font-size: var(--font-size-xs);
+  }
+}

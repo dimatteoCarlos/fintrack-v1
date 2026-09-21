@@ -1,0 +1,101 @@
+// Contract tests for the change against the prior month: complete, partial and none each need their own
+// answer (partial must not read "no prior month" beside a figure). The guard reads the account's age,
+// not the presence of rows: an account opened on the 14th fails a first-of-month test despite transactions.
+
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+ makePeriodDelta,
+ priorPeriodNotices,
+ NO_PRIOR_PERIOD_NOTICE,
+ PARTIAL_PRIOR_PERIOD_NOTICE,
+} from '../../src/fintrack_api/services/overview_services/core/makeDomainCard.js';
+
+const months = [
+ { month: '2026-08-01', totalAmount: 100, transactionCount: 3 },
+ { month: '2026-09-01', totalAmount: 180, transactionCount: 5 },
+];
+
+const deltaFor = (oldestAccountDate) => makePeriodDelta({
+ months,
+ referenceMonth: '2026-09-01',
+ priorMonth: '2026-08-01',
+ oldestAccountDate,
+});
+
+test('an account older than the prior month gives a complete comparison', () => {
+ const { delta, priorPeriodCoverage } = deltaFor('2026-07-15');
+
+ assert.equal(priorPeriodCoverage, 'complete');
+ assert.equal(delta, 80);
+ assert.deepEqual(priorPeriodNotices(priorPeriodCoverage), []);
+});
+
+test('the prior month publishes its own figure, so a share has a denominator', () => {
+ // Without this the page can state the change as an amount and never as a
+ // percentage: the denominator is not on the wire, and deriving it would mean
+ // inventing it.
+ const { priorTotalAmount, delta } = deltaFor('2026-07-15');
+
+ assert.equal(priorTotalAmount, 100);
+ assert.equal(delta, 80);
+ // The reading the card builds out of the two, at the card's own precision.
+ assert.equal(((delta / Math.abs(priorTotalAmount)) * 100).toFixed(1), '80.0');
+});
+
+test('the baseline and the change are absent together', () => {
+ // One without the other is a state no consumer knows how to read: a baseline
+ // with no change measured against it, or a change with nothing to divide by.
+ for (const oldest of ['2026-09-02', null]) {
+  const { priorTotalAmount, delta } = deltaFor(oldest);
+
+  assert.equal(priorTotalAmount, null);
+  assert.equal(delta, null);
+ }
+});
+
+test('an account opened during the prior month still reports the change', () => {
+ const { delta, priorPeriodCoverage } = deltaFor('2026-08-14');
+
+ assert.equal(priorPeriodCoverage, 'partial');
+ // Same subtraction as the complete case; only the caveat differs. Suppressing the
+ // delta here is the behaviour this test prevents.
+ assert.equal(delta, 80);
+ assert.deepEqual(priorPeriodNotices(priorPeriodCoverage), [PARTIAL_PRIOR_PERIOD_NOTICE]);
+});
+
+test('the boundaries of the prior month land on the right side', () => {
+ // Opened on the first of the prior month: held for every day of it, so complete.
+ // A strict < would put this day on the partial side.
+ assert.equal(deltaFor('2026-08-01').priorPeriodCoverage, 'complete');
+ assert.equal(deltaFor('2026-07-31').priorPeriodCoverage, 'complete');
+ // The last day of the prior month is still part of it.
+ assert.equal(deltaFor('2026-08-31').priorPeriodCoverage, 'partial');
+ // The first day of the reference month holds no part of the prior one.
+ assert.equal(deltaFor('2026-09-01').priorPeriodCoverage, 'none');
+});
+
+test('an account opened during the reference month has nothing to compare against', () => {
+ const { delta, priorPeriodCoverage } = deltaFor('2026-09-02');
+
+ assert.equal(priorPeriodCoverage, 'none');
+ // The prior row exists (generate_series fabricates it) as a zero for a month the
+ // owner did not exist in; comparing against it would read as a rise from nothing.
+ assert.equal(delta, null);
+ assert.deepEqual(priorPeriodNotices(priorPeriodCoverage), [NO_PRIOR_PERIOD_NOTICE]);
+});
+
+test('an owner with no accounts has no prior period, not a prior period of zero', () => {
+ const { delta, priorPeriodCoverage } = deltaFor(null);
+
+ assert.equal(priorPeriodCoverage, 'none');
+ assert.equal(delta, null);
+});
+
+test('the reference point is read off the series, so the card and the chart cannot disagree', () => {
+ const { currentPoint } = deltaFor('2026-07-15');
+
+ assert.equal(currentPoint.totalAmount, 180);
+ assert.equal(currentPoint.transactionCount, 5);
+});

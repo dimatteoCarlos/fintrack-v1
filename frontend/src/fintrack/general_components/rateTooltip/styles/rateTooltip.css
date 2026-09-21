@@ -1,0 +1,128 @@
+/* The chip rides on .tooltip__wrapper--text. Every rule is a compound selector so it wins
+   regardless of stylesheet order, without a single !important. */
+
+/* Appearance of the chip: two or three lines, monospace figure. It carries no colour and
+   no placement, so it composes with a surface modifier and keeps the base tooltip
+   position (above the trigger, centred on it). */
+.tooltip__wrapper--text.rateTooltip__chip {
+ /* Room for the three-line chip growing upward from its bottom edge without touching the
+    tracker card's top border. */
+ margin-bottom: 0.625rem;
+ white-space: pre-line;
+ font-size: 0.625rem;
+ /* Three lines (the "for <day>" line of a back-dated entry) read cramped at less. */
+ padding: 0.5rem 0.75rem;
+ max-width: max-content;
+ width: max-content;
+
+ text-align: left;
+ font-family: monospace;
+ border-radius: 0.5rem;
+ box-shadow: 0 0.125rem 1.125rem color-mix(in srgb, var(--dark) 20%, transparent);
+ /* No pointer-events: none: the chip must stay hoverable (WCAG 2.1) so a reader who
+    magnifies the screen can move the pointer onto the rate. As a descendant of the wrapper
+    it keeps the wrapper hovered and the chip open. */
+}
+
+/* Sits on a light panel, such as the tracker card. Paints itself dark. */
+.tooltip__wrapper--text.rateTooltip__chip--light {
+ background-color: var(--dark);
+ color: var(--light);
+}
+
+/* Sits on the dark body, such as any form over --bgBodyColor. Paints itself light. */
+.tooltip__wrapper--text.rateTooltip__chip--dark {
+ background-color: var(--creme);
+ color: var(--dark);
+}
+
+/* The hover border of the base tooltip is --dark, invisible on a dark chip. */
+.tooltip__wrapper:hover .tooltip__wrapper--text.rateTooltip__chip--light {
+ border-color: var(--light);
+}
+
+/* For a trigger at the right edge of a wide row (the tracker card), where a centred chip would
+   overflow. right: 0, not left: 0: the box is max-content, so `left` would grow it rightward.
+   The inherited bottom: 100% keeps the taller chip clear of the text it annotates. */
+.tooltip__wrapper--text.rateTooltip__chip--anchor-left {
+ right: 0;
+}
+
+/* Under the converted figure, right edges aligned, growing left over the field it
+   explains: the budget editor has its heading and the panel edge above it. */
+.tooltip__wrapper--text.rateTooltip__chip--below {
+ top: 100%;
+ bottom: auto;
+ right: 0;
+ left: auto;
+ transform: none;
+ margin-bottom: 0;
+ margin-top: 0.375rem;
+}
+
+/* Anchored to the trigger's row: the amount row is one --space-4 below the card's top and the chip
+   needs about 55px, so anchored to the preview it could only go up over the navbar. It sits in the
+   row's blank band instead; the :has() rule unpositions the wrapper for this placement only. */
+.tooltip__wrapper:has(> .rateTooltip__chip--row-centred) {
+ position: static;
+}
+
+.tooltip__wrapper--text.rateTooltip__chip--row-centred {
+ /* Explicit coordinates, not a centring transform (it sank the chip into the amount field). The chip
+    grows upward into the card's --space-4 top padding; -0.5rem, half of it, clears the row's text. */
+ top: -0.5rem;
+ bottom: auto;
+ /* In from the row's right end: past about 20% the chip covers the preview figure it
+    explains. */
+ right: 20%;
+ left: auto;
+ transform: none;
+ margin-bottom: 0;
+ /* Tight vertically: the band above the amount field is about 38px. Line height is stated
+    because index.css sets it on the universal selector. */
+ padding: 0.25rem 0.875rem;
+ line-height: 1.25;
+}
+
+/* Opens downward: New Account's Value row sits under the Currency row, so anchor-left's bottom: 100%
+   reached into the badge above; overlapping the input below is fine, it is what the chip explains.
+   Anchored to .form__label-row, not the wrapper, which is narrower and misses the row's right edge. */
+.form__label-row:has(> .tooltip__wrapper > .rateTooltip__chip--anchor-left-below) {
+ position: relative;
+}
+
+.tooltip__wrapper:has(> .rateTooltip__chip--anchor-left-below) {
+ position: static;
+}
+
+.tooltip__wrapper--text.rateTooltip__chip--anchor-left-below {
+ /* Flips the base bottom: 100% so the chip grows from the row's bottom edge. */
+ top: 100%;
+ bottom: auto;
+ right: 0;
+ left: auto;
+ transform: none;
+ /* Mirrors the base margin-bottom on the opposite edge, since the chip opens downward. */
+ margin-bottom: 0;
+ margin-top: 0.625rem;
+}
+
+/* As anchor-left-below, for a row ending in a CurrencyBadge (New Category's Budget field): flush right
+   it would cover the badge, so it shifts left by the badge width plus the .form__amount-row gap. */
+.form__label-row:has(> .tooltip__wrapper > .rateTooltip__chip--anchor-left-below-badge) {
+ position: relative;
+}
+
+.tooltip__wrapper:has(> .rateTooltip__chip--anchor-left-below-badge) {
+ position: static;
+}
+
+.tooltip__wrapper--text.rateTooltip__chip--anchor-left-below-badge {
+ top: 100%;
+ bottom: auto;
+ right: calc(var(--size-badge) + var(--space-2));
+ left: auto;
+ transform: none;
+ margin-bottom: 0;
+ margin-top: 0.625rem;
+}

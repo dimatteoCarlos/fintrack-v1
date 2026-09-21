@@ -1,0 +1,304 @@
+button {
+  cursor: pointer;
+}
+.authPageContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-surface-app);
+}
+
+/* index.css reserves the scrollbar track (scrollbar-gutter: stable) but nothing paints into it here,
+   leaving a dark strip beside the photo; dropped on this page only. */
+:global(html):has(.authPageContainer) {
+  scrollbar-gutter: auto;
+}
+
+/* Deliberate exception to the "navbars are white" rule: this navbar sits directly
+   on .authPageContainer's dark ground (--color-surface-app), where a white bar
+   read as a seam. This view only; MainNavbar.tsx inside the app stays white. */
+.navbar {
+  background-color: var(--color-surface-app);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: var(--border-width-thin) solid var(--color-content-on-dark-subtle);
+  /* Anchors the dropdown, which hangs off the bottom edge of this element. */
+  position: relative;
+}
+
+/* logo.svg bakes #141414 into its paths instead of currentColor, so it is
+   inverted for the dark navbar (as with .theme-dark .auth-header__logo in
+   authUI.module.css). */
+.logoContainer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  /* The inline <svg> sits on the text baseline and rides 2px above the menu
+     button's centre; flex centres it on the box. */
+  display: flex;
+  align-items: center;
+  filter: invert(1);
+}
+
+.logoLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoText {
+  color: black;
+}
+.navList {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+.navList {
+  border: none;
+}
+/* Sized to the touch target. The active state names which mode the click opens.
+   The navbar is the dark exception above, so the pills take the same on-dark
+   tokens as the modal's dark theme (authUI.module.css). */
+.navPill {
+  height: var(--size-touch-target);
+  padding: 0 var(--space-4);
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  border: var(--border-width-thin) solid var(--color-content-on-dark-subtle);
+  background-color: transparent;
+  color: var(--color-content-on-dark);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-3);
+  transition: background-color var(--motion-normal), color var(--motion-normal), border-color var(--motion-normal);
+}
+
+.navPill:hover {
+  background-color: var(--color-content-on-dark-subtle);
+  color: var(--color-content-primary);
+}
+
+.navPillActive {
+  background-color: var(--color-surface-panel);
+  color: var(--color-content-primary);
+  border-color: var(--color-surface-panel);
+}
+
+.navPillActive:hover {
+  background-color: var(--color-content-on-dark-subtle);
+}
+
+/* index.css sets `button { outline: none }`, so the ring is declared here.
+   White, not --color-border-strong (#141414), which would vanish on the dark
+   navbar. */
+.navPill:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-content-on-dark);
+  outline-offset: var(--border-width-thick);
+}
+
+.navPill:active {
+  transform: scale(0.98);
+}
+
+.navPill:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  /* `contain` shows the whole 637x829 shot; `cover` upscaled it past 2x on desktop and cropped a phone.
+     The band colour sits beside the image so they cannot drift apart; it stays the app's own dark ground. */
+  background-image: url('../../../../assets/landingPageImages/trackerPreview.webp');
+  background-color: var(--color-surface-app);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.menuToggleButton {
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: none;
+  background: none;
+  border: none;
+  /* The glyph alone (18.86x28) is under the touch floor. */
+  min-width: var(--size-touch-target);
+  min-height: var(--size-touch-target);
+  align-items: center;
+  justify-content: center;
+  /* Set here, not on :hover, so the hover disc grows out of an existing shape
+     instead of the corners squaring off while it transitions in. */
+  border-radius: var(--radius-full);
+}
+.menuToggleButton {
+  color: var(--color-content-on-dark);
+}
+
+/* Same subtle on-dark token as the pills' hover, since the navbar is the dark
+   exception. */
+.menuToggleButton:hover {
+  background-color: var(--color-content-on-dark-subtle);
+}
+
+.menuToggleButton:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-content-on-dark);
+  outline-offset: var(--border-width-thick);
+}
+
+.menuToggleButton:active {
+  transform: scale(0.98);
+}
+
+.menuToggleButton:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+/* Scrim at --z-overlay, panel at --z-modal. The paper texture is left out: a 43KB request on first paint.
+   No border: the white card separates from the scrim by luminance and shadow.
+   The panel owns the padding, so .auth-container must not declare a second card inside it. */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-surface-overlay);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  z-index: var(--z-modal);
+  width: var(--layout-content-width);
+  max-width: 26rem;
+  margin: var(--space-4);
+  max-height: 90dvh;
+  overflow-y: auto;
+  /* Less at the top than at the sides: the header row sits there and its own
+     touch target already carries the space. */
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-inverse);
+  box-shadow: var(--shadow-overlay);
+  color: var(--color-content-primary);
+}
+
+/* Dark theme, toggled from AuthUI's header and built from the dark-surface
+   tokens. The rest of the variant is in authUI.module.css and
+   inputField.module.css. */
+:global(.theme-dark).modalContent {
+  background-color: var(--color-surface-app);
+  color: var(--color-content-on-dark);
+  border: var(--border-width-thin) solid var(--color-content-on-dark-subtle);
+}
+
+/* Hero image breakpoints are separate from the navbar one: the picture swaps on its box width, the navbar
+   on whether the pills fit. Here the desktop capture is unreadable under `contain`, so the device mockup
+   takes over; `cover` at 768x1024 would cut some 400px off the 783x1376 photo. */
+@media (min-width: 601px) and (max-width: 799px) {
+  .mainContent {
+    background-image: url('../../../../assets/landingPageImages/fintrack_mobile_front.webp');
+    /* Cream, not the app's near-black: the photo's marble is a shade off this
+       token, so the band reads as part of the picture instead of a seam. */
+    background-color: var(--color-surface-panel);
+    background-size: contain;
+  }
+}
+
+/* Phones: the device mockup (614x1118) replaces the flat shot. `cover` trims the
+   sides, which the photo can spare; the short-screen query below handles where
+   it cannot. */
+@media (max-width: 600px) {
+  .mainContent {
+    background-image: url('../../../../assets/landingPageImages/fintrack_mobile.webp');
+    /* Invisible while `cover` fills the box; it is the short-screen query below
+       that turns this into `contain` and puts the band on screen. */
+    background-color: var(--color-surface-panel);
+    background-size: cover;
+  }
+}
+
+/* Phone layout at 480px, where the nav pills stop fitting beside the mark;
+   unrelated to which picture is behind them. */
+@media (max-width: 480px) {
+  .navList {
+    display: none;
+    flex-direction: column;
+    background-color: var(--color-surface-app);
+    /* Bottom edge only: the panel is left: 0 and width: 100%, so a side border
+       would land on the viewport edges as pale hairlines beside a dark page. */
+    border-bottom: var(--border-width-thin) solid
+      var(--color-content-on-dark-subtle);
+    position: absolute;
+    /* 100% is the navbar's own bottom edge at any root font size; a fixed rem
+       offset drifts because the root is fluid. */
+    top: 100%;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    z-index: 10;
+  }
+
+  .navMenuActive {
+    display: flex;
+    flex-direction: column;
+    /* The styled element is the button inside each li, so the li must fill the
+       menu for the button's width: 100% to span it. */
+    align-items: stretch;
+  }
+
+  .navPill {
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .navButton {
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    width: 100%;
+  }
+
+  .menuToggleButton {
+    display: flex; /* shown on small screens; centres the glyph */
+  }
+
+  .logoContainer {
+    font-size: 1.2rem;
+  }
+
+
+  /* Near full width but still a card: the side padding keeps fields off the
+     screen edges at 360px, and the radius and margin stay so the modal does not
+     read as half a sheet. */
+  .modalContent {
+    width: 100%;
+    max-width: 100%;
+    margin: var(--space-3);
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+}
+
+/* Short screens: the box is wider than the 614x1118 mockup, so `cover` trims top and bottom and loses
+   the photo's bottom nav pill first. `contain` never crops; 735px is the project's height step. */
+@media (max-width: 600px) and (max-height: 735px) {
+  .mainContent {
+    background-size: contain;
+  }
+}

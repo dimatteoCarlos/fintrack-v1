@@ -1,0 +1,153 @@
+import { Link } from 'react-router-dom';
+import { currencyFormat } from '../../../helpers/functions.ts';
+import { CardTitle } from '../../../general_components/CardTitle.tsx';
+import {
+  CURRENCY_OPTIONS,
+  DEFAULT_CURRENCY,
+} from '../../../helpers/constants.ts';
+import { AccountListType } from '../../../types/responseApiTypes.ts';
+import PanelState from './PanelState.tsx';
+import { PanelTotal } from '../../../general_components/panelTotal/PanelTotal.tsx';
+import { useOverviewStore } from '../../../stores/useOverviewStore.ts';
+import { monthLabel } from '../helpers/monthLabel.ts';
+import { useEffect, useState } from 'react';
+
+// The card does not fetch: Overview.tsx asks the route once for
+// bank_and_investment and hands each card its own type.
+export type AccountPropType = {
+  previousRoute: string;
+  // null while nothing has arrived; an empty array means the owner has no
+  // account of this type, which is a different state and renders as nothing.
+  accounts: AccountListType[] | null;
+  isLoading: boolean;
+  error: string | null;
+  // Asks the shared accounts request again. Overview.tsx owns the fetch, so the
+  // retry the error state offers has to come down with the state it belongs to.
+  onRetry: () => void;
+};
+
+const defaultCurrency = DEFAULT_CURRENCY;
+const formatNumberCountry = CURRENCY_OPTIONS[defaultCurrency];
+const concept = 'balance';
+
+function AccountBalance({
+  previousRoute,
+  accounts,
+  isLoading,
+  error,
+  onRetry,
+}: AccountPropType) {
+  // The total is read from hero.cashPosition, never summed: a sum here would diverge whenever the
+  // panel lists a different account set. cashPosition covers bank AND cash while the panel lists
+  // bank accounts only; no cash account exists yet, so the sets coincide and the label names the wider one.
+  const hero = useOverviewStore((state) => state.hero);
+  const referenceMonth = useOverviewStore((state) => state.referenceMonth);
+  const servedWindow = useOverviewStore((state) => state.window);
+
+  const [accountsToRender, setAccountsToRender] = useState<AccountListType[]>(
+    [],
+  );
+  useEffect(() => {
+    function updateAccounts() {
+      const newBankAccounts: AccountListType[] =
+        accounts && !isLoading && !error && !!accounts.length
+          ? accounts.map((acc, indx) => ({
+              account_id: acc.account_id ?? indx,
+              account_name: acc.account_name,
+              concept: { concept },
+              account_balance: acc.account_balance,
+              account_type_name: acc.account_type_name,
+              currency_code: acc.currency_code ?? defaultCurrency,
+              account_start_date: acc.account_start_date ?? acc.created_at,
+              account_type_id: acc.account_type_id,
+            }))
+          : [];
+      setAccountsToRender(newBankAccounts);
+    }
+    updateAccounts();
+  }, [accounts, isLoading, error]);
+
+  // Loading and error both live in PanelState, which returns null when it has
+  // nothing to say.
+  if (isLoading || error) {
+    return (
+      <PanelState
+        title='Account Balance'
+        subject='Your bank accounts'
+        isLoading={isLoading}
+        error={error}
+        onRetry={onRetry}
+      />
+    );
+  }
+
+  // An owner with no bank account is the third state and it is not an error, so
+  // the panel renders nothing rather than a message about a failure.
+  if (!accountsToRender.length) return null;
+
+  // Tiles show today's balance, the total shows the served month's close. They are the same figure
+  // for the current month, so the second clause is added only for an earlier month.
+  const totalNote =
+    servedWindow && !servedWindow.isCurrentMonth
+      ? `At the close of ${monthLabel(referenceMonth)} · the accounts below show today's balance`
+      : `At the close of ${monthLabel(referenceMonth)}`;
+  return (
+    <>
+      <div className='presentation__card__title__container flx-row-sb'>
+        {/* The total rides CardTitle's legend slot, the note its subtitle. Null until the page payload
+            lands (rendered as a dash): this panel and the payload are two requests, either can be first. */}
+        <CardTitle
+          legend={
+            <PanelTotal
+              variant='inline'
+              label='Bank and cash'
+              amount={hero?.cashPosition ?? null}
+              currency={hero?.currency ?? defaultCurrency}
+            />
+          }
+          subtitle={hero ? totalNote : null}
+        >
+          Account Balance
+        </CardTitle>
+        <Link className='flx-col-center icon ' to={'edit'} viewTransition></Link>
+      </div>
+
+      <article className='goals__account'>
+        {accountsToRender.map((account) => {
+          const {
+            account_name,
+            account_balance,
+            account_type_name,
+            account_id,
+            currency_code,
+          } = account;
+          {
+            return (
+              <Link
+                to={`account/${account_id}`} //OverviewAccountReading.tsx -- singular, not AccountDetail.tsx's plural "accounts"
+                state={{ previousRoute, detailedData: account }}
+                className='tile__container tile__container--account flx-col-sb'
+                key={`account-${account_id}`}
+                viewTransition
+              >
+                <div className='tile__subtitle tile__subtitle--account'>
+                  {account_name} ({account_type_name})
+                </div>
+
+                <div className='tile__title tile__title--account'>
+                  {currencyFormat(
+                    currency_code ?? defaultCurrency,
+                    account_balance,
+                    formatNumberCountry,
+                  )}
+                </div>
+              </Link>
+            );
+          }
+        })}
+      </article>
+    </>
+  );
+}
+
+export default AccountBalance;

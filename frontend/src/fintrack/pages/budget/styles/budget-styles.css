@@ -1,0 +1,463 @@
+.budgetLayout {
+  border: none;
+}
+
+.budgetLayout {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem 1rem 0 0 !important;
+
+  gap: 1rem;
+  width: 81.11%;
+  width: 88%;
+  /* No inset: a horizontal one made the hero narrower than the panel, so the panel's top edge showed
+     as a seam across the card. */
+  padding: 0;
+  margin: 0 auto;
+  align-self: center;
+  /* Transparent: the frame's fill only showed as a band around the content (the seam); the hero and
+     .content__presentation carry the surface. */
+  background-color: transparent;
+}
+
+.budgetLayout .total__amount {
+  font-size: 2rem;
+  color: var(--light);
+  letter-spacing: 1px;
+}
+
+/* Conflicts with the shared .displayScreen rules. */
+
+.budgetLayout .displayScreen.light {
+  border-radius: 0.75rem;
+  width: 85%;
+  background-color: var(--creme);
+  padding: 0.5em 0.75em;
+  border: none;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Conflicts with the shared .displayScreen--concept/result rules. */
+.budgetLayout .displayScreen--concept,
+.displayScreen--result.dark {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-align: left;
+  color: var(--dark);
+}
+
+.displayScreen--result.dark {
+  color: var(--dark);
+  font-weight: 700;
+}
+
+/* Scoped to .budgetLayout: .total__container is also the tracker navbar, whose fixed height the hero
+   must not inherit. width: 100% because the hero is in flow; 88% of 88% would undercut the card. */
+.budgetLayout .total__container {
+  width: 100%;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  /* Upper half of the card: square at the bottom, where the lower half joins it. */
+  background-color: var(--color-surface-deep);
+}
+
+/* Overrides the 1.75rem default below: the list ends at a fixed edge, so the gap is fixed. */
+.budgetLayout button.line__container {
+  margin-top: var(--space-3);
+}
+
+.budgetLayout .headerContent__container {
+  position: relative;
+}
+
+/* Badge and export trigger hang past the container's bottom edge as one centred pair. Absolute so it
+   adds no header height; the row carries the offsets since react-datepicker wraps the badge in a box. */
+.budgetLayout .headerContent__container > .headerActionBar {
+  position: absolute;
+  bottom: calc(var(--space-2) * -1);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* The badge sits in the absolute action bar, out of the column's flow, so it needs no bottom margin. */
+.budgetLayout .month-badge {
+  margin-bottom: 0;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  background-color: var(--color-surface-inverse);
+}
+
+/* Copies the month badge (padding, size, fill, outline, ink of .month-badge--light) so the pair matches.
+   min-height: 0 because the shared floor (--size-control-sm, 32px) exceeds the badge's 25.6px. */
+.budgetLayout .headerActionBar .exportMenu__trigger {
+  min-height: 0;
+  padding: var(--space-1) var(--space-3);
+  border-color: var(--color-content-primary);
+  background-color: var(--color-surface-inverse);
+  color: var(--color-content-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+}
+
+/* Same hover inversion as the month badge, so the pair responds alike. */
+.budgetLayout .headerActionBar .exportMenu__trigger:hover,
+.budgetLayout .headerActionBar .exportMenu__trigger.is-active {
+  background-color: var(--color-content-primary);
+  border-color: var(--color-content-primary);
+  color: var(--color-accent);
+}
+
+.budgetLayout .headerActionBar .exportMenu__trigger:active {
+  background-color: var(--color-accent);
+  border-color: var(--color-content-primary);
+  color: var(--color-content-primary);
+}
+
+/* .displayScreen.light supplies the cream box and row; the wrap replaces a breakpoint: below about
+   380px the two halves stack on their own. */
+.budgetLayout .budgetHero__figures {
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) var(--space-3);
+}
+
+/* nowrap is load-bearing: it keeps each half's min-content equal to its whole text, so the pair wraps
+   instead of squeezing into a column too narrow to read. */
+.budgetLayout .budgetHero__figure {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+/* No clearance: the hero sits above in the flow and the browser reserves its real height (wrapped
+   panel, mixed-currency notice); .budgetLayout's gap separates them. */
+.budgetLayout .content__presentation {
+  padding-top: 0;
+  /* Air between the last button and the navbar, which carries its own clearance. */
+  padding-bottom: var(--space-2);
+  /* Lower half of the card; the side padding restores the inset .budgetLayout gave up. */
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+  background-color: var(--color-surface-deep);
+  border-radius: 0 0 1rem 1rem;
+}
+
+.budgetLayout .displayScreen__rows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+/* Share of the budget the amount beside it represents. Restates its font size because index.css sets
+   one on the universal selector, so an inline element does not inherit the line's size. */
+.budgetLayout .displayScreen__percentage {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-content-secondary);
+  margin-left: var(--space-1);
+}
+
+/* Figures are regular weight so the labels (600) outweigh them. Scoped because tracker and pocket also
+   use displayScreen--result. */
+.budgetLayout .displayScreen--result,
+.budgetLayout .budgetHero__remainWord {
+  font-weight: var(--font-weight-regular);
+}
+
+/* Word saying which side of the budget the remainder falls on; it takes colour and weight from its
+   amount. Restates its size because index.css sets font-size on the universal selector, which matches
+   a span directly. */
+.budgetLayout .budgetHero__remainWord {
+  font-size: inherit;
+}
+
+/* The status square is a fixed-size span, which an inline box ignores: in the list it is a flex child,
+   but in the hero it sits in a text line and needs display: inline-block. */
+.budgetLayout .displayScreen--concept .status__square {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 var(--space-2);
+}
+
+/* Explains why no figures are shown; sits on the dark surface, not the cream strips. */
+.budgetLayout .displayScreen__notice {
+  font-size: var(--font-size-xs);
+  color: var(--color-content-on-dark-subtle);
+  text-align: center;
+  padding-top: var(--space-2);
+}
+
+/* Alone in the hero when the server withheld the totals: no strip above it, so the separating padding
+   goes and the sentence is centred. */
+.budgetLayout .displayScreen__notice:only-child {
+  padding-top: 0;
+  margin: auto 0;
+}
+
+/* Viewport-tall page where only the list scrolls; sticky elements would leave an outer scroll and push
+   the navbar below the fold. Scoped with :has() because .home__layout is the shell of every screen. */
+.home__layout:has(.budgetLayout) {
+  height: 100dvh;
+  /* Needed as well as height: .home__layout has max-height: 55rem under @media (min-height: 50rem) in
+     generalStyles.css, and max-height clamps height whatever the specificity (784px on a 915px
+     viewport, leaving dead space under the navbar). */
+  max-height: none;
+  min-height: 0;
+  overflow-y: hidden;
+}
+
+/* The middle of the three children takes what the header and the navbar leave. min-height: 0 lets it
+   shrink below its content, which the list inside exceeds. */
+.home__layout:has(.budgetLayout) .budgetLayout {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Passes the remaining height down to the list one level at a time; scoped to the budget board because
+   these general classes are used by other pages. */
+.budgetLayout .content__presentation,
+.budgetLayout .cards__presentation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Zeroed because the gap held open above for the floating hero already provides the air; the title
+   below opens its own space. */
+.budgetLayout .cards__presentation {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.budgetLayout .presentation__card--title--stacked {
+  padding-top: var(--space-3);
+}
+
+/* Takes the leftover height. Own class because six lists render .list__main__container and stylesheets
+   are global. No overscroll-behavior: with no outer scroll, containing it would stop the wheel. */
+.categoryList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Reserves the gutter whether or not a scrollbar is drawn: overflow-y: auto draws the bar only while
+     content overflows, so filtering the list short would remove it and widen every row at once. No
+     effect where the platform overlays its scrollbars. */
+  scrollbar-gutter: stable;
+}
+
+/* The gutter above reserves nothing where the scrollbar overlays, which would cover the amounts.
+   Unconditional because CSS cannot report overlay scrollbars; costs 8px beside a classic bar's gutter. */
+.categoryList {
+  padding-inline-end: var(--space-2);
+}
+
+/* Height degradation: the board is a frame, so every rem above the list is a rem the list loses. The
+   steps are the design system's 735px and 568px. Control heights are untouched: the list controls
+   already use --size-control-sm at every height. */
+@media (max-height: 735px) {
+  .budgetLayout .presentation__card--title--stacked {
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-1);
+  }
+}
+
+@media (max-height: 568px) {
+  .budgetLayout .presentation__card--title--stacked {
+    padding-top: var(--space-2);
+  }
+
+  /* On short screens the counter reserves no row. */
+  .budgetLayout .budgetListControls__status {
+    min-height: 0;
+  }
+}
+
+/* Lowercase because .box__subtitle capitalises every word ("Left", "Over"); overridden here since the
+   pocket and debt lists share that class. Restates its size: index.css sets font-size on the universal
+   selector, which matches a span directly. */
+.categoryRow__remainWord {
+  font-size: inherit;
+  text-transform: lowercase;
+}
+
+/* Share of the budget already used, at the right of the row's second line under the amounts pair it is
+   a share of. Restates its size because index.css sets one on the universal selector. */
+.categoryRow__used {
+  flex: 0 0 auto;
+  color: var(--color-content-on-dark-subtle);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* The three semaphore levels, on the same tokens as the square at the row's other end. Both come from
+   one call to budgetStatusLevel, so number and square cannot light differently. Level 2 renders this
+   same class, so one declaration colours both levels. */
+.categoryRow__used--ok {
+  color: var(--color-status-ok);
+}
+
+.categoryRow__used--near {
+  color: var(--color-status-warning);
+}
+
+.categoryRow__used--over {
+  color: var(--color-status-alert);
+}
+
+.list__main__container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card__budget--title {
+  color: var(--light);
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 1rem 0 1rem;
+}
+/* Also used by the last-movements box components. */
+.box__container,
+.box__row {
+  border: none;
+}
+
+.box__container {
+  border-bottom: 1px solid var(--light);
+  padding: 0.125rem 0 0.125rem 0;
+}
+.box__title,
+.box__title--category__name,
+.box__title--spent {
+  font-size: 1rem;
+  color: var(--light);
+  line-height: 1.625rem;
+  white-space: 10px;
+  text-transform: capitalize;
+}
+
+/* No :hover rule: the hover colour comes from the `hover` class in ListCategory.tsx (--hoverColor). */
+.box__title--category__name {
+  cursor: pointer;
+}
+
+/* Serves level-1 and level-2 rows alike (this file is in the main bundle). justify-content and text-align
+   are inert under max-content but kept as a design decision. 0.5px has no token (thin border is 1px). */
+.box__title--spent {
+  letter-spacing: 1.25px;
+  width: max-content;
+  display: flex;
+  justify-content: space-between;
+  text-align: right;
+  border-bottom: 0.5px dashed var(--creme);
+}
+
+.box__subtitle,
+.box__subtitle--status,
+.box__subtitle--budget {
+  font-size: 0.875rem;
+  color: var(--creme);
+  letter-spacing: 0.5px;
+  font-weight: 400;
+  text-transform: capitalize;
+
+  width: 100%;
+  text-align: right;
+}
+
+.line__container {
+  border-radius: 0.75rem;
+  border: 2px solid var(--light);
+  cursor: pointer;
+}
+
+button.line__container {
+  padding: 0.5rem 0 0.5rem 0;
+  margin-top: 1.75rem;
+}
+
+.add__edit__btn {
+  height: 3.125rem;
+  width: 100%;
+  background-color: transparent;
+}
+
+.open__btn__label {
+  font-size: 0.875rem;
+  color: var(--light);
+  letter-spacing: 0.5px;
+}
+
+.card__tile__pocket {
+  padding: 2.25rem 0.75rem;
+  height: 6.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card__tile__pocket {
+  background-color: #1b1b1b;
+}
+.card__tile__pocket:hover {
+  border-color: cyan;
+}
+
+.card__tile__pocket .tile__left {
+  width: 60%;
+  flex-direction: column;
+  gap: 0.25rem;
+  display: flex;
+}
+
+.card__tile__pocket .tile__right {
+  width: 40%;
+  height: 3.75rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  border-left: 3px dashed var(--light);
+}
+
+.budgetLayout .tile__title {
+  color: var(--light);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-transform: capitalize;
+}
+
+.budgetLayout .tile__subtitle {
+  color: #5b5b5b;
+  color: #bdb1b1;
+  font-size: 0.625rem;
+  letter-spacing: 1px;
+  font-weight: 400;
+
+  text-transform: capitalize;
+}
+
+.budgetLayout .tile__subtitle--opc {
+  opacity: 0.9 !important;
+}
+.budgetLayout .tile__right .tile__title {
+  font-weight: 500;
+}

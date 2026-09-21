@@ -1,0 +1,463 @@
+.account-deletion-page {
+  /* dvh, not vh: on mobile 100vh is measured with the address bar collapsed, so a page
+     that fits exactly still scrolls by a sliver while the bar is showing. dvh follows the bar. */
+  min-height: 100dvh;
+  background-color: var(--color-surface-app);
+  padding: var(--space-8);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+
+}
+
+/* Own styles instead of the shared .backArrow, which is position: absolute against a
+   title row; this header is a flex row with the title growing between its two ends. */
+.header-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-content-on-dark);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Both arrow assets hardcode their stroke and one fills its root, so the
+   colour above does not reach the drawing without naming the path. */
+.header-back-button path {
+  stroke: currentColor;
+  fill: none;
+}
+
+.header-back-button:hover,
+.header-back-button:active {
+  background-color: var(--color-accent);
+  color: var(--color-accent-content);
+}
+
+.header-back-button:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width-thick) solid var(--color-border-subtle);
+  }
+
+.header-icon{
+ width:19px;
+ height: 16px;
+}  
+
+.page-title {
+ flex-grow: 1;
+ text-align: center;
+  font-size: var(--font-size-2xl);
+  /* --font-weight-bold is the heaviest weight the scale declares; no ad-hoc weight is used. */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-content-on-dark);
+  margin: 0;
+  width: 100%;
+
+
+}
+
+/* Empty placeholder with the back button's width, to keep the title centred. */
+.header-placeholder {
+  width: 19px;
+}
+.language-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+}
+
+.language-dropdown {
+ padding: var(--space-2) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-sm);
+ /* Drawn white on the dark ground, like every header and navbar in the product. */
+ background: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+ font-weight: var(--font-weight-medium);
+ cursor: pointer;
+ transition: border-color var(--motion-fast);
+}
+
+.language-dropdown:hover {
+ border-color: var(--color-interactive-hover);
+}
+
+/* The ring uses the strong border token, not the inverse one: a white ring on a white
+   select would be invisible. */
+.language-dropdown:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.language-dropdown:active {
+ border-color: var(--color-border-strong);
+}
+
+.language-dropdown:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.main-content {
+  background: var(--color-surface-inverse);
+  border-radius: var(--radius-sm);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-lg);
+  margin-top: var(--space-6);
+
+}
+
+.content-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-content-primary);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width-thin) solid
+    var(--color-border-subtle-on-inverse);
+
+}
+
+.action-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: var(--border-width-thin) solid var(--color-border-subtle-on-inverse);
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .account-deletion-page {
+    padding: var(--space-4);
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+  
+  .main-content {
+    padding: var(--space-4);
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    
+  }
+  
+  .content-title {
+    font-size: 1.25rem;
+
+  }
+}
+
+/* SOFT and HARD triggers. They sit on the light panel surface, so they use the panel
+   surface with the primary/secondary content tokens and the feedback triads that
+   tokens.css calibrates for both inverse and panel. */
+.deletion-methods-section {
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-panel);
+  box-shadow: var(--shadow-md);
+}
+
+.deletion-methods-title {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--color-content-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.deletion-methods-description {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-content-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Related accounts accordion: a native details/summary, so the disclosure state, keyboard
+   handling and accessible name come with the element. */
+
+.account-relations {
+  margin-top: var(--space-6);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-inverse);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.account-relations__summary {
+  padding: var(--space-4);
+  color: var(--color-content-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background-color var(--motion-fast);
+}
+
+.account-relations__summary:hover {
+  background-color: var(--color-surface-panel);
+}
+
+/* index.css removes the outline globally, so the ring is declared here; the strong border
+   token is the one that reads against the white summary. */
+.account-relations__summary:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-strong);
+  outline-offset: calc(var(--border-width-thick) * -1);
+}
+
+.account-relations__summary:active {
+  background-color: var(--color-surface-panel);
+}
+
+.account-relations__summary:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.account-relations__body {
+  padding: 0 var(--space-4) var(--space-4) var(--space-4);
+}
+
+/* Secondary content: read once, then skipped. */
+.account-relations__note {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-content-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Where the reversal lands; the only place naming the compensation account. Shares the info triad
+   with .deletion-methods-blocked so both sentences about the balance agree; nothing here is a risk. */
+.account-relations__boundary {
+  margin: 0 0 var(--space-4) 0;
+  padding: var(--space-3);
+  border-left: var(--border-width-thick) solid var(--color-feedback-info-border);
+  background-color: var(--color-feedback-info-surface);
+  color: var(--color-feedback-info-content);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+/* Refusal notice, stated on the panel rather than inside the dialog. Info triad, not
+   warning: this is a condition the owner can meet, while the button below removes the
+   account and carries the warning triad; sharing one triad made the two read as one block. */
+.deletion-methods-blocked {
+  margin: 0 0 var(--space-4) 0;
+  padding: var(--space-3);
+  border-left: var(--border-width-thick) solid var(--color-feedback-info-border);
+  background-color: var(--color-feedback-info-surface);
+  color: var(--color-feedback-info-content);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.deletion-methods-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.deletion-method-button {
+  /* Height comes from the line the control sits in, not from a 44px touch-target floor;
+     the padding below already sets it. */
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  /* Named properties, not `all`: a shorthand transition also animates the
+     outline and makes the focus ring arrive late. */
+  transition: background-color var(--motion-fast), border-color var(--motion-fast),
+    transform var(--motion-press);
+}
+
+/* index.css sets `button { outline: none }`, so the ring has to be declared
+   here. --color-border-strong (dark), not --color-border-inverse (white):
+   this button sits on the light panel surface, not on the dark app one. */
+.deletion-method-button:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-border-strong);
+  outline-offset: var(--border-width-thick);
+}
+
+.deletion-method-button:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* SOFT: calm and reversible, so the info triad (calibrated in tokens.css for this
+   surface) rather than a warning. */
+.deletion-method-button--soft {
+  border-color: var(--color-feedback-info-border);
+  color: var(--color-feedback-info-content);
+}
+
+.deletion-method-button--soft:hover {
+  background-color: var(--color-feedback-info-surface);
+  border-color: var(--color-feedback-info-content);
+  transform: translateY(var(--motion-lift-sm));
+}
+
+.deletion-method-button--soft:active {
+  background-color: var(--color-feedback-info-surface);
+  border-color: var(--color-feedback-info-content);
+  transform: translateY(0);
+}
+
+/* CLOSE: warning triad, matching its cost between SOFT's reversible deactivation and
+   HARD's erasure: the account row goes and the history stays. */
+.deletion-method-button--close {
+  border-color: var(--color-feedback-warning-border);
+  color: var(--color-feedback-warning-content);
+}
+
+.deletion-method-button--close:hover {
+  background-color: var(--color-feedback-warning-surface);
+  border-color: var(--color-feedback-warning-content);
+  transform: translateY(var(--motion-lift-sm));
+}
+
+.deletion-method-button--close:active {
+  background-color: var(--color-feedback-warning-surface);
+  border-color: var(--color-feedback-warning-content);
+  transform: translateY(0);
+}
+
+/* The only method offered, so it takes the action-destructive token family (ground plus
+   content) instead of the outlined triads of the other methods: this is the answer, not
+   one entry of a menu. */
+.deletion-method-button--only {
+  background-color: var(--color-action-destructive-surface);
+  border-color: var(--color-action-destructive-surface);
+  color: var(--color-action-destructive-content);
+}
+
+.deletion-method-button--only:hover {
+  background-color: var(--color-action-destructive-hover);
+  border-color: var(--color-action-destructive-hover);
+  transform: translateY(var(--motion-lift-sm));
+}
+
+.deletion-method-button--only:active {
+  background-color: var(--color-action-destructive-hover);
+  border-color: var(--color-action-destructive-hover);
+  transform: translateY(0);
+}
+
+/* HARD: error triad, for the destructive method. */
+.deletion-method-button--hard {
+  border-color: var(--color-feedback-error-border);
+  color: var(--color-feedback-error-content);
+}
+
+.deletion-method-button--hard:hover {
+  background-color: var(--color-feedback-error-surface);
+  border-color: var(--color-feedback-error-content);
+  transform: translateY(var(--motion-lift-sm));
+}
+
+.deletion-method-button--hard:active {
+  background-color: var(--color-feedback-error-surface);
+  border-color: var(--color-feedback-error-content);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deletion-method-button {
+    transition: none;
+  }
+
+  .deletion-method-button--soft:hover,
+  .deletion-method-button--close:hover,
+  .deletion-method-button--hard:hover {
+    transform: none;
+  }
+}
+
+/* Mobile-first from 360px: stacked buttons become a row from 480px up. */
+@media (min-width: 480px) {
+  .deletion-methods-actions {
+    flex-direction: row;
+  }
+
+  .deletion-method-button {
+    flex: 1 1 0;
+  }
+}
+
+/* Viewport-height steps, same two heights as the budget and pocket boards: only outer padding,
+   section margins and the page title change. The tallest state (refusal notice plus second route)
+   can still scroll on a short viewport. */
+@media (max-height: 735px) {
+  .account-deletion-page {
+    padding: var(--space-4);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+  }
+
+  .main-content {
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .account-relations {
+    margin-top: var(--space-4);
+  }
+
+  .deletion-methods-section {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .action-section {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+  }
+}
+
+@media (max-height: 568px) {
+  .account-deletion-page {
+    padding: var(--space-2);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-2);
+  }
+
+  /* The title is the one heading on the page, so it alone steps down the scale without
+     a figure or a sentence losing size. */
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .main-content,
+  .deletion-methods-section {
+    padding: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .account-relations {
+    margin-top: var(--space-2);
+  }
+}

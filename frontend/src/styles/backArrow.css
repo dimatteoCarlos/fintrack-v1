@@ -1,0 +1,95 @@
+/* Back arrow pinned at the left of a title row, shared by every view. Loaded from main.tsx because
+   AccountingDashboard mounts outside <Layout /> and the forms views are lazy chunks; only the entry bundle
+   reaches every route. --dark and --light name the surface the arrow sits on, not its own colour. */
+
+.backArrow {
+ position: absolute;
+ left: 0;
+ /* .title__header is absolute and full width; without this the h1 covers the
+    arrow and swallows the click. No effect in the forms views, where the title
+    is a flex sibling. */
+ z-index: var(--z-raised);
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ flex-shrink: 0;
+ /* --size-icon, not --size-touch-target: 32px around the 19px drawing leaves a
+    6px ring that reads as a state; at 44px the fill looks like a panel. Same
+    disc as .accounting__openAccount. */
+ width: var(--size-icon);
+ height: var(--size-icon);
+ border-radius: var(--radius-full);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Unpainted, hit-testable area so a finger still gets the full
+   --size-touch-target. Keep the order (target - icon): reversed, the calc is
+   positive and inset shrinks the box. */
+.backArrow::after {
+ content: '';
+ position: absolute;
+ inset: calc((var(--size-touch-target) - var(--size-icon)) / -2);
+}
+
+/* Both SVG assets hardcode their stroke, so colour reaches the drawing only through the path.
+   LeftArrowDarkSvg.svg also has fill="#141414" on its root, inherited by the path; overridden here
+   because the assets are shared with other views. */
+.backArrow path {
+ stroke: currentColor;
+ fill: none;
+}
+
+/* On the dark app surface (--color-surface-app): the forms views, EditAccount
+   and AccountingDashboard. */
+.backArrow--dark {
+ color: var(--color-content-on-dark-muted);
+}
+
+.backArrow--dark:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.backArrow--dark:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.backArrow--dark:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+/* On the white header (.layout__header): TitleHeader, shared by Budget, Debts, Overview and Pocket.
+   Same hover fill as dark: --color-accent on #fff is 1.27:1, under the 3:1 of WCAG 2.2 SC 1.4.11, but
+   the mark stays readable at 14.6:1; swapping fill and ink (17.6:1) is the alternative. */
+.backArrow--light {
+ color: var(--color-content-primary);
+}
+
+.backArrow--light:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.backArrow--light:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Darker than the hover fill so a press is distinct; this one clears 3:1
+   against the white header. */
+.backArrow--light:active {
+ background-color: var(--color-content-secondary);
+ color: var(--color-accent);
+}
+
+/* No :disabled state: every use is a react-router Link, an <a>, which never
+   matches :disabled. */
+
+@media (prefers-reduced-motion: reduce) {
+ .backArrow {
+  transition: none;
+ }
+}

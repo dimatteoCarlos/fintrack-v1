@@ -1,0 +1,430 @@
+.formContainer {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: #ffffff;
+}
+
+.formHeader {
+  margin-bottom: 20px;
+}
+
+.formTitle {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.formSubtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.messagesContainer {
+  margin-bottom: 24px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.fieldsetLegend {
+  font-size: 16px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+.personalInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.preferencesSection {
+  display: grid;
+  gap: 12px;
+}
+
+.actionButtons {
+ margin-top: 16px;
+ border-top: 1px solid #eee;
+}
+
+.buttonGroupAnimation {
+  display: flex;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.saveButton {
+  flex: 1;
+}
+
+.secondaryButtons {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.secondaryButtons button {
+  flex: 1;
+}
+
+.resetButton {
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.resetButton:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #ced4da;
+}
+
+.resetButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  background-color: transparent;
+  color: #6c757d;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.cancelButton:hover:not(:disabled) {
+  color: #495057;
+  background-color: #f8f9fa;
+}
+
+.cancelButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.doneButton {
+  width: 100%; /* full width to signal completion */
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.doneButton:hover {
+  background-color: #218838;
+}
+
+.buttonGroupAnimation {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.messagesWrapper {
+  min-height: 60px; /* reserves space for the message */
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.messagesContainer {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.debugUtilities {
+  margin-top: 24px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.debugButtons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.debugButton {
+  padding: 4px 8px;
+  font-size: 11px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.debugButton:hover {
+  opacity: 0.9;
+}
+
+.debugButtonClear {
+  background-color: #dc3545;
+}
+
+.statusIndicator {
+  margin-top: 24px;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusIndicator {
+  margin-top: 20px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  overflow: hidden;
+}
+
+.statusIndicatorDirty {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+.statusIndicatorClean {
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  color: #0c5460;
+}
+
+.statusIcon {
+  font-size: 14px;
+}
+
+@media (max-width: 480px) {
+  .formContainer {
+    padding: 16px;
+    max-width: 100%;
+  }
+  
+  .personalInfoGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actionButtons{
+   margin-top: 5px;
+  }
+  .buttonGroupAnimation {
+    flex-direction: column;
+  }
+
+  .saveButton,
+  .resetButton,
+  .cancelButton {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+@media (max-height: 800px) {
+  .formContainer {
+    padding: 16px;
+  }
+
+  .formHeader {
+    margin-bottom: 12px;
+  }
+
+  .formTitle {
+    font-size: 20px;
+  }
+
+  .form {
+    gap: 12px;
+  }
+
+  .fieldsetLegend {
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+
+  .personalInfoGrid,
+  .preferencesSection {
+    gap: 10px;
+  }
+}
+
+/* Very short screens: ultra compact, non-essential text hidden. */
+@media (max-height: 568px) {
+  .formContainer {
+    padding: 12px;
+  }
+
+  .formSubtitle {
+    display: none;
+  }
+
+  .statusIndicator {
+    display: none;
+  }
+
+  .form {
+    gap: 10px;
+  }
+
+  .fieldsetLegend {
+    margin-bottom: 6px;
+  }
+
+  .actionButtons {
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 320px) {
+  .formContainer {
+    padding: 10px;
+  }
+
+  .formTitle {
+    font-size: 18px;
+  }
+
+  .secondaryButtons {
+    flex-direction: column;
+  }
+}
+
+/* Time zone select, scoped here rather than in selectField.module.css: it carries
+   ~420 options whose labels are far longer than a currency code. */
+.timeZoneField {
+ width: 100%;
+ min-width: 0;
+}
+
+.timeZoneField select {
+ width: 100%;
+ max-width: 100%;
+ /* A zone id plus its offset overruns 360px; the control must clip rather than
+    widen the form. */
+ text-overflow: ellipsis;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ color: var(--color-content-primary);
+ background-color: var(--color-surface-inverse);
+ border: var(--border-width-thin) solid var(--color-content-secondary);
+ border-radius: var(--radius-xs);
+ padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
+ min-height: var(--size-touch-target);
+ cursor: pointer;
+ transition: border-color var(--motion-fast), background-color var(--motion-fast);
+}
+
+.timeZoneField select:hover {
+ border-color: var(--color-border-strong);
+}
+
+/* index.css clears the outline on buttons and inputs, so the focus ring is declared here. */
+.timeZoneField select:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+.timeZoneField select:active {
+ background-color: var(--color-surface-panel);
+}
+
+.timeZoneField select:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* The zone id is primary and the help line under it secondary, so the options
+   stay at the default UI size. */
+.timeZoneField option {
+ font-size: var(--font-size-sm);
+ color: var(--color-content-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .timeZoneField select {
+  transition: none;
+ }
+}
+
+/* Glyph and label text on one inline-flex line, so the glyph never breaks onto its own. */
+.labelWithIcon {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+ font-size: inherit;
+}
+
+/* Sized in em: index.css pins font-size on every element, so the em basis is restated here. */
+.labelIcon {
+ width: 1em;
+ height: 1em;
+ font-size: var(--font-size-base);
+ flex-shrink: 0;
+}
+
+/* Glyph and title text on one line; applied beside .formTitle. */
+.titleWithIcon {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+/* index.css pins font-size on every element, so the em basis is restated here. */
+.titleIcon {
+ width: 1em;
+ height: 1em;
+ font-size: var(--font-size-xl);
+ flex-shrink: 0;
+}

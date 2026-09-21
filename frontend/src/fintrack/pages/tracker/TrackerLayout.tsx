@@ -1,0 +1,98 @@
+import LogoMenuIcon from '../../general_components/header/LogoMenuIcon.tsx';
+import TrackerNavbar from '../../general_components/trackerNavbar/TrackerNavbar.tsx';
+import { Outlet } from 'react-router-dom';
+import { currencyFormat } from '../../helpers/functions.ts';
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '../../helpers/constants.ts';
+import { useFetch } from '../../hooks/useFetch.ts';
+import { BalanceBankRespType } from '../../types/responseApiTypes.ts';
+import { url_get_total_account_balance_by_type } from '../../../urlConfig.ts';
+import CoinSpinner from '../../loader/coin/CoinSpinner.tsx';
+import { MessageToUser } from '../../general_components/messageToUser/MessageToUser.tsx';
+import { useEffect, useState } from 'react';
+import useBalanceStore from '../../stores/useBalanceStore.ts';
+
+import './styles/tracker-style.css';
+
+const defaultCurrency = DEFAULT_CURRENCY;
+function TrackerLayout() {
+  const formatNumberCountry = CURRENCY_OPTIONS[defaultCurrency];
+  const [messageToUser, setMessageToUser] = useState<string | null | Error>(
+    null,
+  );
+  const availableBudget = useBalanceStore((state) => state.availableBudget);
+  const setAvailableBudget = useBalanceStore(
+    (state) => state.setAvailableBudget,
+  );
+  const {
+    apiData,
+    isLoading,
+    error,
+  } = useFetch<BalanceBankRespType>(
+    `${url_get_total_account_balance_by_type}/?type=bank`,
+  );
+  useEffect(() => {
+    if (apiData?.data.total_balance !== undefined) {
+      setAvailableBudget(apiData.data.total_balance ?? 0);
+    }
+  }, [apiData, setAvailableBudget]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (apiData && !isLoading && !error) {
+      setMessageToUser(apiData.message || '');
+
+      timer = setTimeout(() => {
+        setMessageToUser(null);
+      }, 3000);
+    } else if (error) {
+      setMessageToUser(error);
+      timer = setTimeout(() => setMessageToUser(null), 4000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [apiData, isLoading, error]);
+
+  return (
+    <>
+      <div className='layout__header '>
+        <div className='headerContent__container '>
+          <LogoMenuIcon />
+          <div className={`displayScreen ${'light'}`}>
+            {isLoading && (
+              <div className='tracker-layout-container'>
+                <CoinSpinner />
+              </div>
+            )}
+
+            <div className={`displayScreen--concept ${'dark'}`}>
+              {'Available Balance'}
+            </div>
+            <div className={`displayScreen--result ${'dark'}`}>
+              {currencyFormat(
+                defaultCurrency,
+                availableBudget,
+                formatNumberCountry,
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <TrackerNavbar />
+      <div className='cards__presentation--tracker'>
+        <Outlet />
+        {messageToUser && (
+          <MessageToUser
+            isLoading={false}
+            messageToUser={error ? apiData?.message : ''}
+            error={error}
+            variant={'tracker'}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+export default TrackerLayout;

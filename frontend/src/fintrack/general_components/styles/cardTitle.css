@@ -1,0 +1,84 @@
+/* CardTitle's rules live here, not in the stylesheet of whichever page renders it, so
+   pages do not redeclare them and the legend variant reaches pages outside .budgetLayout. */
+
+.presentation__card--title {
+ color: var(--light);
+ font-size: 1.25rem;
+ font-weight: 600;
+ padding: 1rem 0 1rem 0;
+}
+
+/* Added with the base class when CardTitle receives a legend; layout only. */
+.presentation__card--title--split {
+ display: flex;
+ flex-wrap: wrap;
+ justify-content: space-between;
+ align-items: center;
+ /* Without a gap a long legend runs into the title ("Account BalanceBANK AND CASH");
+    wrapping drops it under the title when the row is too narrow. */
+ gap: var(--space-1) var(--space-3);
+}
+
+/* The legend span sits inside the title but does not carry the base class, so
+   it states these on its own. */
+.presentation__card--legend {
+ color: var(--light);
+ font-size: 1.25rem;
+ font-weight: 600;
+ padding: 1rem 0 1rem 0;
+}
+
+/* Added when CardTitle receives a second row: the outer box becomes a stack of two rows.
+   The extra top padding keeps the block from reading as attached to the button above it
+   rather than to the list it introduces. */
+.presentation__card--title--stacked {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ padding-top: var(--space-8);
+}
+
+/* The row is a div, which index.css sizes at 16px on the universal selector, so the
+   heading inside would inherit 16px instead of the title's 1.25rem. */
+.presentation__card--row {
+ display: flex;
+ /* A legend wider than the room beside the title drops to its own line
+    ("Account Balance" at 354px). */
+ flex-wrap: wrap;
+ justify-content: space-between;
+ align-items: baseline;
+ gap: var(--space-1) var(--space-3);
+ font-size: inherit;
+}
+
+/* Both halves of a row read as one heading: index.css's universal font-size matches these
+   spans directly, which rendered the left column at 16px against the right column's 20px. */
+.presentation__card--row > span {
+ font-size: inherit;
+ font-weight: inherit;
+}
+
+/* The legend carries its own vertical padding for the unstacked case, where it
+   is the whole row. Inside a stack the row spaces itself. */
+.presentation__card--title--stacked .presentation__card--legend {
+ padding: 0;
+}
+
+/* Same trap as the span rule above: index.css's universal font-size matches the stacked
+   row's heading element directly and beats what it would inherit. */
+.presentation__card--heading {
+ font-size: inherit;
+ font-weight: inherit;
+}
+
+/* Quieter than the title row: read once, where the title is read every time. The size is
+   set on the spans, not the row, for the same universal-selector reason as above. */
+.presentation__card--row--sub {
+ color: var(--color-content-on-dark-subtle);
+ font-weight: var(--font-weight-regular);
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+.presentation__card--row--sub span {
+ font-size: var(--font-size-xs);
+}

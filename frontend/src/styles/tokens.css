@@ -1,0 +1,372 @@
+/* Single source of design-system values, imported once from main.tsx before every other stylesheet.
+   Naming: --{category}-{role}-{variant}; the role is the semantic function, never the appearance.
+   Content tokens name their valid surfaces; a wrong surface is the most common contrast failure. */
+
+:root {
+ --color-surface-app: #0d0f12;
+ /* One step lighter than the app surface, so a card reads as floating over the
+    page. */
+ --color-surface-raised: #161a22;
+ /* The opposite of raised: reads as set into the panel holding it. */
+ --color-surface-sunken: #0c0c0c;
+ /* Below sunken, the floor of the elevation scale. The board cards use it
+    because sunken already fills the controls that sit on top of them. */
+ --color-surface-deep: #000000;
+ --color-surface-inverse: #ffffff;
+ --color-surface-panel: #e8e4da;
+ --color-surface-overlay: rgba(17, 24, 39, 0.7);
+ --color-surface-disabled: #cccccc;
+ /* Pending-figure block; -on-panel is for the cream ground. Deliberately under 3:1 (1.4-1.6:1): a
+    skeleton is not information, and a higher value would look like a filled block. */
+ --color-surface-loading: #2f3542;
+ --color-surface-loading-on-panel: #c8c1b0;
+
+ --color-content-primary: #141414; /* on inverse, panel */
+ --color-content-secondary: #5b5b5b; /* on panel, inverse */
+ --color-content-on-dark: #ffffff; /* on app, raised */
+ --color-content-on-dark-muted: #e8e4da; /* on app, raised */
+ --color-content-on-dark-subtle: #bdb1b1; /* on app, raised */
+ --color-content-placeholder: #5b5b5b; /* any input; 5.35:1 on --color-surface-panel */
+ /* Placeholder for a field on the app surface, where --color-content-placeholder
+    (#5b5b5b) measures only 2.83:1. Hint text, so it stays a step below
+    --color-content-on-dark-subtle. */
+ --color-content-on-dark-placeholder: #979797; /* on app, raised; 6.57:1 */
+ /* The level the user drilled into. Ochre to stand apart from the white trail; separate from the pocket
+    portfolio's gold (same hue) so that card can change independently. 7.42:1 on app, 6.74:1 on raised. */
+ --color-content-drilled-subject: #c49a5a;
+ /* A card heading, set as a label (uppercase, tracked). Cool grey-blue, not the
+    ochre of the domain label below it: two headings of one hue stacked give no
+    reading order. 12.93:1 on app, 11.74:1 on raised. */
+ --color-content-card-heading: #cbd5e1;
+ /* The domain a card reports on (Income, Expense, All), in ochre because it is
+    the card's subject. Its own token, not the drilled subject's: a card names
+    its domain without anyone drilling in. 7.42:1 on app, 6.74:1 on raised. */
+ --color-content-domain-label: #c49a5a;
+
+ --color-accent: #e8e4da;
+ --color-accent-content: #141414;
+ /* The floating scroll-jump button at rest: the accent at 45%, so the page shows
+    through while the dark glyph stays above 3:1 on the app ground. */
+ --color-scroll-jump-surface: color-mix(in srgb, var(--color-accent) 45%, transparent);
+ /* A list row under the pointer. Translucent because the lists using it sit on different grounds; over
+    raised it composites to about #3c3e43 (1.63:1); row ink stays at 5.14:1 or more, so nothing inverts. */
+ --color-surface-row-hover: color-mix(in srgb, var(--color-accent) 18%, transparent);
+ /* The press: the same wash, deepened, so the row reads as pressed without
+    changing hue. */
+ --color-surface-row-active: color-mix(in srgb, var(--color-accent) 30%, transparent);
+ --color-interactive-hover: #00ffff;
+ --color-border-strong: #141414;
+ --color-border-inverse: #ffffff;
+ /* Bar marking the row under the pointer; the wash is 1.63:1 and raising it would invert row text.
+    Ochre, not white (the focus ring), so the states differ. 7.42:1 on app, 6.74:1 on raised. */
+ --color-border-row-hover: #c49a5a;
+ /* Alpha 0.40 is the first step clearing 3:1 (SC 1.4.11) on every surface it borders: sunken 3.21,
+    deep 3.10, raised 3.26, app 3.25. At 0.26 it was 2.01:1 on sunken. */
+ --color-border-subtle: rgba(232, 228, 218, 0.4);
+ /* Hairline for inverse, where --color-border-subtle vanishes. Not held to 3:1 (it only divides
+    sections); anything enclosing a control on this surface takes --color-border-strong. */
+ --color-border-subtle-on-inverse: #e5e7eb;
+ /* The hairline between rows on the cream panel, where --color-border-subtle is
+    cream on cream. Divides rows and carries no meaning, so not held to 3:1. */
+ --color-border-subtle-on-panel: rgba(20, 20, 20, 0.12);
+ /* Hover and pressed ground of a row on the cream panel: ink at low alpha, so
+    the row darkens the panel instead of painting a second colour. */
+ --color-surface-hover-on-panel: rgba(20, 20, 20, 0.06);
+ --color-surface-active-on-panel: rgba(20, 20, 20, 0.12);
+ /* The same pair on the dark app surface, where the two above vanish: cream at
+    low alpha. Ground, not text, so SC 1.4.11's 3:1 does not apply; every state
+    using them is also carried by two other signals. */
+ --color-surface-hover-on-dark: rgba(232, 228, 218, 0.08);
+ --color-surface-active-on-dark: rgba(232, 228, 218, 0.16);
+ /* Closed-account registry toolbar controls: a translucent well on a translucent slate panel, which no
+    surface token composites to. Named here so every control in the row shares one copy. */
+ --color-surface-control-registry: rgba(15, 23, 42, 0.6);
+ --color-surface-control-registry-hover: rgba(30, 41, 59, 0.8);
+ --color-border-control-registry: rgba(255, 255, 255, 0.1);
+ --color-border-control-registry-hover: rgba(255, 255, 255, 0.25);
+ --color-content-control-registry: #cbd5e1;
+ /* A progress bar on the cream panel: its track, and the single ink its fill
+    takes (no categorical colour). The fill is 4.24:1 on the track and 5.35:1 on
+    the panel; the track is ground and carries no meaning. */
+ --color-progress-track-on-panel: #d3ccbc;
+ --color-progress-fill-on-panel: #5b5b5b;
+
+ /* The status square is the signature indicator: teal when a figure is healthy,
+    dusty red when it is not. */
+ --color-status-ok: #5b8c93;
+ --color-status-alert: #c97474;
+ --color-status-error: #fc0c0c;
+ /* Muted to 6.73:1 to sit between ok (5.62) and alert (6.23) against the board
+    card; the CSS keyword orange was 10.63:1 and read louder than the alert. */
+ --color-status-warning: #b8894e;
+ --color-status-success: #008000;
+ --color-status-info: #60b1d6;
+ /* A goal that has been met (a tick): the one finished outcome on a status strip, so off the semaphore and
+    distinct from --color-status-ok. Not --color-status-success, which is for light banners.
+    7.51:1 on --color-surface-deep; scalars in this block are all stated against deep. */
+ --color-status-complete: #5faa78;
+
+ /* Pocket-board levels missing from the semaphore. ahead: saturated green, 8.34:1 (a pale one would make
+    the quietest reading loudest). behind: violet, 5.88:1, since every warm hue is a more severe level and a
+    second amber is 1.21 from --color-status-warning. Both fail 3:1 on panel; use -on-panel below. */
+ --color-status-ahead: #3db87a;
+ --color-status-behind: #9c75d1;
+
+ /* On track: nothing is asked of the owner, so it stays off the semaphore (a hue would imply action). Grey:
+    the first to clear 3:1 (SC 1.4.11) on both surfaces, 4.89 on deep and 3.38 on panel, where
+    --color-content-secondary is 1.94:1. A mark and border, never text. */
+ --color-status-neutral: #7a7a7a;
+
+ /* The pocket level's mark on a level-2 row on the cream panel: each is its
+    dark-ground sibling darkened along its own hue, measured against
+    --color-surface-panel, and each also holds 3:1 on the row's pressed ground. */
+ --color-status-info-on-panel: #226685; /* 5.00:1 */
+ --color-status-ahead-on-panel: #236b47; /* 5.07:1 */
+ --color-status-neutral-on-panel: #5f5f5f; /* 5.03:1 */
+ --color-status-behind-on-panel: #7741bf; /* 5.02:1 */
+ --color-status-warning-on-panel: #795930; /* 5.04:1 */
+ --color-status-alert-on-panel: #a13f3f; /* 5.02:1 */
+ --color-status-complete-on-panel: #386948; /* 5.04:1 */
+
+ /* Schedule axis: the sign of a pocket's own slack, separate from the level scale though two values match.
+    The seven levels are exclusive readings that disagree with it at the margin; never fold them together.
+    Repeated, not aliased, so a level change cannot move it. 8.34 and 5.88 on deep, under 3:1 on panel. */
+ --color-schedule-over: #3db87a;
+ --color-schedule-under: #9c75d1;
+
+ /* Pocket portfolio card, which sums the pockets that have a plan: gold heading
+    and amber monthly pace, with their own tokens so a change to the schedule or
+    attention scales does not move them. The allocated balance takes plain ink. */
+ --color-pocket-portfolio-heading: #c49a5a;
+ --color-pocket-pace: #f6bb55;
+
+ /* Feedback banner triad for light surfaces (inverse and panel). Separate from the semaphore, whose
+    scalars drop to 1.89:1 on cream. Each content value is measured on its own surface (4.84-5.25:1). */
+ --color-feedback-error-content: #cc0000;
+ --color-feedback-error-surface: #ffeeee;
+ --color-feedback-error-border: #ff6666;
+ --color-feedback-success-content: #008000;
+ --color-feedback-success-surface: #eeffee;
+ --color-feedback-success-border: #66cc66;
+ --color-feedback-warning-content: #996600;
+ --color-feedback-warning-surface: #ffffdd;
+ --color-feedback-warning-border: #ffcc66;
+ --color-feedback-info-content: #1565c0;
+ --color-feedback-info-surface: #eeeeff;
+ --color-feedback-info-border: #6666cc;
+
+ /* Destructive button ground and content, separate from the banner triad because it inverts that pairing:
+    red ground, white content (5.89:1); ground is 3.26:1 on app, 4.64:1 on panel. #cc0000 is repeated.
+    Hover lightens (3.91:1). No -active/-disabled: active is the base, disabled is the opacity rule. */
+ --color-action-destructive-surface: #cc0000;
+ --color-action-destructive-content: #ffffff;
+ --color-action-destructive-hover: #e01414;
+
+ --color-amount-positive: #5b8c93;
+ --color-amount-negative: #c97474;
+
+ /* Amount pair for the cream panel and white header; the pair above falls to 2.98:1 and 2.64:1 there.
+    Darkened along their own hue to keep the colour family. On panel: positive 4.94, negative 4.74. */
+ --color-amount-positive-on-panel: #3a6168;
+ --color-amount-negative-on-panel: #9c4a4a;
+
+ /* What a movement did to Net Worth: set by the movement type, not by the sign in one account. attention is
+    not a fourth effect: it marks a movement bringing in a counterparty (debt only). Neutral and attention
+    have no flat colour; only their triads below are read. */
+ --color-financial-positive: #5b8c93;
+ --color-financial-negative: #c97474;
+
+ /* Provisional naming. Pill triads; content is separate from the flat colour so raising pill legibility
+    does not move the hero amount. Opaque, as a translucent tint reads black on app. Pairs clear 4.5:1. */
+ --color-financial-positive-surface: #103a42;
+ --color-financial-positive-border: #3da5b8;
+ --color-financial-positive-content: #5fccdd;
+ --color-financial-negative-surface: #4d1614;
+ --color-financial-negative-border: #cc3833;
+ --color-financial-negative-content: #f4837b;
+ --color-financial-neutral-surface: #3a3131;
+ --color-financial-neutral-border: #917978;
+ --color-financial-neutral-content: #d8cdcd;
+ --color-financial-attention-surface: #473515;
+ --color-financial-attention-border: #c48e31;
+ --color-financial-attention-content: #f6bb55;
+
+ /* Eight hues meaning only "not the one beside me"; bar width and arc angle carry magnitude. Okabe-Ito
+    (colour-vision safe) with black replaced by the subtle ink; weakest is blue at 3.36:1 (over 3:1).
+    Reordering without re-measuring can put similar hues adjacent; past eight they cycle: keep the legend */
+ --color-scale-category-1: #e69f00;
+ --color-scale-category-2: #56b4e9;
+ --color-scale-category-3: #009e73;
+ --color-scale-category-4: #f0e442;
+ --color-scale-category-5: #0072b2;
+ --color-scale-category-6: #d55e00;
+ --color-scale-category-7: #cc79a7;
+ --color-scale-category-8: #bdb1b1;
+ /* The outline of the Others swatch, which folds the rows that spent nothing:
+    it has no rank, so it takes no hue off the scale. */
+ --color-ranked-others-outline: #e8e4da;
+
+ /* The pill that states the direction of a movement. Semi-transparent grounds,
+    so it belongs to the surface under it. Distinct from the semaphore above,
+    which qualifies a figure; this names a direction. */
+ --color-badge-positive-surface: rgba(2, 44, 34, 0.4);
+ --color-badge-positive-border: rgba(6, 95, 70, 0.5);
+ --color-badge-positive-content: #34d399;
+ --color-badge-negative-surface: rgba(69, 10, 10, 0.4);
+ --color-badge-negative-border: rgba(153, 27, 27, 0.5);
+ --color-badge-negative-content: #f87171;
+
+ /* One typeface, loaded in index.css. The mono family is for account identifiers
+    and reference codes; monetary amounts use the sans family. */
+ --font-family-sans: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+ --font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo,
+  monospace;
+
+ /* Root size every rem multiplies: 14px at 360px rising linearly to 16px at 768px. Applied in index.css,
+    not here, so it follows the 16px pin there. The rem in the middle term keeps browser text size
+    scaling (WCAG 1.4.4). */
+ --font-size-root: clamp(0.875rem, 0.765rem + 0.49vw, 1rem);
+
+ /* There is no line-height token; each size carries its line height and tracking
+    as a trailing comment instead. */
+ /* One step under 2xs (same 0.125rem interval), only for the qualifier line under a hero figure, which must
+    read below the label above it at every width. Kept in rem for WCAG 1.4.4;
+    --color-content-on-dark-subtle is 8.9:1 on --color-surface-deep. */
+ --font-size-3xs: 0.5rem; /* 1.2 / 0 */
+ --font-size-2xs: 0.625rem; /* 1.2 / 1px */
+ --font-size-xs: 0.75rem; /* 1.3 / 0 */
+ --font-size-sm: 0.875rem; /* 1.4 / 0.5px - the default UI size */
+ --font-size-base: 1rem; /* 1.625rem / 0 */
+ --font-size-lg: 1.25rem; /* 1.3 / 0 */
+ --font-size-xl: 1.5rem; /* 1.2 / 0 */
+ --font-size-2xl: 2rem; /* 1.1 / 1px */
+
+ /* bold, bolder, lighter and normal are forbidden: keyword aliases defeat the
+    variable font's weight axis. */
+ --font-weight-regular: 400;
+ --font-weight-medium: 500;
+ --font-weight-semibold: 600;
+ --font-weight-bold: 700;
+
+ --letter-spacing-wide: 0.5px; /* labels */
+ --letter-spacing-wider: 1px; /* titles, totals */
+
+ /* Unitless, so each follows the size of the element it is set on. */
+ --line-height-figure: 1.1; /* an amount on its own line */
+ --line-height-heading: 1.2; /* a count or a short heading */
+ --line-height-body: 1.4; /* a sentence */
+
+ /* Base unit 4px, linear to 8 and then it jumps. For padding, margin, gap and
+    absolute offsets; width and height come from the sizing tokens below. */
+ --space-1: 0.25rem;
+ --space-2: 0.5rem;
+ --space-3: 0.75rem;
+ --space-4: 1rem;
+ --space-5: 1.25rem;
+ --space-6: 1.5rem;
+ --space-8: 2rem;
+ --space-12: 3rem;
+ --space-16: 4rem;
+
+ --radius-xs: 0.25rem;
+ --radius-sm: 0.5rem;
+ --radius-md: 0.75rem;
+ /* Page stylesheets must not redeclare this in :root: a lazy chunk loads after
+    this file, so its value would win app-wide for the rest of the session. */
+ --radius-lg: 0.875rem;
+ --radius-xl: 1rem;
+ --radius-full: 9999px;
+ /* The registry toolbar's corner (10px), off the scale above: named rather than
+    rounded to --radius-sm or --radius-md so a control added to that row matches
+    its neighbours. */
+ --radius-control-registry: 0.625rem;
+
+ /* FinTrack separates by border rather than shadow, because most surfaces are
+    dark on dark. */
+ --border-width-thin: 1px;
+ --border-width-thick: 2px;
+ --border-dashed: 1px dashed var(--color-border-subtle);
+
+ /* Elevation is reserved for content floating over the page; a card gets none. */
+ --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+ --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+ --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+ --shadow-overlay: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+ /* Fixed dimensions that recur and must not be re-derived. */
+ --size-status-square: 0.75rem;
+ --size-icon: 2rem;
+ --size-badge: 2.5rem;
+ --size-control-height: 3.125rem;
+ /* The pocket glyph set is drawn at a 0.375 pen on a 24-unit grid, exactly one
+    device pixel at 4rem; below that the stroke renders under a pixel and blurs. */
+ --size-glyph-hero: 4rem;
+ /* The same set as a panel watermark: it sits alone in a corner with no label to
+    hold a scale against. */
+ --size-glyph-panel: 5.5rem;
+ /* The same set inside running text, marking the sentence it opens. A glyph, not
+    a control (nothing here is tapped), so not --size-control-sm. At this size
+    the 0.375 stroke stops resolving, so the marks used here are drawn as fills. */
+ --size-glyph-inline: 1.25rem;
+ /* The same set beside a count in a tile, with the pen scaled to 1. */
+ --size-glyph-tile: 1.5rem;
+ /* The donut ring beside its legend: the smallest whose hole holds its label. */
+ --size-chart-ring-wide: 14rem;
+ /* The plot of one debt leg on level 2. Shorter than the trend plot: two stack
+    at 360px and are read against each other, not alone. */
+ --size-chart-debt-leg: 3.5rem;
+ /* The pocket board's Next target list at its tallest: one tier heading, three
+    rows and the top of a fourth, so the cut row says the list goes on. */
+ --size-pocket-target-list: 13rem;
+ /* Minimum tappable area, in px on purpose: a finger bounds it, not the type scale, so it must not
+    follow --font-size-root (2.75rem resolved to 38.5px on a 360px phone). */
+ --size-touch-target: 44px;
+ /* Auxiliary controls that sit in a bar over a list: search, sort, toggles.
+    32px clears the 24px WCAG AA floor (SC 2.5.8) and gives up the 44px of the
+    AAA one (SC 2.5.5), which is the trade a one-row bar costs at 360px. */
+ --size-control-sm: 2rem;
+ /* The registry toolbar's control height (42px), taller than the bar controls
+    above because that toolbar is a panel of stacked fields, and a control joining
+    it must match its neighbours. */
+ --size-control-registry: 2.625rem;
+
+ /* Enumerate the properties of a transition: `all` animates unintended ones,
+    layout among them. Anything that transitions also ships a
+    prefers-reduced-motion block. */
+ --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+ --motion-normal: 200ms ease;
+ --motion-slow: 300ms ease;
+ --motion-press: 100ms ease-out;
+ /* animation-duration only (that property takes no easing function) for the
+    ::view-transition-old/new(root) pair index.css drives on route changes. */
+ --motion-route-transition-duration: 400ms;
+ /* Hover lift: how far a pressable rises under the cursor, for translateY. */
+ --motion-lift-sm: -1px;
+ --motion-lift-md: -2px;
+
+ /* A closed scale: an unmanaged z-index puts a modal behind a navbar. */
+ --z-base: 0;
+ --z-raised: 1;
+ --z-dropdown: 100;
+ --z-overlay: 500;
+ --z-modal: 1000;
+ /* Layer opened from inside a modal: the date calendar, portalled into <body>. Both are body children, so
+    with one value they tie and the last-inserted wins (the calendar showed on the first open only). */
+ --z-modal-popover: 1050;
+ --z-toast: 1100;
+
+ /* A single column, centred rather than stretched on wide viewports; never a
+    multi-column desktop layout. */
+ --layout-width-min: 22.5rem; /* the Figma frame, 360px */
+ --layout-card-width: 21.875rem; /* the account card, 350px */
+ --layout-width-max: 40rem; /* beyond this the column centres */
+ /* A modal centred on the viewport, not a card in the app column: the width an
+    account row needs to state its three figures on one line, measured, and
+    nothing beyond it. */
+ --layout-modal-width: 31.25rem; /* 500px */
+ --layout-content-width: 88%;
+ --layout-top-space: 2.75rem;
+ --layout-header-height: 12.5rem;
+ --layout-navbar-top: 5rem;
+ --layout-navbar-bottom: 3.5rem;
+}

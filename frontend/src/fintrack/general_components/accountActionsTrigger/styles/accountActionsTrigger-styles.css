@@ -1,0 +1,107 @@
+/* The control that opens the account actions menu. The modifiers name the
+   surface the button sits on (dark app background or cream panel), never its own
+   colour, so one component fits both without either caller knowing the other. */
+
+.accountActionsTrigger {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ /* Anchors the ::after that gives the tappable area back below. */
+ position: relative;
+ /* --size-icon matches the disc .backArrow draws; the two sit at opposite ends
+    of the detail title row and must read as the same size. */
+ width: var(--size-icon);
+ height: var(--size-icon);
+ flex-shrink: 0;
+ border: none;
+ /* A full radius on this square box gives the circle icon-only controls use. */
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Unpainted, hit-testable extension so the pointer still gets --size-touch-target.
+   It clears .account-card's overflow: hidden: it reaches --space-1 * 2.5 past the
+   box and .accountingBox__container pads by more. */
+.accountActionsTrigger::after {
+ content: '';
+ position: absolute;
+ inset: calc((var(--size-touch-target) - var(--size-icon)) / -2);
+}
+
+/* Height only, width auto: the asset is a vertical ellipsis at a 4:16 ratio,
+   and a square box would letterbox it into a column of its own width. */
+.accountActionsTrigger__glyph {
+ /* --font-size-lg is the size .backArrow's drawing occupies in the same disc,
+    so the two marks weigh alike. */
+ height: var(--font-size-lg);
+ width: auto;
+}
+
+/* The asset hardcodes stroke='#F7F7F7', so neither surface modifier reaches it.
+   Overridden here, not in the file: six screens render it on dark surfaces where
+   near-white is wanted, and currentColor in the asset would repaint them all. */
+.accountActionsTrigger__glyph path {
+ stroke: currentColor;
+}
+
+.accountActionsTrigger:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* On the dark app surface. Cream rather than white: the dots sit beside cream
+   headings on the dark card. */
+.accountActionsTrigger--dark {
+ color: var(--color-content-on-dark-muted);
+}
+
+/* Solid cream, the same fill as the light modifier, so the control reads alike
+   on both surfaces (no attenuated fill: the system has no token for one). The
+   glyph inverts to the panel dark because the fill now covers the ground. */
+.accountActionsTrigger--dark:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* --color-border-inverse is the ring meant for the app surface. */
+.accountActionsTrigger--dark:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Darker than the hover fill, so a press reads as a press. */
+.accountActionsTrigger--dark:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+/* On a cream panel or a white header. No caller yet; declared because the
+   component is shared and a modifier added later is written against one screen. */
+.accountActionsTrigger--light {
+ color: var(--color-content-primary);
+}
+
+.accountActionsTrigger--light:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* Ring in the panel's own dark: --color-border-inverse is meant for the app
+   surface and would be invisible against cream. */
+.accountActionsTrigger--light:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+.accountActionsTrigger--light:active {
+ background-color: var(--color-content-primary);
+ color: var(--color-accent-content);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .accountActionsTrigger {
+  transition: none;
+ }
+}

@@ -1,0 +1,149 @@
+/* The shared pager, written for the app's dark ground. A list on a cream panel gets a
+   --light modifier here rather than an override in its own sheet. */
+
+.pagination {
+ /* Height of the select (text line plus padding and border); the steps use it for both
+    sides so the three controls share one height. */
+ --pagination-control-size: calc(
+  var(--font-size-xs) * var(--line-height-heading) + 2 * var(--space-1) + 2 *
+   var(--border-width-thin)
+ );
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ justify-content: space-between;
+ gap: var(--space-3);
+ /* Symmetric: a caller may put the bar above or below its list. */
+ padding: var(--space-2) 0;
+}
+
+/* Reads before the controls: it is the only line that says the list moved. */
+.pagination__count {
+ margin: 0;
+ flex: 0 1 auto;
+ min-width: 0;
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-muted);
+ font-variant-numeric: tabular-nums;
+}
+
+/* flex: 0 0 auto so the row wraps before the controls do; shrinking let the pager drop
+   under the size chooser while the row still had room. max-width keeps the inner wrap
+   as a last resort for a row narrower than the controls. */
+.pagination__controls {
+ display: flex;
+ flex: 0 0 auto;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: var(--space-2) var(--space-4);
+ max-width: 100%;
+ margin-left: auto;
+}
+
+/* width restated: forms-styles.css gives every bare label width: 100%, which pushed the
+   pager onto a line of its own. */
+.pagination__size {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ width: auto;
+}
+
+.pagination__sizeLabel {
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* A real select, not a styled listbox: it is four numbers, the platform control is
+   keyboard and screen-reader accessible without being rebuilt, and on a phone it opens
+   the native picker. */
+.pagination__select {
+ padding: var(--space-1) var(--space-2);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-raised);
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-xs);
+ /* Stated, so the select's height is the one --pagination-control-size computes. */
+ line-height: var(--line-height-heading);
+ font-family: inherit;
+ cursor: pointer;
+}
+
+.pagination__select:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-on-dark);
+ outline-offset: var(--border-width-thick);
+}
+
+.pagination__select:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.pagination__pager {
+ display: flex;
+ flex: 0 0 auto;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+/* nowrap: "1/26" broken across two lines inside a 24px-tall row has nowhere to go and
+   rendered over the button next to it. */
+.pagination__page {
+ flex: 0 0 auto;
+ white-space: nowrap;
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-muted);
+ font-variant-numeric: tabular-nums;
+}
+
+/* Sized by the row's line (--pagination-control-size). Square by stating both sides: aspect-ratio: 1
+   with auto width took its height from the glyph's narrow advance and came out taller than wide. */
+.pagination__step {
+ display: flex;
+ flex: 0 0 auto;
+ align-items: center;
+ justify-content: center;
+ width: var(--pagination-control-size);
+ height: var(--pagination-control-size);
+ padding: 0;
+ /* The filter chips' hover border: --color-border-subtle (40% cream) faded into the
+    raised panel behind the step. */
+ border: var(--border-width-thin) solid var(--color-content-on-dark-subtle);
+ border-radius: var(--radius-md);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ cursor: pointer;
+ transition: border-color var(--motion-fast);
+}
+
+.pagination__icon {
+ width: var(--size-status-square);
+ height: var(--size-status-square);
+}
+
+.pagination__step:hover {
+ border-color: var(--color-content-on-dark);
+}
+
+.pagination__step:active {
+ border-color: var(--color-content-on-dark-muted);
+}
+
+.pagination__step:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-on-dark);
+ outline-offset: var(--border-width-thick);
+}
+
+/* At a bound or while a page loads. pointer-events: none keeps the hover above from
+   firing on an inert step. */
+.pagination__step:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pagination__step {
+  transition: none;
+ }
+}

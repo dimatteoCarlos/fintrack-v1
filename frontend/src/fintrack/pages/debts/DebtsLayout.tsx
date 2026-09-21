@@ -1,0 +1,150 @@
+import DebtsBigBoxResult from './components/DebtsBigBoxResult.tsx';
+import { TitleHeader } from '../../general_components/titleHeader/TitleHeader.tsx';
+import { DEFAULT_CURRENCY } from '../../helpers/constants.ts';
+import { url_get_total_account_balance_by_type } from '../../../urlConfig.ts';
+import { useMemo } from 'react';
+import { useFetch } from '../../hooks/useFetch.ts';
+import { DebtorRespType } from '../../types/responseApiTypes.ts';
+import { Outlet } from 'react-router-dom';
+import './styles/debts-styles.css';
+
+const defaultCurrency = DEFAULT_CURRENCY;
+function DebtsLayout() {
+  const debtUrl = `${url_get_total_account_balance_by_type}?type=debtor`;
+
+  const { apiData, isLoading, error, status, refetch } =
+    useFetch<DebtorRespType>(debtUrl);
+
+  // The hook starts idle and raises isLoading inside its effect, so a status or an error is what says
+  // an answer has actually come back.
+  const hasAnswer = status !== null || error !== null;
+  const hasFailed = Boolean(error);
+  const isPending = !hasFailed && (isLoading || !hasAnswer);
+
+  // An owner with no debts: the endpoint answers 400 'No available accounts of type debtor', which
+  // useFetch classifies as not-found (no error, no payload). Distinct from a total of zero.
+  const isEmpty = !isPending && !hasFailed && !apiData?.data;
+  const {
+    total_debt_balance,
+    debt_receivable,
+    debt_payable,
+    debtors,
+    lenders,
+    currency,
+  } = useMemo(() => {
+    // null, never 0: an omitted field is not a figure and the box below prints a dash for it. The
+    // currency is the exception, being the formatter's configuration rather than a figure.
+    return {
+      total_debt_balance: apiData?.data.total_debt_balance ?? null,
+
+      debt_payable: apiData?.data.debt_payable ?? null,
+      lenders: apiData?.data.lenders ?? null,
+
+      debtors: apiData?.data.debtors ?? null,
+      debt_receivable: apiData?.data.debt_receivable ?? null,
+
+      debtors_without_debt: apiData?.data.debtors_without_debt ?? null,
+
+      currency: apiData?.data.currency_code ?? defaultCurrency,
+    };
+  }, [
+    apiData?.data.total_debt_balance,
+    apiData?.data.debt_payable,
+    apiData?.data.debt_receivable,
+    apiData?.data.debtors,
+    apiData?.data.lenders,
+    apiData?.data.debtors_without_debt,
+    apiData?.data.currency_code,
+  ]);
+
+  const bigScreenInfo = [
+    {
+      // The direction claims the owner's position, so it needs a figure; without one the headline names
+      // the section. A balance of exactly zero is settled, not owed either way.
+      title:
+        total_debt_balance === null
+          ? 'debts'
+          : total_debt_balance > 0
+            ? "you're owed"
+            : total_debt_balance < 0
+              ? 'you owe'
+              : 'settled',
+      amount: total_debt_balance,
+    },
+    {
+      title: 'receivable',
+      amount: debt_receivable,
+    },
+    {
+      title: 'debtors',
+      amount: debtors,
+    },
+    {
+      title: 'payable',
+      amount: debt_payable,
+    },
+
+    {
+      title: 'lenders',
+      amount: lenders,
+    },
+  ];
+
+  return (
+    <div className='debtsLayout'>
+      <div className='layout__header'>
+        <div className='headerContent__container'>
+          <TitleHeader />
+        </div>
+      </div>
+
+      {/* Loading, failed and empty panels share the board hero's shape so the page below does not move
+          when the answer lands. */}
+      {isPending ? (
+        <div
+          className='bigBox__container debtsBoard__skeleton'
+          aria-hidden='true'
+        >
+          <div className='debtsBoard__skeletonBar debtsBoard__skeletonBar--title'></div>
+          <div className='debtsBoard__skeletonBar debtsBoard__skeletonBar--total'></div>
+          <div className='debtsBoard__skeletonBar debtsBoard__skeletonBar--wide'></div>
+          <div className='debtsBoard__skeletonBar debtsBoard__skeletonBar--wide'></div>
+        </div>
+      ) : hasFailed ? (
+        // role='alert' because the swap is otherwise silent to a screen reader, which is still reading
+        // figures no longer on screen; the other two boards behave the same.
+        <div className='bigBox__container debtsBoard__state' role='alert'>
+          <p className='debtsBoard__stateText'>
+            The debts summary could not be loaded.
+          </p>
+
+          <button
+            type='button'
+            className='debtsBoard__retry'
+            onClick={refetch}
+          >
+            Try again
+          </button>
+        </div>
+      ) : isEmpty ? (
+        <div className='bigBox__container debtsBoard__state'>
+          <p className='debtsBoard__stateText'>
+            Nothing lent and nothing owed. The totals appear once there is a
+            debtor.
+          </p>
+        </div>
+      ) : (
+        <DebtsBigBoxResult
+          bigScreenInfo={bigScreenInfo}
+          currency={currency}
+        ></DebtsBigBoxResult>
+      )}
+
+      {/* The board comes from the route table like every other section; rendering it here directly
+          left the two declared child routes inert. */}
+      <Outlet />
+    </div>
+  );
+}
+
+export default DebtsLayout;

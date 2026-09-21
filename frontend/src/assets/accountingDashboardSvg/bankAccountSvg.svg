@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 26h24" />
+
+  <path d="M3 14h26" />
+
+  <path d="M3 10l13-7 13 7" />
+
+  <!-- Columns and doorway use a lighter stroke (1) so they read as texture and do not merge into a solid band. -->
+  <path d="M6 26V14h3v12 M10.5 26V14h3v12 M18.5 26V14h3v12 M23 26V14h3v12" stroke-width="1" />
+
+  <path d="M14 26v-6h4v6" stroke-width="1" />
+</svg>

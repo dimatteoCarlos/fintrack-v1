@@ -1,0 +1,55 @@
+/* The figure over a list, written for the app's dark ground. A panel on cream gets a
+   --light modifier here rather than an override in its own sheet. */
+
+.panelTotal {
+ display: grid;
+ grid-template-columns: 1fr auto;
+ align-items: baseline;
+ gap: var(--space-1) var(--space-3);
+ padding: var(--space-2) 0 var(--space-3);
+}
+
+.panelTotal__label {
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* tabular-nums so the figure keeps its column when the month changes it. */
+.panelTotal__amount {
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-on-dark);
+ font-variant-numeric: tabular-nums;
+ text-align: right;
+}
+
+/* Spans both columns: it qualifies the pair above it, not the amount alone. */
+.panelTotal__note {
+ grid-column: 1 / -1;
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-on-dark-muted);
+}
+
+/* Inline form: the same three values beside a heading. The grid is overridden rather
+   than made conditional, so the stacked form other figures align to stays untouched by
+   callers that never ask for this one. */
+.panelTotal--inline {
+ display: flex;
+ align-items: baseline;
+ flex-wrap: wrap;
+ gap: var(--space-1) var(--space-2);
+ padding: 0;
+}
+
+/* The note is a third item on the line, so it drops the grid's column span. */
+.panelTotal--inline .panelTotal__note {
+ grid-column: auto;
+}
+
+/* Follows its label instead of ending a grid column as it does in the stacked form. */
+.panelTotal--inline .panelTotal__amount {
+ text-align: left;
+}

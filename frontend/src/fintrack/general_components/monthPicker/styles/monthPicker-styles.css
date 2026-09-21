@@ -1,0 +1,355 @@
+/* The month badge, its picker-trigger and stepper variants, and the month picker popper. */
+
+/* States the month a screen is about. An outline rather than a fill, so it does not
+   compete with the title. Shape only: the surface modifier picks the colour, because
+   the badge lands on both the white header and the dark app surface. */
+.month-badge {
+ align-self: center;
+ margin-bottom: var(--space-4);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid transparent;
+ border-radius: var(--radius-full);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: 0.02em;
+ white-space: nowrap;
+}
+
+/* --light for the white header, --dark for the dark app surface. */
+.month-badge--dark {
+ border-color: var(--color-content-on-dark-muted);
+ color: var(--color-content-on-dark-muted);
+}
+
+.month-badge--light {
+ border-color: var(--color-content-primary);
+ color: var(--color-content-primary);
+}
+
+.month-badge--trigger {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-2);
+ background-color: transparent;
+ cursor: pointer;
+ transition: border-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Restates its own size: index.css sets font-size on the universal selector, so
+   an inline element does not inherit the size of the line it sits in. */
+.month-badge__label {
+ font-size: inherit;
+ font-weight: inherit;
+}
+
+.month-badge__chevron {
+ font-size: var(--font-size-xs);
+ line-height: 1;
+}
+
+/* Hover inverts the badge (outline becomes fill) instead of turning cyan, which is
+   reserved for links and rows and would read as a third colour here. */
+.month-badge--light.month-badge--trigger:hover {
+ background-color: var(--color-content-primary);
+ border-color: var(--color-content-primary);
+ color: var(--color-accent);
+}
+
+.month-badge--dark.month-badge--trigger:hover {
+ background-color: var(--color-accent);
+ border-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* Cream surface inverts in the same direction as .statementTrigger:hover: cream fill to
+   dark fill, dark ink to cream ink. */
+.month-badge--cream.month-badge--trigger:hover {
+ background-color: var(--color-content-primary);
+ border-color: var(--color-content-primary);
+ color: var(--color-accent);
+}
+
+.month-badge--cream.month-badge--trigger:active {
+ background-color: var(--color-content-secondary);
+ border-color: var(--color-content-secondary);
+ color: var(--color-accent);
+}
+
+.month-badge--trigger:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+/* The #141414 ring above is near-invisible on the #0d0f12 surface: only its colour changes. */
+.month-badge--dark.month-badge--trigger:focus-visible {
+ outline-color: var(--color-border-inverse);
+}
+
+/* Pressed: one step short of the hover inversion, so the press shows without moving
+   the badge (a shift would read as a layout jump under the title). */
+.month-badge--light.month-badge--trigger:active {
+ background-color: var(--color-accent);
+ border-color: var(--color-content-primary);
+ color: var(--color-content-primary);
+}
+
+/* The dark badge's hover is already the cream fill, so its press goes dimmer, never lighter. */
+.month-badge--dark.month-badge--trigger:active {
+ background-color: var(--color-content-on-dark-subtle);
+ border-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+.month-badge--trigger:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Loading state: a fixed minimum size, because an empty badge would collapse and the
+   header would jump when the month arrives. */
+.month-badge--skeleton {
+ min-width: calc(var(--space-16) * 2);
+ min-height: var(--size-touch-target);
+ opacity: 0.5;
+}
+
+/* The stepper (withSteppers prop): the badge with an arrow on each side. The container carries
+   the badge's background, border and radius so the chevrons read as one pill. */
+.monthStepper {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-1);
+ padding: 0 var(--space-2);
+ border: var(--border-width-thin) solid transparent;
+ border-radius: var(--radius-full);
+ /* Must not give way as a flex item: at 360x568 the row compressed to nothing while
+    the summary beside it (flex-shrink: 0) kept its height. */
+ flex-shrink: 0;
+}
+
+.monthStepper--dark {
+ background-color: var(--color-surface-raised);
+ border-color: var(--color-border-subtle);
+}
+
+.monthStepper--light {
+ background-color: var(--color-content-primary);
+ border-color: var(--color-content-primary);
+}
+
+/* White header with a cream pill: the inverse of --light, so each ink rule below has its
+   own counterpart. The subtle border is needed or the cream dissolves into the white band. */
+.monthStepper--cream {
+ background-color: var(--color-accent);
+ border-color: var(--color-border-subtle);
+}
+
+/* No outline of its own; compact scale of .budgetLayout .month-badge. min-width exceeds the
+   longest label ("September 2026", 121.34px) so stepping months does not shift the arrows. */
+.monthStepper .month-badge {
+ margin-bottom: 0;
+ padding: var(--space-1) var(--space-3);
+ border-color: transparent;
+ font-size: var(--font-size-xs);
+ min-width: calc(var(--space-16) * 2 + var(--space-4));
+ justify-content: center;
+}
+
+.monthStepper--light .month-badge {
+ color: var(--color-accent);
+}
+
+/* Dark ink, the inverse of the rule above; bold so it reads solid on the cream fill
+   instead of grey. */
+.monthStepper--cream .month-badge {
+ color: var(--color-content-primary);
+ font-weight: var(--font-weight-bold);
+}
+
+/* Drawn small; the tap target is the ::after below. --space-6, not --space-8: at 2rem the
+   arrow, not the badge, would set the row height (34px against 25.6px). */
+.monthStepper__arrow {
+ position: relative;
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ flex-shrink: 0;
+ width: var(--space-6);
+ height: var(--space-6);
+ padding: 0;
+ border: none;
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ cursor: pointer;
+ transition: color var(--motion-fast), background-color var(--motion-fast);
+}
+
+/* Unpainted, hit-testable area restoring the full --size-touch-target. The operands are
+   target minus drawn, in that order: reversed, the calc resolves positive and inset
+   shrinks the pseudo-element instead of growing it. */
+.monthStepper__arrow::after {
+ content: '';
+ position: absolute;
+ inset: calc((var(--size-touch-target) - var(--space-6)) / -2);
+}
+
+/* Sized off the spacing scale, as .pocketHero__chevron is: the size scale starts at
+   2rem, which is the whole button rather than the mark inside it. */
+.monthStepper__chevron {
+ display: block;
+ width: var(--space-4);
+ height: var(--space-4);
+ transition: stroke-width var(--motion-fast);
+}
+
+/* One resting ink for --dark and --light fills (a dark ink would vanish on --light). Subtle
+   so hover can brighten: 8.30:1 on the dark pill, above the 3:1 WCAG 1.4.11 minimum. */
+.monthStepper__arrow {
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* Hover only: keyboard users get :focus-visible below. The ink steps to full and the
+   stroke thickens, so the cue is a shape as well as a colour. */
+.monthStepper__arrow:hover,
+.monthStepper__arrow:active {
+ color: var(--color-content-on-dark);
+}
+
+/* The cream pill reverses the steps: grey at rest, black on hover. The light ink above
+   would be #ffffff on #e8e4da, 1.24:1. Both rules are qualified by the modifier so the two
+   surfaces cannot fall through to each other on document order. */
+.monthStepper--cream .monthStepper__arrow {
+ color: var(--color-content-secondary);
+}
+
+/* The arrow's hit circle fills on hover too, since a colour step alone is quiet next to
+   the badge's inverting hover; same on-panel tokens as recentActivity-styles.css. */
+.monthStepper--cream .monthStepper__arrow:hover {
+ color: var(--color-content-primary);
+ background-color: var(--color-surface-hover-on-panel);
+}
+
+.monthStepper--cream .monthStepper__arrow:active {
+ color: var(--color-content-primary);
+ background-color: var(--color-surface-active-on-panel);
+}
+
+/* No focus-ring override for --cream: the base near-black ring already suits a light pill. */
+
+.monthStepper__arrow:hover .monthStepper__chevron,
+.monthStepper__arrow:active .monthStepper__chevron {
+ stroke-width: 2.5;
+}
+
+.monthStepper__arrow:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+/* The #141414 ring above is near-invisible on the #0d0f12 surface: only its colour changes. */
+.monthStepper--dark .monthStepper__arrow:focus-visible {
+ outline-color: var(--color-border-inverse);
+}
+
+/* At its bound: the forward arrow is disabled on the current month, so the server's 422
+   for a later month is unreachable. pointer-events: none stops the hover from firing;
+   the 0.5 opacity is a second, non-colour cue. */
+.monthStepper__arrow:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Request in flight: the label stays so the row keeps its height; only the ink dims. */
+.monthStepper[aria-busy='true'] .month-badge {
+ opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .monthStepper__arrow,
+ .monthStepper__chevron {
+  transition: none;
+ }
+}
+
+/* The library inserts an empty focus-trap div beside the wrapper while the panel is open;
+   in the gapped budget header column it opened an extra gap and pushed the badge down.
+   Taken out of the flow rather than fighting the gap. */
+.react-datepicker__tab-loop {
+ position: absolute;
+}
+
+.monthPicker__popper {
+ z-index: var(--z-dropdown);
+}
+
+/* The library sizes the panel for seven day columns, too narrow for a month name here. The
+   surface is declared too: datepicker-styles.css loads only when another route imports it. */
+.monthPicker__popper .react-datepicker,
+.monthPicker__popper .react-datepicker__month-container,
+.monthPicker__popper .react-datepicker__header {
+ width: calc(var(--space-16) * 4);
+ background-color: var(--color-surface-app);
+ border-color: var(--color-border-subtle);
+ color: var(--color-content-on-dark);
+}
+
+.monthPicker__popper .react-datepicker__header {
+ width: auto;
+}
+
+.monthPicker__popper .react-datepicker-year-header {
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+}
+
+.monthPicker__popper .react-datepicker__month-wrapper {
+ display: flex;
+ justify-content: space-between;
+ gap: var(--space-1);
+}
+
+.monthPicker__popper .react-datepicker__month-text {
+ flex: 1;
+ padding: var(--space-2) 0;
+ font-size: var(--font-size-sm);
+ border-radius: var(--radius-sm);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+}
+
+/* The library hovers a cell to #f0f0f0 with inherited text colour, which turned the month
+   white on white. The :not() mirrors the library's selector so this wins on specificity
+   rather than on !important. */
+.monthPicker__popper .react-datepicker__month-text:not([aria-disabled='true']):hover {
+ background-color: var(--color-accent);
+ color: var(--color-content-primary);
+}
+
+/* Selected is teal, as in the day picker (datepicker-styles.css), so hover and selection
+   read as different things while both pickers agree on what "selected" looks like. */
+.monthPicker__popper .react-datepicker__month-text--selected,
+.monthPicker__popper .react-datepicker__month-text--keyboard-selected {
+ background-color: var(--color-status-ok);
+ color: var(--color-content-on-dark);
+ font-weight: var(--font-weight-semibold);
+}
+
+.monthPicker__popper .react-datepicker__month-text:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Every month after the current one, which the picker bounds with maxDate. */
+.monthPicker__popper .react-datepicker__month-text--disabled,
+.monthPicker__popper .react-datepicker__month-text[aria-disabled='true'] {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .month-badge--trigger {
+  transition: none;
+ }
+}

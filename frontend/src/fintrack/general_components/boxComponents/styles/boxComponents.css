@@ -1,0 +1,12 @@
+.box-container {
+  width: 100%;
+}
+
+.box-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Layout variations belong to the parent component, passed through className. */

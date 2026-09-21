@@ -1,0 +1,224 @@
+/* Pocket detail hero panel: painted explicitly because it mounts on the dark app surface, where an
+   unpainted panel is invisible. Only consumer is PocketDetail.tsx. */
+
+.summaryPocket__container {
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ background-color: var(--color-surface-panel);
+ color: var(--color-content-primary);
+ border-radius: var(--radius-lg);
+ padding: var(--space-4) var(--space-5);
+ width: 100%;
+}
+
+/* Out of the flow: a reserved slot would narrow the data column and cut the progress bar to two
+   thirds. Decorative (aria-hidden); sized with the sizing scale, not the spacing scale. */
+.summaryPocket__glyph {
+ position: absolute;
+ top: var(--space-4);
+ right: var(--space-5);
+ width: var(--size-glyph-panel);
+ height: var(--size-glyph-panel);
+ color: var(--color-content-primary);
+ pointer-events: none;
+}
+
+.summaryPocket__title {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-medium);
+ color: var(--color-content-secondary);
+ text-transform: uppercase;
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+.summaryPocket__data {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+}
+
+/* The committed figure, and the largest thing on the screen: it is the answer
+   to the question the screen exists to ask. Tabular figures so it does not
+   reflow by a fraction of a character as the amount changes. */
+.summaryPocket__data--amount {
+ font-size: var(--font-size-2xl);
+ font-weight: var(--font-weight-semibold);
+ line-height: 1.1;
+ font-variant-numeric: tabular-nums;
+}
+
+.summaryPocket__data--subtitle1 {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-secondary);
+ font-variant-numeric: tabular-nums;
+}
+
+/* index.css sets font-size on the universal selector, so these spans do not
+   inherit the size of the line they sit in and have to restate it. */
+.summaryPocket__figureLabel {
+ font-size: inherit;
+ text-transform: uppercase;
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+/* The value carries the weight, not a colour: the label says what it is and the
+   ink says it matters, so neither figure depends on hue to be read. */
+.summaryPocket__figureValue {
+ font-size: inherit;
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+}
+
+/* Flat colour, not opacity: opacity opens a stacking context that would paint the fill faded.
+   --color-surface-disabled is a stand-in; no token exists for a meter track on a light panel. */
+.summaryPocket__track {
+ height: var(--space-2);
+ width: 100%;
+ margin-top: var(--space-2);
+ border-radius: var(--radius-full);
+ background-color: var(--color-surface-disabled);
+ overflow: hidden;
+}
+
+/* Ink, not a status colour: against this track the ok green reaches 2.13:1 and the alert red 2.10:1,
+   under the 3:1 a graphical object needs; ink holds 11.7:1. State is carried by the readings below. */
+.summaryPocket__fill {
+ height: 100%;
+ width: 0;
+ border-radius: var(--radius-full);
+ background-color: var(--color-content-primary);
+ transition: width var(--motion-normal);
+}
+
+.summaryPocket__data--status {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ margin-top: var(--space-2);
+}
+
+/* What is still to commit: the only figure the owner can act on, so it is sized
+   with the share above it and set in the panel's ink, not the secondary grey. */
+.summaryPocket__data--subtitle2 {
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-medium);
+ color: var(--color-content-primary);
+ font-variant-numeric: tabular-nums;
+}
+
+/* The bar's reading, directly over the track. Panel ink, not the secondary grey:
+   a figure set lighter than the line under it reads as that line's caption. */
+.summaryPocket__data--share {
+ margin-bottom: var(--space-1);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-primary);
+ font-variant-numeric: tabular-nums;
+}
+
+/* inherit and not a step of its own: it now sits in two rows set at different
+   sizes, and a fixed value would print the dot larger than the line under it.
+   index.css sets font-size on the universal selector, so it has to be said. */
+.summaryPocket__separator {
+ font-size: inherit;
+ color: var(--color-content-secondary);
+}
+
+/* The state readings sit under the figures they qualify, so the panel grows by
+   one line, or two when the coverage warning is also true: an accepted cost. */
+.summaryPocket__readings {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ margin-top: var(--space-3);
+ padding-top: var(--space-3);
+ border-top: var(--border-width-thin) solid var(--color-border-strong);
+}
+
+/* Colour is never the only channel: each reading names its state in words and
+   draws a glyph, so the border is the third signal. The ink is the panel's. */
+.summaryPocket__reading {
+ display: flex;
+ align-items: flex-start;
+ gap: var(--space-2);
+ padding-left: var(--space-3);
+ border-left: var(--border-width-thick) solid var(--color-content-secondary);
+ color: var(--color-content-primary);
+ font-size: var(--font-size-xs);
+ line-height: 1.4;
+}
+
+/* The square keeps its size against a sentence that wraps to three lines, and
+   sits on the first line rather than centred on the whole block. */
+.summaryPocket__reading .status__square {
+ flex-shrink: 0;
+ margin-top: var(--space-1);
+}
+
+/* The glyph names the state a third time, after the square and the sentence.
+   currentColor, so it takes the ink of the line and adds no colour of its own;
+   the square is where the hue lives. */
+.summaryPocket__readingIcon {
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+ flex-shrink: 0;
+}
+
+/* index.css sets font-size on the universal selector, so this span does not
+   inherit the size of the line it sits in and has to restate it. */
+.summaryPocket__readingText {
+ font-size: inherit;
+}
+
+/* The border takes the SAME token the square beside it takes, and not the
+   on-light feedback family: two blues on one line, a token apart, would read
+   as two different states rather than as one stated twice. */
+.summaryPocket__reading--ok {
+ border-left-color: var(--color-status-ok);
+}
+
+/* The board paints this level with the same token on its cards and its marks,
+   so one pocket cannot read one way there and another way here. */
+.summaryPocket__reading--info {
+ border-left-color: var(--color-status-info);
+}
+
+/* Its own token, not --color-content-secondary: that is the panel's body ink, so
+   the border would state text colour rather than a level and disagree with the
+   square beside it on the board. */
+.summaryPocket__reading--neutral {
+ border-left-color: var(--color-status-neutral);
+}
+
+.summaryPocket__reading--warning {
+ border-left-color: var(--color-status-warning);
+}
+
+.summaryPocket__reading--alert {
+ border-left-color: var(--color-status-alert);
+}
+
+/* Same token as the square beside each, for the reason the --ok rule states: two
+   values a token apart on one line read as two states. */
+.summaryPocket__reading--behind {
+ border-left-color: var(--color-status-behind);
+}
+
+.summaryPocket__reading--ahead {
+ border-left-color: var(--color-status-ahead);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .summaryPocket__fill {
+  transition: none;
+ }
+}
+
+@media (min-width: 480px) {
+ .summaryPocket__container {
+  padding: var(--space-5) var(--space-6);
+ }
+}

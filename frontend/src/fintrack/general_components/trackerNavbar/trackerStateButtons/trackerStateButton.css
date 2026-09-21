@@ -1,0 +1,44 @@
+.trackerStateButton__container {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ width: fit-content;
+}
+
+.trackerStateIconButton {
+ border-radius: var(--radius-md);
+ height: 3.5rem;
+ width: 3.5rem;
+
+ /* No background: the buttons rest transparent over the navbar's own fill. */
+ cursor: pointer;
+
+ /* Transparent by default so each state below only changes its colour. */
+ border: var(--border-width-thick) solid transparent;
+}
+
+/* The current tab and a press share this border, since a press is about to make the tab
+   current. :focus does not, so a merely focused tab is not drawn like the selected one. */
+.trackerStateIconButton.active,
+.trackerStateIconButton:active {
+ border-color: var(--color-accent);
+}
+
+/* An outline and not a border: it sits outside the border above, so a focused
+   tab that is also the current one shows both marks at once. */
+.trackerStateIconButton:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-interactive-hover);
+ outline-offset: var(--border-width-thick);
+}
+
+.trackerStateIconButton:not(.active, :active):hover {
+ border-color: var(--color-interactive-hover);
+}
+
+.trackerStateButton__state--title {
+ font-size: var(--font-size-2xs);
+ color: var(--color-content-on-dark);
+ text-transform: capitalize;
+ text-align: center;
+ margin-top: var(--space-1);
+}

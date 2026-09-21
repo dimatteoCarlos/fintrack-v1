@@ -1,0 +1,99 @@
+.container {
+  position: relative;
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  min-height: 200px;
+  text-align: center;
+}
+
+.loadingText {
+  margin-top: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Covers the form and blocks input during API calls. */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+
+.loadingOverlayText {
+  margin-top: 12px;
+  color: #555;
+  font-size: 14px;
+}
+
+/* Debug panel, rendered only in development. */
+.debugInfo {
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.debugInfoHeader {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #495057;
+  font-weight: 600;
+}
+
+.debugGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.debugItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.debugLabel {
+  font-weight: 600;
+  color: #495057;
+}
+
+.debugValue {
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .debugGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .loadingContainer {
+    padding: 20px;
+    min-height: 150px;
+  }
+}

@@ -1,0 +1,46 @@
+import { CurrencyType, VariantType } from '../../types/types';
+import {getNextCurrency } from '../../helpers/functions';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
+
+import './styles/currency-style.css';
+
+type CurrencyBadgePropType = {
+  variant: VariantType;
+  currency: CurrencyType;
+  updateOutsideCurrencyData?: (currency: CurrencyType) => void;
+  setCurrency?: React.Dispatch<React.SetStateAction<CurrencyType>>;
+   disabled?: boolean;
+};
+
+function CurrencyBadge({
+  variant,
+  updateOutsideCurrencyData,
+  currency, disabled
+}: CurrencyBadgePropType) {
+  // Debounced to prevent rapid repeated currency updates.
+  const debouncedToggleCurrency = useDebouncedCallback(() => {
+    const newCurrency = getNextCurrency(currency);
+    if (updateOutsideCurrencyData) {
+      updateOutsideCurrencyData(newCurrency);
+    }
+
+  }, 300);
+
+ function handleClick() {
+   if (disabled) return;
+    debouncedToggleCurrency();
+  }
+
+  return (
+    <button
+      type='button'
+      className={`icon-currency ${variant}`}
+      onClick={handleClick}
+      disabled={disabled}
+    >
+      {currency.toUpperCase()}
+    </button>
+  );
+}
+
+export default CurrencyBadge;

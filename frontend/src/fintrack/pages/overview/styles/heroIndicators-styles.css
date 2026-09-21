@@ -1,0 +1,128 @@
+/* The four secondary hero figures, in a card that opens and closes. */
+
+/* Matches the hero box in overview-styles.css (width, cream, radius) so it reads
+   as the same card at a second level of detail; that sheet uses literals and
+   var(--creme), here they are the tokens with the same values. */
+.heroIndicators {
+ width: 88%;
+ margin: var(--space-3) auto 0;
+ background-color: var(--color-surface-panel);
+ border-radius: var(--radius-xl);
+ overflow: hidden;
+}
+
+/* The whole row is the accordion control (it carries aria-expanded), not just the
+   chevron: a 16px glyph is too small a target on a phone. */
+.heroIndicators__toggle {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ width: 100%;
+ padding: var(--space-3) var(--space-5);
+ background-color: transparent;
+ border: none;
+ color: var(--color-content-primary);
+ font-family: var(--font-family-sans);
+ text-align: left;
+ cursor: pointer;
+}
+
+.heroIndicators__title {
+ flex: 1 1 auto;
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+}
+
+/* The month the figures are read at, on the head rather than on each row because
+   it is the same for all of them. */
+.heroIndicators__period {
+ flex: 0 0 auto;
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-content-secondary);
+ font-variant-numeric: tabular-nums;
+}
+
+.heroIndicators__chevron {
+ flex: 0 0 auto;
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+ color: var(--color-content-secondary);
+ transition: transform var(--motion-fast);
+}
+
+.heroIndicators__chevron.is-open {
+ transform: rotate(180deg);
+}
+
+.heroIndicators__toggle:hover .heroIndicators__chevron,
+.heroIndicators__toggle:active .heroIndicators__chevron {
+ color: var(--color-content-primary);
+}
+
+.heroIndicators__toggle:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: calc(-1 * var(--border-width-thick));
+}
+
+/* The rule appears only while open; closed, the head is the whole card and there
+   is nothing to separate it from. */
+.heroIndicators__toggle[aria-expanded='true'] {
+ border-bottom: var(--border-width-thin) solid var(--color-border-subtle-on-inverse);
+}
+
+.heroIndicators__panel {
+ padding: var(--space-4) var(--space-5);
+}
+
+/* The same box the hero draws around its rows (.bigBox__frame), restated on
+   tokens rather than on the literals that sheet uses. */
+.heroIndicators__frame {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+ padding: var(--space-2);
+ border: var(--border-width-thin) solid var(--color-border-strong);
+ border-radius: var(--radius-sm);
+}
+
+.heroIndicators__row {
+ display: flex;
+ align-items: baseline;
+ justify-content: space-between;
+ gap: var(--space-3);
+}
+
+/* The label and its tip button are one unit, so the button sits against the label
+   rather than floating between the row's two columns. */
+.heroIndicators__label {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-1);
+ font-size: var(--font-size-sm);
+ color: var(--color-content-primary);
+}
+
+/* .tooltip__wrapper is inline-block, so its line box leaves descender space and the glyph sits above the
+   word's middle; as a flex box it drops that slack and align-items: center centres it. */
+.heroIndicators__label .tooltip__wrapper {
+ display: inline-flex;
+ align-items: center;
+ line-height: 1;
+}
+
+.heroIndicators__amount {
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-primary);
+ font-variant-numeric: tabular-nums;
+ text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .heroIndicators__chevron {
+  transition: none;
+ }
+}

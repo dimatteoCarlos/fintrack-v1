@@ -1,0 +1,226 @@
+/* Lateral column of budget levels 2 and 3: level 1's geometry as a modifier, since
+   .page__container is shared by every form. */
+
+/* Panel step: the width and padding level 1 gives its dark surface. Level 1 insets
+   its rows by applying the content column twice (panel, then list). No surface is
+   painted; only the geometry is borrowed. */
+.page__container--budget {
+ width: var(--layout-content-width);
+ padding: 0 var(--space-3);
+}
+
+/* List step: puts a row at the same x as on level 1. TopWhiteSpace stays outside
+   it. Flex column because the children are flex items of .page__container and the
+   month is centred from here (rule below). */
+.budgetDetail__content {
+ width: var(--layout-content-width);
+ margin: 0 auto;
+ display: flex;
+ flex-direction: column;
+}
+
+/* react-datepicker wraps the trigger, so the wrapper is the flex child: it takes the align-self
+   and margin and the trigger gives its margin back (level 2 and the skeleton render the badge directly). */
+.budgetDetail__content > .react-datepicker-wrapper {
+ align-self: center;
+ margin-bottom: var(--space-4);
+}
+
+.budgetDetail__content .month-badge--trigger {
+ margin-bottom: 0;
+}
+
+/* Full width inside the column so the title and the rows begin at the same x; the
+   base rule's 85% started the title 24px to the right. */
+.page__container--budget .page__content {
+ width: 100%;
+}
+
+/* Subcategory and nature on one line. A class of its own because .box__title is
+   already shared by two other stylesheets. */
+.budgetDetail__accountLabel {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+/* Category board frame. This route sits beside Layout, so the shell carries the frame and navbar
+   (measurements restated from .home__layout). Level 3 is excluded: a long form must scroll. */
+.budgetCategoryShell {
+ display: flex;
+ flex-direction: column;
+ height: 100dvh;
+ width: 100%;
+ max-width: var(--layout-width-max);
+ margin: 0 auto;
+ padding-bottom: var(--space-4);
+ overflow-y: hidden;
+}
+
+/* The middle child takes what the header and navbar leave. min-height: 0 undoes
+   the 50rem floor every form gets from .page__container, which alone exceeds a
+   phone viewport; overridden here because forms-styles.css is shared. */
+.budgetCategoryShell .budgetCategoryBoard {
+ flex: 1;
+ min-height: 0;
+}
+
+/* Height handoff down to the list; .categoryList ends it and is global (it also
+   carries level 1's scroll). */
+.budgetCategoryBoard .budgetDetail__content {
+ flex: 1;
+ min-height: 0;
+ /* Full width of the panel, not 88% of it again: at 375px the second step
+    left ~296px and a row with its nature tag and edit button was clipped. */
+ width: 100%;
+}
+
+/* Below 800px of height forms-styles.css sets .page__content height: 100%, collapsing the list
+   to zero. The #root prefix (1,2,0 against 1,1,0) is what overrides it. */
+@media screen and (max-height: 800px) {
+ #root .budgetCategoryBoard .page__content {
+  height: auto;
+ }
+}
+
+/* Tightens the --space-8 above a stacked title only on short viewports; at full
+   height a tighter block would attach to the summary box instead of introducing the
+   list. One step, not two: a second at 568px would restate --space-2. */
+@media (max-height: 735px) {
+ .budgetCategoryBoard .presentation__card--title--stacked {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-1);
+ }
+}
+
+/* Neutral on purpose: the status colours signal budget state, and a 'must' tag in
+   them would read as over budget. Not interactive (the row's link is), so it
+   declares no states. */
+.budgetDetail__natureTag {
+ font-size: var(--font-size-xs);
+ font-weight: 400;
+ line-height: 1;
+ color: var(--color-content-on-dark-subtle);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ padding: var(--space-1) var(--space-2);
+}
+
+/* Messages are sentences, so undo .box__subtitle's capitalisation. Compound selector
+   because three stylesheets declare .box__subtitle at equal specificity; a single
+   class would win or lose by lazy-route load order. */
+.box__subtitle.box__subtitle--message {
+ text-transform: none;
+}
+
+/* A column wrapping SummaryDetailBox rather than a rule inside it: two screens
+   render that box and only this one writes a budget. */
+.budgetDetail__summary {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-2);
+}
+
+.budgetDetail__summaryActions {
+ display: flex;
+ align-items: center;
+ justify-content: flex-end;
+ gap: var(--space-2);
+}
+
+/* Reads as a caption, not a control. `none` stops the text-transform inherited from
+   .box__subtitle from capitalising the already-lowercase literal. */
+.budgetDetail__exception {
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+ text-transform: none;
+}
+
+/* Sits in SummaryDetailBox's title row (the cream panel), so it takes the panel's
+   content colours. Sized --size-control-sm, not the 44px touch target: beside a
+   1.25rem title a 44px square would set the row height and the glyph would float. */
+.budgetDetail__editBudget {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-control-sm);
+ height: var(--size-control-sm);
+ padding: 0;
+ border: none;
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-primary);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* The glyph fills its box like the navbar icons; 8px of air around it drew a small
+   pencil in a large empty button. */
+.budgetDetail__editBudget svg {
+ width: var(--font-size-xl);
+ height: var(--font-size-xl);
+}
+
+.budgetDetail__editBudget:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* Ring in the panel's own dark, not --color-border-inverse: that one is meant
+   for the app surface and would be invisible against cream. */
+.budgetDetail__editBudget:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-content-primary);
+ outline-offset: var(--border-width-thick);
+}
+
+.budgetDetail__editBudget:active {
+ background-color: var(--color-content-primary);
+ color: var(--color-accent-content);
+}
+
+.budgetDetail__editBudget:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Level-2 row, on the app surface. The modifier names the surface, not a colour;
+   the rules above are for the cream panel where level 3 mounts the same control. */
+.budgetDetail__editBudget.dark {
+ color: var(--color-content-on-dark);
+}
+
+/* Restated, not inherited: the hover rule above and the `.dark` colour have equal
+   specificity, so source order would leave the glyph white on the light hover
+   fill. The fill is light on both surfaces, so the glyph is dark on both. */
+.budgetDetail__editBudget.dark:hover {
+ color: var(--color-accent-content);
+}
+
+/* --color-border-inverse is the ring for the app surface; the cream rule above
+   rejects it as invisible on cream. */
+.budgetDetail__editBudget.dark:focus-visible {
+ outline-color: var(--color-border-inverse);
+}
+
+/* Darker than the hover fill so a press is visible. Known issue: the cream rule's
+   :active pairs --color-content-primary with --color-accent-content, which are the
+   same hex, so its glyph is invisible while held. */
+.budgetDetail__editBudget.dark:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+/* Keeps the BoxRow at two children. .box-row is space-between, so the button as
+   a third child would push the spent/budget pair to the middle of the line. */
+.budgetDetail__rowAmounts {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .budgetDetail__editBudget {
+  transition: none;
+ }
+}

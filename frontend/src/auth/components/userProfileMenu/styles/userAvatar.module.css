@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Style+Script&display=swap');
+
+.avatarInitial {
+  font-family: "Brush Script MT", "Lucida Calligraphy", cursive, "Style Script", cursive;
+}
+
+.badgeContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar {
+  font-family: "Style Script", cursive;
+  color: #000;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: 3px solid #000;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.avatar:active {
+  transform: scale(0.95);
+}
+
+.avatar:focus-visible {
+  outline: 2px solid rgb(16, 163, 127);
+  outline-offset: 2px;
+}
+
+.avatar.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Font, size and colour are set explicitly here, not inherited from the parent. */
+.avatarInitial {
+  font-family: "Style Script", cursive;
+  font-weight: bold;
+  font-size: 14px;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: bold;
+}
+
+.tooltip {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 500;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.tooltipContent {
+  display: block;
+}
+
+.tooltipArrow {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  /* points up: the tooltip sits below the avatar */
+  border-bottom: 4px solid #333;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateX(-50%) translateY(5px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(-50%) translateY(0); 
+  }
+}
+
+@media (min-width: 768px) {
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* pointer: coarse matches an imprecise pointer such as a finger; pointer: fine matches a mouse or stylus. */
+@media (hover: none) and (pointer: coarse) {
+  .avatar:hover {
+    transform: none;
+  }
+
+.userAvatar {
+  width: 32px; /* minimum tap size on touch devices */
+  height: 32px;
+}
+}

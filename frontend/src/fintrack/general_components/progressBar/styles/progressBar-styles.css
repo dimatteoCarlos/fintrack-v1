@@ -1,0 +1,52 @@
+/* Shared part-of-whole bar. Not namespaced to a page, so it looks the same wherever it
+   lands. It must not set its own width or margin: the row it sits in owns those, and a
+   bar that reserved space would break layouts that did not expect it. */
+
+/* --space-1 tall: taller, it becomes a second headline competing with the amount it only
+   qualifies. */
+.progressBar {
+ height: var(--space-1);
+ border-radius: var(--radius-full);
+ background-color: var(--color-border-subtle);
+ /* Keeps the fill inside the rounded track; without it the fill's square corners show
+    through at both ends of a partial bar. */
+ overflow: hidden;
+}
+
+/* Default fill: muted ink, not a status colour, since a teal bar would report "fine" for
+   a share whose caller took no reading. */
+.progressBar__fill {
+ height: 100%;
+ border-radius: var(--radius-full);
+ background-color: var(--color-content-on-dark-subtle);
+ transition: width var(--motion-slow);
+}
+
+/* One rule per status tone, on the same tokens as the status squares so a bar and the
+   square on its row cannot disagree about what a colour means. */
+.progressBar__fill--ok {
+ background-color: var(--color-status-ok);
+}
+
+.progressBar__fill--warning {
+ background-color: var(--color-status-warning);
+}
+
+.progressBar__fill--alert {
+ background-color: var(--color-status-alert);
+}
+
+.progressBar__fill--info {
+ background-color: var(--color-status-info);
+}
+
+.progressBar__fill--neutral {
+ background-color: var(--color-content-on-dark-subtle);
+}
+
+/* A bar animating from 0 on every render is motion without information. */
+@media (prefers-reduced-motion: reduce) {
+ .progressBar__fill {
+  transition: none;
+ }
+}

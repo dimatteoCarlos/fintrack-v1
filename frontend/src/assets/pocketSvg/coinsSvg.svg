@@ -1,0 +1,19 @@
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.375" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+ <!-- Rim spans 3 to 21 like the wallet and bullseye icons, so the three read the same size.
+      Rim pips are r 0.13, one pen width across, so they do not outweigh the lines around them. -->
+ <circle cx="12" cy="12" r="9" />
+ <g fill="currentColor" stroke="none">
+  <circle cx="18.40" cy="12.00" r="0.13" />
+  <circle cx="16.53" cy="7.47" r="0.13" />
+  <circle cx="12.00" cy="5.60" r="0.13" />
+  <circle cx="7.47" cy="7.47" r="0.13" />
+  <circle cx="5.60" cy="12.00" r="0.13" />
+  <circle cx="7.47" cy="16.53" r="0.13" />
+  <circle cx="12.00" cy="18.40" r="0.13" />
+  <circle cx="16.53" cy="16.53" r="0.13" />
+ </g>
+ <path d="M 8.19 11.31 L 12.00 8.89 L 15.81 11.31" stroke-width="0.35" />
+ <path d="M 7.85 15.11 H 16.15" stroke-width="0.35" />
+ <path d="M 10.44 11.65 V 14.77" stroke-width="0.35" />
+ <path d="M 13.56 11.65 V 14.77" stroke-width="0.35" />
+</svg>

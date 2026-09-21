@@ -1,0 +1,718 @@
+/* Accounting dashboard: page frame, account-type groups and account cards. Mobile-first from 360px. */
+
+.accounting__layout {
+ /* Declared here, not on .scrollJump: the button renders outside .accounting__container, so this is
+    the nearest shared ancestor. A custom property inherits into a fixed child; offsets do not. */
+ --scroll-jump-column: var(--layout-width-min);
+ min-height: 100vh;
+ /* No top padding: the space above the title belongs to .accounting__stickyHead,
+    so the pinned box starts at zero and docks without travelling. */
+ padding: 0 0 var(--space-4) 0;
+ background-color: var(--color-surface-app);
+ /* No scroll-behavior here: this element declares no overflow, so it is not a
+    scrolling box and the property is ignored on it. It lives on :root in
+    index.css, which is the box that actually scrolls this route. */
+}
+
+.accounting__container {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ width: 100%;
+ /* Same cap as .accounting__header, so the back arrow, title, search and groups
+    all end on one edge. */
+ max-width: var(--layout-width-min);
+ margin: 0 auto;
+ gap: var(--space-6);
+ padding: 0 var(--space-2);
+}
+
+/* Title and filter, pinned. Opaque so cards do not show through. --z-raised suffices because this
+   route mounts outside <Layout />. The gap restates what .accounting__container gave these two. */
+.accounting__stickyHead {
+ position: sticky;
+ top: 0;
+ /* Top space lives inside the box so it survives the dock. Reads --topSpaceHeight, not the raw token:
+    generalStyles.css collapses it to 0rem below 735px of viewport height. */
+ padding-top: calc(var(--topSpaceHeight) + var(--space-5));
+ z-index: var(--z-raised);
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ width: 100%;
+ gap: var(--space-6);
+ padding-bottom: var(--space-3);
+ background-color: var(--color-surface-app);
+ /* The edge the cards pass under. Opacity alone reads as a seam only while
+    something is moving behind it; the line says where the pinned block ends
+    when the list is still. */
+ border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.accounting__header {
+ position: relative;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: 100%;
+ max-width: var(--layout-width-min);
+ /* The side padding is one touch target wide, so the centred title cannot run
+    under the back arrow or the create control pinned to the row's ends. Both
+    are absolute, so they sit outside this padding rather than inside it. */
+ padding: var(--space-4) var(--size-touch-target);
+ /* No margin-bottom: the .accounting__stickyHead gap already separates the title
+    from the search, and a margin would stack on it. */
+}
+
+.accounting__title {
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-lg);
+ font-weight: var(--font-weight-bold);
+ text-transform: capitalize;
+ text-align: center;
+}
+
+/* The back arrow's disc and states live in styles/backArrow.css (.backArrow and
+   .backArrow--dark), shared with the other back arrows. */
+
+/* Opens an account, pinned to the right end of the title row (empty there, so it
+   costs the sticky head no height). Icon only. Declares no disabled state because
+   :disabled never matches an anchor, like .accounting-empty__action. */
+.accounting__openAccount {
+ position: absolute;
+ right: 0;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ /* --size-icon, not --size-touch-target: a full 44px disc read as a panel behind
+    the mark. 32px around the 20px drawing leaves a 6px ring, the same disc as the
+    back arrow at the other end of the row. */
+ width: var(--size-icon);
+ height: var(--size-icon);
+ border-radius: var(--radius-full);
+ color: var(--color-content-on-dark-muted);
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Creme fill with the content colour paired to it, the same inversion the
+   scroll-jump button and the transaction rows take on this surface. */
+.accounting__openAccount:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+.accounting__openAccount:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+/* Darker than the hover fill, so a press reads as a press. */
+.accounting__openAccount:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+/* Label under the mark. Not the shared Tooltip: it draws above (tooltip.css bottom: 100%) and would
+   open off screen from the pinned head. A child span, not ::after, which never painted. */
+.accounting__openAccount-tip {
+ position: absolute;
+ top: calc(100% + var(--space-1));
+ right: 0;
+ z-index: var(--z-dropdown);
+ padding: var(--space-1) var(--space-2);
+ border: var(--border-width-thin) solid var(--color-accent-content);
+ border-radius: var(--radius-xs);
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-bold);
+ white-space: nowrap;
+ opacity: 0;
+ pointer-events: none;
+ transition: opacity var(--motion-fast);
+}
+
+.accounting__openAccount:hover .accounting__openAccount-tip,
+.accounting__openAccount:focus-visible .accounting__openAccount-tip {
+ opacity: 1;
+}
+
+/* Sized off the spacing scale: the size scale starts at 2rem, the whole control
+   rather than the mark in it. Strokes are currentColor, so the glyph takes the
+   colour the link states above set. */
+.accounting__openAccount-glyph {
+ display: block;
+ width: var(--space-5);
+ height: var(--space-5);
+ flex-shrink: 0;
+}
+
+/* The inventory filter. Full width like the groups under it, so the field and
+   the column it filters share one left edge. */
+.accountingSearch {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ width: 100%;
+ padding: 0 var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-sm);
+ background-color: var(--color-surface-raised);
+ color: var(--color-content-on-dark-subtle);
+ transition: border-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* :focus-within and not :focus: the caret is in the field, but the frame that
+   has to answer it is drawn by the wrapper. */
+.accountingSearch:focus-within {
+ border-color: var(--color-border-inverse);
+ color: var(--color-content-on-dark-muted);
+}
+
+.accountingSearch__icon {
+ width: var(--font-size-lg);
+ height: var(--font-size-lg);
+ flex-shrink: 0;
+}
+
+.accountingSearch__field {
+ flex: 1;
+ min-width: 0;
+ height: var(--size-control-height);
+ padding: 0;
+ border: none;
+ background-color: transparent;
+ color: var(--color-content-on-dark-muted);
+ /* index.css sizes the universal selector and an input inherits neither the
+    family nor the size from the box around it. */
+ font-family: inherit;
+ font-size: var(--font-size-base);
+}
+
+.accountingSearch__field::placeholder {
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* The wrapper already answers the focus with its border; a ring on the field
+   would draw a second frame inside the first. */
+.accountingSearch__field:focus-visible {
+ outline: none;
+}
+
+.accountingSearch__field:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.accountingSearch__clear {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-control-sm);
+ height: var(--size-control-sm);
+ flex-shrink: 0;
+ padding: 0;
+ border: none;
+ border-radius: var(--radius-xs);
+ background-color: transparent;
+ color: inherit;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.accountingSearch__clear:hover {
+ background-color: var(--color-accent);
+ color: var(--color-accent-content);
+}
+
+/* index.css sets `button { outline: none }`, so the ring has to be restated. */
+.accountingSearch__clear:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.accountingSearch__clear:active {
+ background-color: var(--color-content-on-dark-subtle);
+ color: var(--color-accent-content);
+}
+
+.accountingSearch__clear:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.accountingSearch__clear-glyph {
+ width: var(--font-size-base);
+ height: var(--font-size-base);
+}
+
+.account-groups__container {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-12);
+ width: 100%;
+}
+
+.account-group {
+ /* .accounting__container centres its children, so without a width the group
+    shrink-wraps its widest card, and auto-fit resolves to a single track when
+    the grid's width is indefinite. */
+ width: 100%;
+ padding: var(--space-4);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ /* The elevation step above the page the group floats on. */
+ background-color: var(--color-surface-raised);
+ border-radius: var(--radius-md);
+ box-shadow: var(--shadow-lg);
+ animation: fadeInUp var(--motion-slow) ease-out;
+}
+
+/* No delay token exists in the scale, so the stagger is literal. */
+.account-group:nth-child(1) {
+ animation-delay: 0.1s;
+}
+
+.account-group:nth-child(2) {
+ animation-delay: 0.2s;
+}
+
+.account-group:nth-child(3) {
+ animation-delay: 0.3s;
+}
+
+.account-group:nth-child(4) {
+ animation-delay: 0.4s;
+}
+
+.account-group__header {
+ margin-bottom: var(--space-5);
+}
+
+.account-group__title {
+ margin: 0 0 var(--space-1) 0;
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wider);
+}
+
+/* The heading is the group's disclosure control. The whole row answers the
+   click, so nothing inside it declares a state of its own. */
+.account-group__toggle {
+ /* A grid, not a flex row, so the icon starts at the same x in every group: three
+    of the four tracks are fixed-size and only the name track takes the slack. */
+ display: grid;
+ grid-template-columns: var(--size-badge) 1fr auto auto;
+ align-items: center;
+ gap: var(--space-2);
+ width: 100%;
+ padding: var(--space-2);
+ border: none;
+ border-radius: var(--radius-sm);
+ background-color: transparent;
+ color: inherit;
+ font-family: inherit;
+ /* index.css sizes the universal selector, so a button inherits neither the
+    heading's size nor its weight without being told to. */
+ font-size: inherit;
+ font-weight: inherit;
+ letter-spacing: inherit;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* The page ground, one step below the panel the heading sits on. */
+.account-group__toggle:hover {
+ background-color: var(--color-surface-app);
+}
+
+.account-group__toggle:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.account-group__toggle:active {
+ background-color: var(--color-surface-sunken);
+}
+
+.account-group__toggle:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+/* Group size, readable while the group is collapsed. */
+.account-group__count {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ flex-shrink: 0;
+ /* A rounded square, not a pill: --radius-full is the avatar shape, and the count
+    matches the icon frame beside it. min-width, not width, so a three-digit count
+    grows sideways instead of clipping. */
+ min-width: var(--size-control-sm);
+ height: var(--size-control-sm);
+ padding: 0 var(--space-1);
+ border: var(--border-width-thin) solid currentColor;
+ border-radius: var(--radius-sm);
+ /* index.css sizes the universal selector, so an inline element does not
+    inherit the size of the line it sits in. */
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+}
+
+/* A rounded square, not a circle. Border and glyph both land at 2px, so the frame
+   and the drawing it holds carry one weight. */
+.account-group__icon-frame {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ width: var(--size-badge);
+ height: var(--size-badge);
+ flex-shrink: 0;
+ border: var(--border-width-thick) solid currentColor;
+ border-radius: var(--radius-sm);
+}
+
+/* A box and not a font size: font-size dimensions a character, not an SVG.
+   The stroke takes its colour from .account-group__title through currentColor,
+   so the glyph and the words beside it are the same creme. */
+.account-group__icon {
+ width: var(--font-size-xl);
+ height: var(--font-size-xl);
+ flex-shrink: 0;
+ /* 2 real pixels, the same weight as the frame and as the AccountActionsMenu
+    icons. Without non-scaling-stroke a 32 viewBox drawn at 24px would scale
+    this by 0.75 and land at 1.5px. */
+ stroke-width: 2;
+}
+
+/* vector-effect is not an inherited property, so it has to name the paths
+   rather than ride down from the svg root like stroke-width does. */
+.account-group__icon path {
+ vector-effect: non-scaling-stroke;
+}
+
+/* Shrinkable and truncating: with flex-shrink: 0 a long type name grows the row
+   past the button and spills on both sides. */
+.account-group__name {
+ min-width: 0;
+ overflow: hidden;
+ font-size: var(--font-size-lg);
+ white-space: nowrap;
+ text-align: center;
+ text-overflow: ellipsis;
+}
+
+/* Points down while the group is shut and turns over once it opens. */
+.account-group__chevron {
+ width: var(--font-size-lg);
+ height: var(--font-size-lg);
+ flex-shrink: 0;
+ transition: transform var(--motion-normal);
+}
+
+/* The asset hardcodes its stroke, so neither the heading's colour nor the
+   button's reaches it without this. */
+.account-group__chevron path {
+ stroke: currentColor;
+}
+
+.account-group__toggle.is-active .account-group__chevron {
+ transform: rotate(180deg);
+}
+
+.account-group__grid {
+ display: grid;
+ grid-template-columns: 1fr;
+ justify-content: center;
+ justify-items: center;
+ gap: var(--space-4);
+ width: 100%;
+ /* A grid track's automatic minimum is min-content, so a card that cannot
+    shrink pushes the track past the group and the row overflows sideways. */
+ min-width: 0;
+}
+
+/* display: none and not the [hidden] attribute: the grid declares
+   display: grid, which outranks the user-agent rule the attribute carries. */
+.account-group__grid--collapsed {
+ display: none;
+}
+
+.account-card {
+ position: relative;
+ overflow: hidden;
+ /* Explicit and not the grid's default stretch: justify-items: center
+    sizes an item by its content, so without this each card took the
+    width of the account name it happened to hold. */
+ width: 100%;
+ /* A cap, not a fixed width: at 360px a fixed card overflows the viewport once
+    the container padding is counted. */
+ max-width: var(--layout-card-width);
+ min-width: 0;
+ border-radius: var(--radius-md);
+ cursor: pointer;
+ /* Named and not `all`: the shorthand also animated the outline of the trigger
+    inside the card, so the focus ring arrived late. */
+ transition: transform var(--motion-slow);
+}
+
+.account-card:active {
+ transform: scale(0.98);
+}
+
+button {
+ border: none;
+}
+
+.icon3dots {
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ padding: var(--space-2);
+ border: none;
+}
+
+.accountingBox__container {
+ position: relative;
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-4);
+ width: 100%;
+ /* Fills the height its grid row hands the card, so siblings end level. */
+ height: 100%;
+ max-width: var(--layout-card-width);
+ padding: var(--space-4);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ /* Literal: the card sits one elevation step above the group holding it, and the
+    scale stops at --color-surface-raised. */
+ background-color: #272d35;
+ border-radius: var(--radius-md);
+ transition: background-color var(--motion-slow),
+  border-color var(--motion-slow);
+}
+
+.account-card:hover .accountingBox__container {
+ /* Literal for the same reason: the hover step above the grey. */
+ background-color: #2d343e;
+ border-color: var(--color-border-inverse);
+}
+
+.accountingBox__header {
+ display: flex;
+ /* flex-start and not center: a two-line name would otherwise centre the
+    trigger against both lines. It belongs beside the first one. */
+ align-items: flex-start;
+ justify-content: space-between;
+ gap: var(--space-2);
+ width: 100%;
+}
+
+.accountingBox__title {
+ flex: 1;
+ width: 100%;
+ margin: 0;
+ padding-right: var(--space-8);
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ /* Two lines reserved whatever the name measures, so the bubble under it
+    starts at the same offset on every card. 1.3 is the line-height this
+    rule already declares, not a new value. */
+ min-height: calc(var(--font-size-base) * 1.3 * 2);
+ line-height: 1.3;
+ text-align: left;
+}
+
+.accountingBox__type {
+ flex-shrink: 0;
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-medium);
+ opacity: 0.8;
+}
+
+/* .light names the surface the bubble lands on, not its own colour. */
+.bubble.light {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ width: 100%;
+ height: var(--size-control-height);
+ padding: 0 var(--space-3);
+ /* auto and not a fixed gap: the bubble is the card's floor, so it stays
+    level with its siblings even when a title runs long. */
+ margin-top: auto;
+ background-color: var(--color-surface-inverse);
+ border-radius: var(--radius-sm);
+}
+
+.bubble--result {
+ color: var(--color-content-primary);
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-bold);
+ letter-spacing: var(--letter-spacing-wide);
+}
+
+.bubble--currency {
+ color: var(--color-content-primary);
+ font-size: var(--font-size-sm);
+ font-weight: var(--font-weight-semibold);
+ opacity: 0.8;
+}
+
+.accounting-empty {
+ padding: var(--space-12) var(--space-8);
+ color: var(--color-content-on-dark-muted);
+ text-align: center;
+}
+
+.accounting-empty__emoji {
+ margin-bottom: var(--space-4);
+ font-size: var(--font-size-2xl);
+}
+
+.accounting-empty__title {
+ margin-bottom: var(--space-2);
+ color: var(--color-content-on-dark-muted);
+ font-size: var(--font-size-xl);
+}
+
+.accounting-empty__message {
+ font-size: var(--font-size-base);
+ line-height: 1.5;
+ opacity: 0.8;
+}
+
+@keyframes fadeInUp {
+ from {
+  opacity: 0;
+  transform: translateY(var(--space-5));
+ }
+
+ to {
+  opacity: 1;
+  transform: translateY(0);
+ }
+}
+
+@media (min-width: 480px) {
+ /* No .accounting__stickyHead override: --topSpaceHeight already carries the
+    wider-screen step. */
+
+ .accounting__title {
+  font-size: var(--font-size-xl);
+ }
+
+ .account-group {
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+ }
+
+ .accountingBox__title {
+  font-size: var(--font-size-lg);
+ }
+
+ .bubble.light {
+  padding: 0 var(--space-4);
+ }
+
+ .bubble--result {
+  font-size: var(--font-size-lg);
+ }
+}
+
+@media (min-width: 768px) {
+ .accounting__container {
+  gap: var(--space-8);
+ }
+
+ .accounting__title {
+  font-size: var(--font-size-2xl);
+ }
+
+ .account-group {
+  padding: var(--space-6);
+ }
+
+ /* One column at every width, so only the gap belongs here: a fixed 350px
+    auto-fit track does not fit inside 360px minus two paddings and would
+    overflow the group sideways. */
+ .account-group__grid {
+  gap: var(--space-5);
+ }
+
+ .accountingBox__container {
+  padding: var(--space-5);
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .accounting__openAccount,
+ .accounting__openAccount-tip,
+ .accountingSearch,
+ .accountingSearch__clear,
+ .account-group__toggle,
+ .account-group__chevron,
+ .account-card,
+ .accountingBox__container {
+  transition: none;
+ }
+
+ .account-group {
+  animation: none;
+ }
+}
+
+/* The way out of the empty inventory, drawn as a control rather than a text link:
+   it is the one thing to do on this screen. The touch target is stated, not
+   counted up from the padding, so it clears the floor whatever the label says. */
+.accounting-empty__action {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ gap: var(--space-2);
+ min-height: var(--size-touch-target);
+ margin-top: var(--space-6);
+ padding: var(--space-2) var(--space-6);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+ letter-spacing: var(--letter-spacing-wide);
+ text-decoration: none;
+ cursor: pointer;
+ transition: background-color var(--motion-fast), border-color var(--motion-fast);
+}
+
+.accounting-empty__action:hover,
+.accounting-empty__action:focus-visible {
+ border-color: var(--color-content-on-dark);
+ background-color: var(--color-surface-raised);
+}
+
+.accounting-empty__action:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.accounting-empty__action:active {
+ background-color: var(--color-surface-sunken);
+}
+
+/* Sized off the spacing scale: the size scale starts at 2rem, the whole control
+   rather than the mark in it. */
+.accounting-empty__actionIcon {
+ display: block;
+ width: var(--space-5);
+ height: var(--space-5);
+ flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .accounting-empty__action {
+  transition: none;
+ }
+}
