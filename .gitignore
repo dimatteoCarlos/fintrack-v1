@@ -6,6 +6,9 @@ build/
 coverage/
 storybook-static/
 
+# Tests stay local-only, not part of this showcase copy
+backend/test/
+
 # Environment files and key material; only the .env.example templates are committed
 .env
 .env.*
