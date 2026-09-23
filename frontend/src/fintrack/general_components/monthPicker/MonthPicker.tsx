@@ -166,6 +166,10 @@ function MonthPicker({
   />
  ) : (
   <DatePicker
+   // preSelection is internal state in this DatePicker version, not a controllable
+   // prop, and can drift from selected. key remounts the library on every month
+   // change, which resets it back in sync.
+   key={monthKey ?? undefined}
    selected={selected}
    onChange={handleChange}
    showMonthYearPicker
