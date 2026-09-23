@@ -37,6 +37,7 @@ import {
   rateDayForOpening,
   resolveOpeningDay,
 } from '../../utils/fintrackUtils/date-utils/resolveOpeningDay.js';
+import { dayInZone } from '../../utils/fintrackUtils/date-utils/resolveZonedWindow.js';
 
 // POST /api/fintrack/account/new_account/:account_type_name
 // Only for bank, income_source and investment accounts; cash-like accounts are created as bank.
@@ -508,6 +509,23 @@ export const createDebtorAccount = async (req, res, next) => {
       selected_account_name,
       selected_account_type,
     );
+
+    // The loan's opening movement is written onto the funding account, so a
+    // debtor profile opened before that account existed would put money on it
+    // before it was there. Same rule as transactionController.js applies to a
+    // movement's own account, stated here because this path never reaches it.
+    const counterOpeningDay = dayInZone(
+      counterAccountInfo.account.account_start_date,
+      openingTimeZone,
+    );
+
+    if (openingDay < counterOpeningDay) {
+      throw createError(
+        422,
+        `A debtor profile cannot be opened before ${selected_account_name} was opened on ${counterOpeningDay}`,
+        { errorCode: 'OPENING_DATE_BEFORE_COUNTER_ACCOUNT' },
+      );
+    }
     // Overdraft not allowed: bank to debtor, investment to investment, bank to bank, bank to
     // category_budget, bank to investment. Allowed: debtor to any bank, slack or income_source to any.
     // Pockets have no rule (savings plans since migration 020: committing writes an allocation).

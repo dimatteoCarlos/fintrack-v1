@@ -14,8 +14,15 @@ import LeftArrowLightSvg from '../../../../assets/LeftArrowSvg.svg';
 
 import { useFetch } from '../../../hooks/useFetch.ts';
 import { useFetchLoad } from '../../../hooks/useFetchLoad.ts';
+import { isAccountOpenOn } from '../../../hooks/useTransactionDate.ts';
 import useAuth from '../../../../auth/hooks/useAuth.ts';
-import { capitalize } from '../../../helpers/functions.ts';
+import {
+  capitalize,
+  earliestDatableDay,
+  latestDatableDay,
+  toCalendarDay,
+} from '../../../helpers/functions.ts';
+import FormDatepicker from '../../../general_components/datepicker/Datepicker.tsx';
 import { validationData } from '../../../validations/utils/custom_validation.ts';
 import { useRatePreview } from '../../../hooks/useRatePreview.ts';
 import { readAmountInCurrency } from '../../../helpers/amountInCurrency.ts';
@@ -55,6 +62,7 @@ type ProfileInputDataType = {
   type: string;
   amount: string | '';
   currency?: CurrencyType;
+  date: Date;
 };
 
 type ProfilePayloadType = {
@@ -67,7 +75,17 @@ type ProfilePayloadType = {
   selected_account_name: string;
   selected_account_type: string;
   user?: string;
+  // `date` dates the profile row; `transactionActualDate` dates the loan
+  // movement that opens it, otherwise stamped with the server clock - the
+  // profile always opened today before this.
+  date: string;
+  transactionActualDate: string;
 };
+
+// Both ends of the opening window come from the shared helpers, so this
+// calendar cannot disagree with New Account's or New Category's.
+const latestOpeningDay = latestDatableDay;
+const earliestOpeningDay = earliestDatableDay;
 
 const initialNewProfileData: ProfileInputDataType = {
   name: '',
@@ -75,6 +93,7 @@ const initialNewProfileData: ProfileInputDataType = {
   type: '',
   amount: '',
   account: '',
+  date: new Date(),
 };
 const typeSelectionProp = {
   title: 'select type',
@@ -113,6 +132,13 @@ function NewProfile() {
 
   const [isReset, setIsReset] = useState<boolean>(false);
 
+  // react-select owns what it displays; clearing profileData.account does not
+  // reach it. isReset resets every dropdown on the form (submit does this on
+  // purpose), so this one is scoped to the account field alone, or moving the
+  // date would also wipe the unrelated Type selection.
+  const [isAccountDropdownReset, setIsAccountDropdownReset] =
+    useState<boolean>(false);
+
   const [messageToUser, setMessageToUser] = useState<
     { message: string; status?: number } | string | null | undefined
   >(null);
@@ -133,11 +159,22 @@ function NewProfile() {
     error: fetchedErrorBankAccounts,
   } = useFetch<AccountByTypeResponseType>(fetchUrl as string);
 
+  // The chosen opening day, read here rather than further down: optionAccounts
+  // below filters by it, and ratePreview needs it too so the rate quoted is
+  // the one of the day the profile opens on, not today's.
+  const openingDay = toCalendarDay(profileData.date);
+
+  // A debtor profile cannot be funded from a bank account that did not exist
+  // yet on the chosen opening day - accountCreationController.js refuses it
+  // with a 422. Filtered here instead of left for that refusal: an account not
+  // open on this date is not a disabled option, it is not an option.
   const optionAccounts = useMemo(() => {
     if (fetchedErrorBankAccounts) {
       return ACCOUNT_OPTIONS_DEFAULT;
     }
-    const accountList = BankAccountsResponse?.data?.accountList ?? [];
+    const accountList = (BankAccountsResponse?.data?.accountList ?? []).filter(
+      (acc) => isAccountOpenOn(acc.account_start_date, openingDay),
+    );
 
     return accountList.length
       ? accountList.map((acc) => ({
@@ -145,7 +182,7 @@ function NewProfile() {
           label: `${acc.account_name} (${acc.account_type_name} ${acc.currency_code} ${acc.account_balance})`,
         }))
       : ACCOUNT_OPTIONS_DEFAULT;
-  }, [BankAccountsResponse?.data.accountList, fetchedErrorBankAccounts]);
+  }, [BankAccountsResponse?.data.accountList, fetchedErrorBankAccounts, openingDay]);
 
   const accountSelectionProp = {
     title: 'Select Account',
@@ -162,6 +199,10 @@ function NewProfile() {
     setProfileData((data) => ({ ...data, currency }));
   }
 
+  function changeStartingPoint(selectedDate: Date) {
+    setProfileData((data) => ({ ...data, date: selectedDate }));
+  }
+
   // formData keeps what was typed; the amount sent is read under the currency
   // selected at save time.
   const { amountToSave } = readAmountInCurrency(
@@ -170,8 +211,9 @@ function NewProfile() {
   );
 
   // States what the backend will store as the loan value, which is also the
-  // figure checked against the bank account's funds.
-  const ratePreview = useRatePreview(amountToSave, selectedCurrency);
+  // figure checked against the bank account's funds. Dated, so the rate is the
+  // one of the day the profile opens on rather than today's.
+  const ratePreview = useRatePreview(amountToSave, selectedCurrency, openingDay);
   const showRatePreview = ratePreview.status === 'resolved';
 
   function inputHandler(e: React.ChangeEvent<HTMLInputElement>) {
@@ -217,6 +259,25 @@ function NewProfile() {
       }));
     }
   }
+  // An account picked first stays picked in state even after Starting Point
+  // moves behind its opening day; without this the stale choice rode all the
+  // way to submit, where the server's own 422 was the first anyone heard of it.
+  useEffect(() => {
+    if (!profileData.account) return;
+
+    const stillOpen = optionAccounts.some(
+      (option) => option.value === profileData.account,
+    );
+    if (stillOpen) return;
+
+    setValidationMessages((prev) => ({
+      ...prev,
+      account: `* ${profileData.account} was not open yet on this date`,
+    }));
+    setProfileData((prev) => ({ ...prev, account: '' }));
+    setIsAccountDropdownReset(true);
+  }, [optionAccounts, profileData.account]);
+
   async function onSubmitForm(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     const amount = amountToSave ?? '';
@@ -237,6 +298,8 @@ function NewProfile() {
         transaction_type: profileData.type,
         selected_account_name: profileData.account,
         selected_account_type,
+        date: profileData.date.toISOString(),
+        transactionActualDate: openingDay,
       };
       const data = await requestFn(payload);
       if (data.error) {
@@ -346,6 +409,22 @@ function NewProfile() {
               />
             </div>
 
+            {/* STARTING POINT - the day the profile opens on and the day its
+                loan movement is dated. The server refuses a day earlier than
+                the funding account's own opening day, so this sits above it. */}
+            <div className='input__box'>
+              <label className='label forms__label'>{'Starting Point'}</label>
+              <div className='form__datepicker__container'>
+                <FormDatepicker
+                  changeDate={changeStartingPoint}
+                  date={profileData.date}
+                  variant={'form'}
+                  minDate={earliestOpeningDay()}
+                  maxDate={latestOpeningDay()}
+                ></FormDatepicker>
+              </div>
+            </div>
+
             <div className='input__box'>
               <label className='label forms__label'>
                 Account &nbsp;
@@ -359,6 +438,8 @@ function NewProfile() {
                 updateOptionHandler={accountSelectHandler}
                 isReset={isReset}
                 setIsReset={setIsReset}
+                isResetDropdown={isAccountDropdownReset}
+                setIsResetDropdown={setIsAccountDropdownReset}
               />
 
               {/* Label and conversion message share a row, as in New Account.

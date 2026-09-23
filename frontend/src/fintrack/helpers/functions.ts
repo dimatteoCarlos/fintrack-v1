@@ -139,14 +139,18 @@ export function numberFormatCurrency(
 
   return formatter.format(enteredNumber);
 }
-// Month a budget created right now lands in. Resolved in the owner's zone
-// because the server truncates the month there too: on the last day of a month
-// the browser's zone and the owner's can disagree by one month.
+// Month a budget lands in. Resolved in the owner's zone because the server
+// truncates the month there too: on the last day of a month the browser's zone
+// and the owner's can disagree by one month.
+//
+// openedOn defaults to now; New Category passes its Starting Point picker's
+// value so the badge names the month that day belongs to.
 export function getCurrentBudgetMonthLabel(
   timeZone?: string,
   countryFormat = DATE_TEXT_FORMAT,
+  openedOn: Date = new Date(),
 ) {
-  return new Date().toLocaleDateString(countryFormat, {
+  return openedOn.toLocaleDateString(countryFormat, {
     month: 'long',
     year: 'numeric',
     timeZone,
@@ -216,6 +220,19 @@ export function earliestDatableDay(): Date {
   const now = new Date();
 
   return new Date(now.getFullYear(), now.getMonth() - (BACKDATING_WINDOW_MONTHS - 1), 1);
+}
+
+// Latest day a calendar may offer for an account opening: the end of today.
+// A forward-dated account is filtered out of every tracker selector by
+// isAccountOpenOn with nothing on screen saying why.
+//
+// Shared here because three forms open an account now (New Account, New
+// Category, New Profile), and three local copies of one ceiling could drift.
+export function latestDatableDay(): Date {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  return today;
 }
 
 // Carries the board's month across a link: the month lives in the URL, so a link

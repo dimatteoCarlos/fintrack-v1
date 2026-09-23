@@ -8,6 +8,7 @@ import LabelNumberValidation from '../../../general_components/labelNumberValida
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import CurrencyBadge from '../../../general_components/currencyBadge/CurrencyBadge.tsx';
 import RateTooltip from '../../../general_components/rateTooltip/RateTooltip.tsx';
+import FormDatepicker from '../../../general_components/datepicker/Datepicker.tsx';
 
 import { validationData } from '../../../validations/utils/custom_validation.ts';
 
@@ -31,7 +32,12 @@ import {
   VARIANT_FORM,
 } from '../../../helpers/constants.ts';
 
-import { getCurrentBudgetMonthLabel } from '../../../helpers/functions.ts';
+import {
+  earliestDatableDay,
+  getCurrentBudgetMonthLabel,
+  latestDatableDay,
+  toCalendarDay,
+} from '../../../helpers/functions.ts';
 
 import { CreateCategoryBudgetAccountApiResponseType } from '../../../types/responseApiTypes.ts';
 import { normalizeError } from '../../../helpers/normalizeError.ts';
@@ -56,6 +62,7 @@ type CategoryDataType = {
   amount: number | '';
   nature: string;
   currency?: CurrencyType;
+  date: Date;
 };
 
 type CategoryBudgetPayloadType = {
@@ -63,11 +70,20 @@ type CategoryBudgetPayloadType = {
   type: 'category_budget';
   currency: CurrencyType;
   budget: number | string;
+  // `date` dates the account row; `transactionActualDate` dates the movement that
+  // opens it, otherwise stamped with the server clock - leaving a backdated
+  // category reporting nothing for the months before its creation.
   date: Date | string;
+  transactionActualDate: string;
   nature: string;
   subcategory?: string;
   user?: string;
 };
+
+// Both ends of the opening window come from the shared helpers, so this calendar
+// cannot disagree with New Account's or New Profile's.
+const latestOpeningDay = latestDatableDay;
+const earliestOpeningDay = earliestDatableDay;
 
 const initialNewCategoryData: CategoryDataType = {
   category: '',
@@ -75,6 +91,7 @@ const initialNewCategoryData: CategoryDataType = {
   amount: '',
   nature: '',
   currency: defaultCurrency,
+  date: new Date(),
 };
 const formDataNumber = { keyName: 'amount', title: 'budget' };
 const initialFormData: FormNumberInputType = {
@@ -128,9 +145,17 @@ function NewCategory() {
     setCategoryData((data) => ({ ...data, currency }));
   }
 
-  // The form offers no month picker: the allocation is always written to the
-  // month the account starts in, and an account starts when it is created.
-  const currentBudgetMonth = getCurrentBudgetMonthLabel(userData?.timezone);
+  function changeStartingPoint(selectedDate: Date) {
+    setCategoryData((data) => ({ ...data, date: selectedDate }));
+  }
+
+  // The allocation is written to the month the account starts in, which is now
+  // the day the picker holds rather than always the current one.
+  const currentBudgetMonth = getCurrentBudgetMonthLabel(
+    userData?.timezone,
+    undefined,
+    categoryData.date,
+  );
 
   // formData keeps what was typed; the currency only decides how it is read,
   // so leaving the yen brings the typed decimals back.
@@ -139,8 +164,10 @@ function NewCategory() {
     selectedCurrency,
   );
 
-  // Undated: the category opens today and its budget takes today's rate.
-  const ratePreview = useRatePreview(amountToSave, selectedCurrency);
+  // Dated: the budget takes the rate of the day the category opens on, the same
+  // day accountCategoryCreationController.js converts the amount with.
+  const openingDay = toCalendarDay(categoryData.date);
+  const ratePreview = useRatePreview(amountToSave, selectedCurrency, openingDay);
   const showRatePreview = ratePreview.status === 'resolved';
 
   const [duplicateHelperMessage, setDuplicateHelperMessage] = useState<string>('');
@@ -315,7 +342,8 @@ function NewCategory() {
         type: 'category_budget',
         currency: categoryData?.currency ?? defaultCurrency,
         budget: amount,
-        date: new Date().toISOString(),
+        date: categoryData.date.toISOString(),
+        transactionActualDate: openingDay,
         nature: categoryData.nature,
         subcategory: categoryData.subcategory || undefined,
       };
@@ -454,8 +482,23 @@ function NewCategory() {
               {uniqueSubcategories.map((name) => (
                 <option key={name} value={name} />
               ))}
-            </datalist>      
+            </datalist>
            </div>
+
+            {/* STARTING POINT - the day the category opens on, also the month its
+                first allocation lands in and the day its budget converts at. */}
+            <div className='input__box'>
+              <label className='label forms__label'>{'Starting Point'}</label>
+              <div className='form__datepicker__container'>
+                <FormDatepicker
+                  changeDate={changeStartingPoint}
+                  date={categoryData.date}
+                  variant={'form'}
+                  minDate={earliestOpeningDay()}
+                  maxDate={latestOpeningDay()}
+                ></FormDatepicker>
+              </div>
+            </div>
 
             <div className='input__box'>
               {/* Label and conversion message share a row, as in the tracker;

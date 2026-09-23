@@ -35,6 +35,7 @@ import { CreateBasicAccountApiResponseType } from '../../../types/responseApiTyp
 import {
   capitalize,
   earliestDatableDay,
+  latestDatableDay,
   toCalendarDay,
 } from '../../../helpers/functions.ts';
 import { validationData } from '../../../validations/utils/custom_validation.ts';
@@ -62,6 +63,13 @@ type AccountDataType = {
   currency: string;
 };
 
+// The body the endpoint reads. `date` dates the account row; `transactionActualDate`
+// dates the movement that opens it, and falls back to the server clock when absent -
+// so a backdated account used to report nothing for the months before its creation.
+type NewAccountPayloadType = AccountDataType & {
+  transactionActualDate: string;
+};
+
 const initialNewAccountData: AccountDataType = {
   name: '',
   type: '',
@@ -79,17 +87,10 @@ export type TypeOptionsType = {
   variant: VariantType;
 };
 
-// Latest opening day the calendar offers: an account dated forward is filtered out
-// of every tracker selector by isAccountOpenOn with nothing on screen saying why.
-const latestOpeningDay = (): Date => {
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return today;
-};
-
-// Earliest opening day the calendar offers: a day before the back-dating window
-// comes back from the server as a 422 the form cannot explain. Read from the shared
-// helper so this calendar and the movement forms cannot disagree.
+// Both ends of the opening window come from the shared helpers rather than being
+// recomputed here: New Category and New Profile ask the same question, and three
+// copies of one policy would let the three calendars disagree.
+const latestOpeningDay = latestDatableDay;
 const earliestOpeningDay = earliestDatableDay;
 
 // A value the server put in details, only when it really is text.
@@ -290,13 +291,16 @@ function NewAccount() {
     try {
       const { name, type, currency, date } = accountData;
 
-      const payload: AccountDataType = {
+      // openingDay is the same calendar day as `date`, in the shape the movement
+      // forms already send.
+      const payload: NewAccountPayloadType = {
         name,
         type,
         currency,
         amount,
         date,
-      } as AccountDataType;
+        transactionActualDate: openingDay,
+      } as NewAccountPayloadType;
 
       console.log('data to post:', { ...accountData });
 
