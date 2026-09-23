@@ -450,6 +450,10 @@ function App() {
         hideProgressBar={false}
         newestOnTop={true}
         closeOnClick={false}
+        // Explicit rather than the library default: a toast that outlasts its
+        // autoClose (an error, given its longer duration) must still be
+        // dismissable by hand.
+        closeButton={true}
         rtl={false}
         pauseOnFocusLoss
         draggable

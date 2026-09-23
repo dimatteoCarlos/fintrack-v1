@@ -18,6 +18,10 @@ export type FetchResponseType<R, D = unknown> = {
   // Set only when the server declared a code; a network failure, an abort or an
   // error without one leaves it null and fills `error` only.
   failure: RequestFailureType | null;
+  // The HTTP status the response actually carried. Distinct from failure.code
+  // (the domain identity): a caller needs this transport-level number to color
+  // a toast correctly instead of assuming success by default.
+  status: number | null;
   requestFn: (
     payload: D,
     overrideConfig?: AxiosRequestConfig,
@@ -25,6 +29,7 @@ export type FetchResponseType<R, D = unknown> = {
     data: R | null;
     error: string | null;
     failure: RequestFailureType | null;
+    status: number | null;
   }>;
   resetFn?: () => void;
 };
@@ -44,6 +49,7 @@ export function useFetchLoad<R, D = unknown>({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [failure, setFailure] = useState<RequestFailureType | null>(null);
+  const [status, setStatus] = useState<number | null>(null);
 
   const requestFn = useCallback(
     async (
@@ -53,14 +59,17 @@ export function useFetchLoad<R, D = unknown>({
       data: R | null;
       error: string | null;
       failure: RequestFailureType | null;
+      status: number | null;
     }> => {
       setIsLoading(true);
       setError(null);
       setFailure(null);
+      setStatus(null);
 
       let localData: R | null = null; // local copy for the immediate return
       let errorMessage: string | null = null;
       let localFailure: RequestFailureType | null = null;
+      let localStatus: number | null = null;
 
       try {
         const requestConfig: AxiosRequestConfig = {
@@ -76,14 +85,18 @@ export function useFetchLoad<R, D = unknown>({
 
         if (response.status >= 200 && response.status < 300) {
           localData = response.data as R;
+          localStatus = response.status;
           setData(localData);
+          setStatus(localStatus);
         } else {
           throw new Error(`Unexpected status code: ${response.status}`);
         }
       } catch (err: unknown) {
         if (axios.isAxiosError(err) && err.response?.data?.message) {
           errorMessage = err.response.data.message;
+          localStatus = err.response.status ?? null;
           setError(errorMessage);
+          setStatus(localStatus);
 
           // The code, when declared, is read from the same body as the message so
           // the rejection arrives whole.
@@ -115,7 +128,12 @@ export function useFetchLoad<R, D = unknown>({
         setIsLoading(false);
       }
 
-      return { data: localData, error: errorMessage, failure: localFailure };
+      return {
+        data: localData,
+        error: errorMessage,
+        failure: localFailure,
+        status: localStatus,
+      };
     },
     [initialUrl, initialConfig, method],
   );
@@ -123,8 +141,9 @@ export function useFetchLoad<R, D = unknown>({
     setData(null);
     setError(null);
     setFailure(null);
+    setStatus(null);
     setIsLoading(false);
   }, []);
 
-  return { data, isLoading, error, failure, requestFn, resetFn };
+  return { data, isLoading, error, failure, status, requestFn, resetFn };
 }

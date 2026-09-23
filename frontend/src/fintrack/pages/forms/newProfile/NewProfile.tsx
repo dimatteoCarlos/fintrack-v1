@@ -113,9 +113,9 @@ function NewProfile() {
 
   const [isReset, setIsReset] = useState<boolean>(false);
 
-  const [messageToUser, setMessageToUser] = useState<string | null | undefined>(
-    null,
-  );
+  const [messageToUser, setMessageToUser] = useState<
+    { message: string; status?: number } | string | null | undefined
+  >(null);
 
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
@@ -152,7 +152,7 @@ function NewProfile() {
     options: optionAccounts,
     variant: VARIANT_FORM,
   };
-  const { data, isLoading, error, requestFn } = useFetchLoad<
+  const { data, isLoading, error, status, requestFn } = useFetchLoad<
     CreateDebtorAccountApiResponseType,
     ProfilePayloadType
   >({ url: url_create_debtor_account, method: 'POST' });
@@ -263,7 +263,9 @@ function NewProfile() {
         data.message || 'New Profile account successfully created!',
       );
     } else if (!isLoading && error) {
-      setMessageToUser(error);
+      // status travels with the message now: a bare string here defaults to 200
+      // in MessageToUser.tsx, which painted a rejection toast green.
+      setMessageToUser({ message: error, status: status ?? undefined });
     }
 
     const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
@@ -273,7 +275,7 @@ function NewProfile() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [data, error, isLoading]);
+  }, [data, error, isLoading, status]);
 
   return (
     <section className='profile__page__container page__container '>
