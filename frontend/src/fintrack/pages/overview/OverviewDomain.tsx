@@ -16,7 +16,7 @@ import {
  FullAnalysisStatus,
  useOverviewDomain,
 } from './hooks/useOverviewDomain';
-import { currencyFormat } from '../../helpers/functions';
+import { currencyFormat, formatDateToDDMMYYYY } from '../../helpers/functions';
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '../../helpers/constants';
 import { monthLabel } from './helpers/monthLabel';
 import { pocketLink } from './helpers/levelThreeLink';
@@ -49,18 +49,51 @@ const isDomain = (value: string | undefined): value is OverviewDomainName =>
 
 // A closed account keeps its name, marked, so the reader does not look for it
 // among the live ones; a null name falls back to the caller's fixed label.
-const accountLabel = (name: string | null, isClosed: boolean, unnamed: string) => {
+//
+// One combined string, for embedding in a sentence - toAllocationRow's "Released
+// to X (closed)" below. toTransactionRow keeps the two parts apart instead: see
+// closedLabel just under this.
+//
+// closedAt defaults to null for toAllocationRow: a pocket allocation's source
+// account carries no closure date of its own on the wire, only
+// sourceAccountIsClosed, so it falls back to the bare tag.
+const accountLabel = (
+ name: string | null,
+ isClosed: boolean,
+ unnamed: string,
+ closedAt: string | null = null,
+) => {
  if (name === null) return unnamed;
+ if (!isClosed) return name;
 
- return isClosed ? `${name} (closed)` : name;
+ return closedAt
+  ? `${name} (closed on ${formatDateToDDMMYYYY(closedAt)})`
+  : `${name} (closed)`;
+};
+
+// The suffix alone, for LastMovementType.closedLabel - rendered in its own span
+// so it never inherits the name field's text-transform: capitalize, which turns
+// "closed on" into "Closed On" when the two travel as one string.
+const closedLabel = (
+ isClosed: boolean,
+ closedAt: string | null = null,
+): string | null => {
+ if (!isClosed) return null;
+
+ return closedAt ? `(closed on ${formatDateToDDMMYYYY(closedAt)})` : '(closed)';
 };
 
 // Maps the server's columns to the row shape LastMovements reads. account_name is nullable: the LEFT
 // join in transactionRowShape.js keeps movements of a closed account, which deletes its row.
 const toTransactionRow = (row: OverviewTransactionRow): LastMovementType => ({
- accountName: accountLabel(row.account_name, row.account_is_closed, 'closed account'),
+ accountName: row.account_name ?? 'closed account',
+ closedLabel:
+  row.account_name === null
+   ? null
+   : closedLabel(row.account_is_closed, row.account_closed_at),
  record: row.amount,
  description: row.description,
+ movementType: row.movement_type_name,
  // transaction_local_date and not transaction_actual_date: the latter is an
  // instant, and a day rendered from it is the previous day for readers west of
  // Greenwich.

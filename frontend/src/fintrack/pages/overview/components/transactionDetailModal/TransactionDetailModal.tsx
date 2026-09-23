@@ -1,5 +1,5 @@
 import { useModalDialog } from '../../../../../hooks/useModalDialog';
-import { numberFormatCurrency, formatDate, capitalize, currencyMinorUnit } from '../../../../helpers/functions';
+import { numberFormatCurrency, formatDate, capitalize, currencyMinorUnit, displayAccountName } from '../../../../helpers/functions';
 import { MOVEMENT_TYPES } from '../../../../helpers/constants';
 import { DEFAULT_CURRENCY, CURRENCY_OPTIONS } from '../../../../helpers/currencyConstants';
 import { CurrencyType } from '../../../../types/types';
@@ -130,7 +130,7 @@ const TransactionDetailDialog = ({ transaction, onClose }: TransactionDetailDial
           <div className="fx-details-card">
             <div className="fx-info-row">
               <span className="fx-label">Account</span>
-              <span className="fx-value fx-capitalize">{transaction.account_name || 'N/A'}</span>
+              <span className="fx-value fx-capitalize">{displayAccountName(transaction.account_name) || 'N/A'}</span>
             </div>
 
             {/* Only a transfer has counterparts, so these two are absent on an
@@ -139,7 +139,7 @@ const TransactionDetailDialog = ({ transaction, onClose }: TransactionDetailDial
               <div className="fx-info-row">
                 <span className="fx-label">Source Account</span>
                 <span className="fx-value fx-capitalize">
-                  {transaction.source_account_name || 'N/A'} #{transaction.source_account_id}
+                  {displayAccountName(transaction.source_account_name) || 'N/A'} #{transaction.source_account_id}
                 </span>
               </div>
             )}
@@ -148,7 +148,7 @@ const TransactionDetailDialog = ({ transaction, onClose }: TransactionDetailDial
               <div className="fx-info-row">
                 <span className="fx-label">Destination Account</span>
                 <span className="fx-value fx-capitalize">
-                  {transaction.destination_account_name || 'N/A'} #{transaction.destination_account_id}
+                  {displayAccountName(transaction.destination_account_name) || 'N/A'} #{transaction.destination_account_id}
                 </span>
               </div>
             )}

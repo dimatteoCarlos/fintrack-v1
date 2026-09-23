@@ -8,7 +8,7 @@ import {
  DEFAULT_CURRENCY,
 } from '../../../helpers/constants';
 
-import { currencyFormat, isDateValid } from '../../../helpers/functions';
+import { capitalize, currencyFormat, isDateValid } from '../../../helpers/functions';
 
 import { LastMovementType } from './LastMovements';
 
@@ -48,16 +48,28 @@ function ListContent({ listOfItems }: { listOfItems: LastMovementType[] }) {
  return (
   <div className='listContent__container'>
    {listOfItems.map((item) => {
-    const { accountName, record, note, date, currency } = item;
+    const { accountName, closedLabel, record, note, movementType, date, currency } = item;
 
     const cells = (
      <>
       <span className='listContent__item-header'>
-       <span className='listContent__account'>{accountName}</span>
+       <span className='listContent__account'>
+        {accountName}
+        {closedLabel && (
+         <span className='listContent__accountClosed'> {closedLabel}</span>
+        )}
+       </span>
        <span className='listContent__amount'>
         {currencyFormat(currency, record, formatNumberCountry)}
        </span>
       </span>
+
+      {/* The movement's own kind, named before what the owner said about it, on
+          its own line: sharing the row below with the note crowded it into the
+          same strip as the date and read as one more clause instead of a label. */}
+      {movementType && (
+       <span className='listContent__movementType'>{capitalize(movementType)}</span>
+      )}
 
       <span className='listContent__details-row'>
        {/* Served, not split here: a client-side cut left an empty paragraph

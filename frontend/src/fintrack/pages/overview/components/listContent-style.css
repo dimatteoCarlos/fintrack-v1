@@ -78,6 +78,14 @@
   text-transform: capitalize;
 }
 
+/* The "(closed on DD-MM-YYYY)" suffix, exempt from the rule above: it is a
+   sentence fragment, not a name, and capitalize turned "closed on" into
+   "Closed On". */
+.listContent__accountClosed {
+  text-transform: none;
+  font-weight: 400;
+}
+
 .listContent__amount {
   font-size: 1rem;
   font-weight: 700;
@@ -111,6 +119,17 @@
   /* Keeps the date from being pushed out. */
   min-width: 0;
   padding-right: 0.5rem;
+}
+
+/* The movement's own kind, a label rather than prose: its own line between the
+   header and the note, a kicker sitting above it rather than crowding the same
+   row as the date. */
+.listContent__movementType {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-content-on-dark-subtle);
+  margin-bottom: 0.15rem;
 }
 
 .listContent__date {

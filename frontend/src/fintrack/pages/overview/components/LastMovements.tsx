@@ -6,12 +6,20 @@ import { LevelThreeLink } from '../helpers/levelThreeLink.ts';
 
 export type LastMovementType = {
   accountName: string; //category of expense
+  // "(closed on DD-MM-YYYY)", rendered in its own span. Split out of accountName
+  // rather than concatenated into it: that field capitalizes every word, which
+  // turned "closed on" into "Closed On".
+  closedLabel?: string | null;
   record: number;
   description: string;
   // What the owner typed, split out of description by the server. Null when the
   // row carries none. description stays beside it: the modal shows the whole
   // sentence, the row shows only the note.
   note?: string | null;
+  // deposit, transfer, balance-reversal... what the row IS, read verbatim off the
+  // catalog. Optional: a pocket allocation row carries no such column, it already
+  // states its own kind in description.
+  movementType?: string;
   date: Date | string;
   currency: CurrencyType;
 } & (

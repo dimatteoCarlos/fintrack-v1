@@ -371,6 +371,12 @@ export type OverviewActivityRow = {
  account_name: string | null;
  // True once the account's user_accounts row is gone; the list keeps its rows.
  account_is_closed: boolean;
+ // The day account_is_closed became true. Null on the same case that name is.
+ account_closed_at: string | null;
+ // deposit, transfer, balance-reversal... what the row IS, read verbatim off the
+ // catalog. note (below) is what the owner typed about it: a row can carry one,
+ // the other, both or neither.
+ movement_type_name: string;
  amount: number;
  description: string;
  // What the owner typed, split out of description by the server. null when the
@@ -467,6 +473,8 @@ export type OverviewTransactionRow = {
  transaction_local_date: string;
  // True once the account's user_accounts row is gone.
  account_is_closed: boolean;
+ // The day account_is_closed became true. Null on the same case that name is.
+ account_closed_at: string | null;
 };
 
 export type OverviewTransactionPage = {

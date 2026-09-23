@@ -254,6 +254,17 @@ export const formatDateToDDMMYYYY = (
   const year = date.getUTCFullYear();
   return `${day}-${month}-${year}`;
 };
+
+// The boundary account's real stored name ('slack'), relabeled for display only.
+// Scoped to an account_name field, never to free text: the counterpart of a
+// transfer or a balance reversal is the one place this raw name still reaches
+// a render, since every selector already excludes it from pickable lists.
+const BOUNDARY_ACCOUNT_STORED_NAME = 'slack';
+export const displayAccountName = (
+  name: string | null | undefined,
+): string | null =>
+  name === BOUNDARY_ACCOUNT_STORED_NAME ? 'Internal System Account' : name ?? null;
+
 // Local date-time as DD/MM/YYYY HH:MM.
 export const formatDate = (date: Date | string) =>
   new Date(date).toLocaleString('en-GB', {

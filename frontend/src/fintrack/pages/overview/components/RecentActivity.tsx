@@ -9,6 +9,7 @@ import SearchSvg from '../../../../assets/debtsSvg/SearchSvg.svg?react';
 import { notifyError } from '../../../../auth/auth_utils/notification';
 import { downloadMovementsExport, ExportFormat } from '../../../api/exportApi';
 import { useClickOutside } from '../../../editionAndDeletion/hooks/useClickOutside';
+import { formatDateToDDMMYYYY } from '../../../helpers/functions';
 import { Pagination } from '../../../general_components/pagination/Pagination';
 import { useOverviewStore } from '../../../stores/useOverviewStore';
 import {
@@ -158,16 +159,18 @@ function ActivityList({ currentMonth }: { currentMonth: string }) {
   () =>
    data
     ? data.transactions.rows.map((row) => ({
-       // Closed accounts are marked the way the level-2 lists mark them.
+       // Closed accounts are marked the way the level-2 lists mark them, and the
+       // date names when, not merely that.
        accountName:
-        row.account_name === null
-         ? 'closed account'
-         : row.account_is_closed
-          ? `${row.account_name} (closed)`
-          : row.account_name,
+        row.account_name === null ? 'closed account' : row.account_name,
+       closedLabel:
+        row.account_name !== null && row.account_is_closed
+         ? `(closed on ${formatDateToDDMMYYYY(row.account_closed_at)})`
+         : null,
        record: row.amount,
        description: row.description,
        note: row.note,
+       movementType: row.movement_type_name,
        date: row.transaction_actual_date,
        currency: row.currency_code as LastMovementType['currency'],
        transactionId: row.transaction_id,
