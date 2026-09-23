@@ -4,8 +4,11 @@ export function determineSourceAndDestinationAccounts(
   newAccountInfo,
   counterAccountInfo
 ) {
-  let destination_account_id = newAccountInfo.account_id;
-  let source_account_id = newAccountInfo.account_id;
+  // NULL, not a self-reference: no money moved, so there is no counterpart leg to
+  // name. Both columns are nullable, and every downstream reader already treats a
+  // self-referencing pair the same as a null pair.
+  let destination_account_id = null;
+  let source_account_id = null;
 
   const isAccountOpening =
     newAccountInfo.transaction_type_name === 'account-opening'; // transaction amount = 0

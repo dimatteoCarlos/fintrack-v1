@@ -272,8 +272,12 @@ export const createBasicAccount = async (req, res, next) => {
       ...fxMetadata,
     };
 
-    let destination_account_id = newAccountInfo.account_id,
-      source_account_id = newAccountInfo.account_id;
+    // NULL when the account opens at zero: no money moved, so there is no
+    // counterpart leg to name. Same rule as determineSourceAndDestinationAccounts.js,
+    // applied here because this path resolves the pair inline instead of through
+    // that shared helper.
+    let destination_account_id = null,
+      source_account_id = null;
 
     if (isTransfer) {
       destination_account_id = newAccountInfo.account_id;
