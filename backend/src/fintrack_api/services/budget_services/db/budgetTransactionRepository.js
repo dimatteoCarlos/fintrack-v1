@@ -21,6 +21,7 @@ const MONTH_QUERY = `
 // Identity and currency per REQUESTED account. currency_id is COALESCEd (migration 011
 // backfill may differ from user_accounts); INNER join: a missing row is a data error.
 // No closed_at predicate, or a closed account's name would blank out in a past month.
+// closed_at is still selected: the expense picker uses it to stop offering a closed category.
 const ACCOUNTS_QUERY = `
   SELECT
     ua.account_id,
@@ -32,7 +33,8 @@ const ACCOUNTS_QUERY = `
     -- The registration day, raw as the getAccountController list queries ship it, so the
     -- client predicate that hides a category before its start day reads both payloads
     -- the same way; the server refuses such a movement either way.
-    ua.account_start_date
+    ua.account_start_date,
+    ua.closed_at
   FROM user_accounts ua
   JOIN category_budget_accounts cba ON cba.account_id = ua.account_id
   LEFT JOIN category_nature_types cnt
@@ -159,6 +161,7 @@ export async function getMonthlyStatusForAccounts(pool, accountIds, timeZone = '
    nature: row.nature ?? null,
    currencyId: row.currency_id,
    accountStartDate: row.account_start_date ?? null,
+   closedDate: row.closed_at ?? null,
    // No allocation in force is an effective budget of 0, not a null callers must branch on.
    budgetAmount: currentByAccount.get(row.account_id) ?? 0,
    nextMonthBudget: nextByAccount.get(row.account_id) ?? 0,

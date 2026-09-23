@@ -12,6 +12,7 @@ export function makeBudgetAccountStatus({
  subcategory = null,
  nature = null,
  accountStartDate = null,
+ closedDate = null,
  currency,
  budgetAmount,
  nextMonthBudget,
@@ -45,6 +46,9 @@ export function makeBudgetAccountStatus({
   // Null is admitted, not hidden: the server refuses the movement anyway, and hiding on
   // missing data would silently empty a list.
   accountStartDate,
+  // The day CLOSE stamped this account, or null while open. Same shipping
+  // rule as accountStartDate above.
+  closedDate,
   currency,
   budgetAmount: toAmount(budgetAmount),
   // What next month is already set to; the card shows its exception line by

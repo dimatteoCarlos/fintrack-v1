@@ -80,6 +80,9 @@ export type BudgetAccountStatus = {
  // Day the account was registered; never rendered. A tracker form reads it to stop offering a
  // category before it existed. A null is treated as open: the server refuses the movement anyway.
  accountStartDate: string | null;
+ // The day the account was closed. Same shipping rule as accountStartDate;
+ // null means still open.
+ closedDate: string | null;
  currency: CurrencyType;
  budgetAmount: number;
  // Renders the "this month only" line when it differs from budgetAmount. The

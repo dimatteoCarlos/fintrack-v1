@@ -208,9 +208,10 @@ function Expense(): JSX.Element {
     }
 
     // Filtered by the chosen day like the bank list above: a category that did not exist yet is not an
-    // option, and the server would refuse it.
+    // option, and the server would refuse it. closedDate excludes unconditionally: closed never
+    // re-enters this picker, though the Budget board still shows it for its open months.
     return budgetAccounts
-      .filter((account) => isOpenOnChosenDay(account.accountStartDate))
+      .filter((account) => account.closedDate === null && isOpenOnChosenDay(account.accountStartDate))
       .map((account) => {
       const hasFigures =
         !isLoadingCategoryBudgetAccounts &&

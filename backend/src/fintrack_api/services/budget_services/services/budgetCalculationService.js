@@ -36,6 +36,7 @@ const buildAccountStatus = (entry) => {
   subcategory: entry.subcategory,
   nature: entry.nature,
   accountStartDate: entry.accountStartDate,
+  closedDate: entry.closedDate,
   currency: getCurrencyCodeSync(entry.currencyId),
   budgetAmount,
   nextMonthBudget: money(entry.nextMonthBudget),
