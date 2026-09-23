@@ -205,6 +205,8 @@ reportTitleWithImpact:string;
  closeAccountTriggerButton: string;
  closeAccountTitle: string;
  closeAccountDescription: string;
+ // Shown only for account_type 'bank': the only type a pocket can be funded from.
+ closeAccountPocketNotice: string;
  closeAccountConfirmButton: string;
  closeAccountSuccessMessage: string;
  closeAccountBalanceLabel: string;
@@ -386,7 +388,7 @@ reportTitleWithImpact:"Impact on Affected Accounts",
   relatedAccountsLedeAdjustment: "Two of the columns belong to the other route on this screen, not to closing. New balance and net adjustment are what deleting this account WITH ADJUSTMENT would leave on each of these accounts. Closing changes none of them.",
   relatedAccountsNoneTitle: "No shared movements",
   relatedAccountsNoneMessage: "This account has not moved money with any other account.",
-  closeAccountBudgetWarning: "This account carries a budget. The budget is deleted with the account, and the close cannot be undone.",
+  closeAccountBudgetWarning: "This account carries a budget. From the closure month onward its budget is set to zero; earlier months are unaffected. The close cannot be undone.",
   closeOnlySectionTitle: "Delete this account",
   closeOnlySectionDescription: "The account is removed and cannot be reopened. Its history is kept: every movement that names it stays readable, under the same name it had. The balance must be zero first.",
   closeAccountAction: "Delete (the account goes, its history stays)",
@@ -399,7 +401,8 @@ reportTitleWithImpact:"Impact on Affected Accounts",
 
   closeAccountTriggerButton: "Delete Account",
   closeAccountTitle: "Delete this account?",
-  closeAccountDescription: "Closing removes the account and keeps its history. Its transactions, pocket allocations and budget months stay readable under the same account, and any pockets this account was backing get their commitment back. The account name becomes available again. This cannot be undone: the account is not deactivated, it is removed, and there is no way to reopen it.",
+  closeAccountDescription: "Closing removes the account and keeps its history: transactions stay readable under the same name, which becomes available again. This cannot be undone: the account is not deactivated, it is removed, and there is no way to reopen it.",
+  closeAccountPocketNotice: "Any commitment this account had with the pockets it was funding is cancelled.",
   closeAccountConfirmButton: "Delete Account",
   closeAccountSuccessMessage: "{targetAccountName} has been deleted. Its history stays in the registry under the same name.",
   closeAccountBalanceLabel: "Balance to close with:",
@@ -597,7 +600,7 @@ totalNetAdjustment: 'Ajuste Neto Total:',
   relatedAccountsLedeAdjustment: "Dos de las columnas son de la otra vía de esta pantalla, no del cierre. El saldo nuevo y el ajuste neto son lo que dejaría en cada una de estas cuentas eliminar esta CON AJUSTE. El cierre no cambia ninguna de las dos.",
   relatedAccountsNoneTitle: "Sin movimientos compartidos",
   relatedAccountsNoneMessage: "Esta cuenta no ha movido dinero con ninguna otra cuenta.",
-  closeAccountBudgetWarning: "Esta cuenta tiene un presupuesto asociado. El presupuesto se elimina junto con la cuenta, y el cierre no se puede deshacer.",
+  closeAccountBudgetWarning: "Esta cuenta tiene un presupuesto asociado. Desde el mes de cierre en adelante, el presupuesto queda en cero; los meses anteriores no se ven afectados. El cierre no se puede deshacer.",
   closeOnlySectionTitle: "Eliminar esta cuenta",
   closeOnlySectionDescription: "La cuenta se elimina y no se puede reabrir. Su historia se conserva: todo movimiento que la nombra sigue siendo legible, con el nombre que tenía. El saldo debe estar en cero primero.",
   closeAccountAction: "Eliminación (la cuenta se va, su historia queda)",
@@ -610,7 +613,8 @@ totalNetAdjustment: 'Ajuste Neto Total:',
 
   closeAccountTriggerButton: "Eliminar Cuenta",
   closeAccountTitle: "\u00bfEliminar esta cuenta?",
-  closeAccountDescription: "Cerrar elimina la cuenta y conserva su historial. Sus transacciones, asignaciones de bolsillos y meses de presupuesto siguen siendo legibles bajo la misma cuenta, y los bolsillos que esta cuenta respaldaba recuperan su compromiso. El nombre de la cuenta vuelve a quedar disponible.",
+  closeAccountDescription: "Cerrar elimina la cuenta y conserva su historial: las transacciones siguen siendo legibles bajo el mismo nombre, que vuelve a quedar disponible. Esto no se puede deshacer: la cuenta no se desactiva, se elimina, y no hay forma de reabrirla.",
+  closeAccountPocketNotice: "Se cancela el compromiso que tenía con los bolsillos que financiaba.",
   closeAccountConfirmButton: "Eliminar Cuenta",
   closeAccountSuccessMessage: "{targetAccountName} ha sido eliminada. Su historial permanece en el registro bajo el mismo nombre.",
   closeAccountBalanceLabel: "Saldo con el que cerrar\u00eda:",

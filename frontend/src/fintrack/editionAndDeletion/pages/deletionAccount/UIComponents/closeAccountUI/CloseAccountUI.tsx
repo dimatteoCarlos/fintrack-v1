@@ -202,11 +202,21 @@ const CLOSE_REASON_MAX_LENGTH = 255;
       </div>
      )}
 
-    {/* A category budget's budget is deleted with the account and the close does not come
-        back, so the owner is told before confirming; only this type carries a budget. */}
+    {/* The budget is zeroed forward, not deleted: idsOverlapping keeps months
+        before the closure month visible and zeroes the closure month onward.
+        The owner is still told before confirming, because the close does not
+        come back; only this type carries a budget. */}
     {targetAccountType === 'category_budget' && (
      <p className="close-account__budget-warning" role="note">
       {t('closeAccountBudgetWarning')}
+     </p>
+    )}
+
+    {/* A pocket can only be funded from a bank account, so only 'bank' has a
+        commitment to release on close. */}
+    {targetAccountType === 'bank' && (
+     <p className="close-account__pocket-notice" role="note">
+      {t('closeAccountPocketNotice')}
      </p>
     )}
 

@@ -104,6 +104,18 @@
  line-height: 1.5;
 }
 
+/* A pocket's commitment coming back is not a loss like the budget above, so the
+   info triad, not the warning one. */
+.close-account__pocket-notice {
+ margin: 0;
+ padding: var(--space-2) var(--space-3);
+ border-left: var(--border-width-thick) solid var(--color-feedback-info-border);
+ background-color: var(--color-feedback-info-surface);
+ color: var(--color-feedback-info-content);
+ font-size: var(--font-size-sm);
+ line-height: 1.5;
+}
+
 .close-account__label {
  color: var(--color-content-on-dark);
  font-size: var(--font-size-sm);

@@ -44,13 +44,16 @@ const getOwnedBudgetAccounts = async (userId, timeZone) => {
  * The ids whose reporting window overlaps the span asked about; the default set when the client names none.
  * It follows the span, not today's state, and overlap not containment: a category opened or closed
  * halfway through the span belongs in it. A status is the case where from and to are the same month.
+ *
+ * closedMonth is an exclusive bound: CLOSE already zeroes that month's budget forward, and a $0/$0
+ * row still belongs on the board for the month it stopped being a real decision.
  */
 const idsOverlapping = (owned, from, to) =>
  [...owned.values()]
   .filter(
    (account) =>
     account.startMonth <= to &&
-    (account.closedMonth === null || account.closedMonth >= from),
+    (account.closedMonth === null || account.closedMonth > from),
   )
   .map((account) => account.accountId);
 

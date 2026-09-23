@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useFetch } from '../../hooks/useFetch.ts';
 import { useFetchLoad } from '../../hooks/useFetchLoad.ts';
+import { notifyAccountChanged } from '../../stores/transactionEvents.ts';
 
 import {
  url_account_close_preview,
@@ -52,7 +53,18 @@ export const useCloseAccount = (targetAccountId: number | string) => {
  // CLOSE is a lifecycle operation, not an accounting one: it refuses an account
  // that still holds a balance rather than settling it. A nonzero balance is
  // therefore the reason the request would be refused, not a mere warning.
- const canClose = residual !== null && parseFloat(residual) === 0;
+ //
+ // Gated on countsTowardNetWorth, not on residual alone: a category_budget or
+ // income_source residual is a nominal-account tally (what was spent or earned
+ // through it), not a stock of money sitting there. Requiring it to reach zero
+ // applies an asset-account rule to a flow account and would offer a
+ // balance-reversal that fabricates a transfer of money never held. Falls back
+ // to the residual-only test while netWorth has not answered yet or predates
+ // this key.
+ const canClose =
+  netWorth !== null && !netWorth.countsTowardNetWorth
+   ? true
+   : residual !== null && parseFloat(residual) === 0;
 
  const {
   requestFn: executeCloseApiCall,
@@ -98,6 +110,12 @@ export const useCloseAccount = (targetAccountId: number | string) => {
      error: executionError,
     };
    }
+
+   // Announced, not invalidated directly: this hook has no business knowing
+   // which caches hold an answer CLOSE made stale. Without it, a closed
+   // category stayed selectable in Tracker Expense and its old budget amount
+   // survived on the Budget board.
+   notifyAccountChanged();
 
    return {
     success: true,

@@ -401,9 +401,12 @@ export const ClosedAccountsPage = () => {
          <dt className='closed-accounts__fact-label'>
           {t('closedAccountsColumnOpened')}
          </dt>
+         {/* accountStartDate, not accountCreatedAt: the label asks when the
+             account started, the day the owner picked, not when the row was
+             inserted. */}
          <dd className='closed-accounts__fact-value'>
-          {row.accountCreatedAt
-           ? formatDateToDDMMYYYY(row.accountCreatedAt)
+          {row.accountStartDate
+           ? formatDateToDDMMYYYY(row.accountStartDate)
            : '—'}
          </dd>
         </div>
