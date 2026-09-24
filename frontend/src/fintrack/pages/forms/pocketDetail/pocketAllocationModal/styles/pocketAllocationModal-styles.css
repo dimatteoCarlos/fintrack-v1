@@ -99,6 +99,11 @@
  min-width: 0;
 }
 
+/* The fifth item falls alone in the last row, so it spans the full width. */
+.pocketAllocation__planItem--pace {
+ grid-column: 1 / -1;
+}
+
 .pocketAllocation__planLabel {
  font-size: var(--font-size-xs);
  font-weight: var(--font-weight-medium);

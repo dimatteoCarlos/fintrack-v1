@@ -176,7 +176,12 @@ export type PocketBoardResponse = {
 // The board row minus sourceCount (the sources table lists those accounts), derived so they cannot drift.
 // This endpoint carries no month, so values differ: `allocated` is the lifetime sum, the
 // `*InMonth` figures are null (print a dash), and plan fields are evaluated at today.
-export type PocketDetailPocket = Omit<PocketStatus, 'sourceCount'>;
+export type PocketDetailPocket = Omit<PocketStatus, 'sourceCount'> & {
+ // Net committed over the months the plan has lived, current month included; null for a future plan.
+ actualRate: number | null;
+ // remaining / actualRate months from today; null without a rate, a remainder or a positive pace.
+ projectedCompletion: string | null;
+};
 
 // One account funding this pocket. Four fields are nullable together, and null is not zero: the
 // ledger can name an account the account read cannot resolve (soft-deleted or internal), and

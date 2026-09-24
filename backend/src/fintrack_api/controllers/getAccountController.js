@@ -348,7 +348,8 @@ export const getClosedAccounts = async (req, res, next) => {
     // Read from account_registry: closing deletes the user_accounts row in the same transaction that
     // stamps the closure. Search, filter, sort and page come from the query string, validated by the
     // service; the sort key is whitelisted because it reaches ORDER BY as an identifier.
-    const data = await getClosedAccountRegistry(pool, userId, req.query);
+    const timeZone = await getUserTimeZone(pool, userId);
+    const data = await getClosedAccountRegistry(pool, userId, req.query, timeZone);
 
     // 200 with an empty list, not the live list's 400: closing nothing, or a
     // search matching nothing, is normal, and a screen cannot tell "you have

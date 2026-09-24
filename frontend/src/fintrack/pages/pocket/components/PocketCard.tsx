@@ -115,17 +115,22 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
 
  // The label follows the figure, so a pocket with no rate left is not labelled
  // as one.
- const paceLabel = requiredMonthly === null ? 'To settle' : 'Monthly pace';
+ const paceLabel = requiredMonthly === null ? 'To settle' : 'Required rate';
 
  // The pocket against its plan's line, in money, so At risk states by how much and which way.
  // A plan window shorter than a month publishes no line. aheadOfPlan is served, signed,
- // and never recomputed here.
+ // and never recomputed here. Nothing due yet is checked first, so money allocated before the
+ // schedule asks for any does not read as ahead; an exact 0 reads as on the plan.
  const scheduleText =
   scheduledByNow === null || aheadOfPlan === null
    ? 'The plan has no window — no pace is shown'
-   : aheadOfPlan < 0
-     ? `${amount(Math.abs(aheadOfPlan))} behind the plan`
-     : `${amount(aheadOfPlan)} ahead of the plan`;
+   : scheduledByNow === 0
+     ? 'Nothing due yet'
+     : aheadOfPlan === 0
+       ? 'On the plan'
+       : aheadOfPlan < 0
+         ? `${amount(Math.abs(aheadOfPlan))} behind the plan`
+         : `${amount(aheadOfPlan)} ahead of the plan`;
 
  return (
   <Link

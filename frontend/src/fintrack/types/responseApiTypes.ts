@@ -323,6 +323,9 @@ export type CategoryBudgetAccountListType =
   category_nature_type_name: string;
   category_nature_type_id?: number;
   account_start_date: Date | string;
+  // The calendar day account_start_date falls on in the owner's time zone,
+  // resolved by getAccountById - same field as AccountListType's.
+  account_start_local_date?: string;
   user_id?:string;
   remain?:number;
   statusAlert?:boolean;

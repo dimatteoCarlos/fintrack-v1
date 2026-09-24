@@ -47,6 +47,19 @@ const NET_WORTH_QUERY = `
   FROM counted
 `;
 
+// What the deletion releases from pockets, summed per pocket as releasePocketCommitments.js does.
+const POCKET_COMMITTED_QUERY = `
+  SELECT COALESCE(SUM(held), 0)::text AS committed_to_pockets
+  FROM (
+    SELECT SUM(pa.amount) AS held
+    FROM pocket_allocations pa
+    WHERE pa.user_id = $1
+      AND pa.source_account_id = $2
+    GROUP BY pa.pocket_id
+    HAVING SUM(pa.amount) > 0
+  ) pairs
+`;
+
 /**
  * @param {object} db - pool; this is a read and takes no lock
  * @param {number} targetAccountId - the account the owner is about to close
@@ -77,6 +90,11 @@ export const getClosePreview = async (db, userId, targetAccountId) => {
   ]);
   const netWorthRow = netWorthRows[0];
 
+  const { rows: pocketRows } = await db.query(POCKET_COMMITTED_QUERY, [
+    userId,
+    targetAccountId,
+  ]);
+
   return {
     targetAccount: {
       accountId: row.account_id,
@@ -94,6 +112,8 @@ export const getClosePreview = async (db, userId, targetAccountId) => {
       after: netWorthRow.net_worth_after,
       countsTowardNetWorth: netWorthRow.counts_toward_net_worth,
     },
+    // Text, in the account's own currency; "0" when it backs no pocket.
+    committedToPockets: pocketRows[0].committed_to_pockets,
     // Frozen empty rather than removed: the frontend deploys separately from the
     // backend, and a missing key fails silently where an empty one does not.
     destinations: [],

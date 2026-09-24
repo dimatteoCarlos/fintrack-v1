@@ -37,7 +37,7 @@ const MOVEMENT_LABELS: Record<OverviewActivityMovementType, string> = {
  receive: 'Received',
  'account-opening': 'Account openings',
  pnl: 'Realised results',
- 'account-closure': 'Account closures',
+ 'account-closure': 'Account deletions',
  'balance-reversal': 'Balance reversals',
 };
 
@@ -162,10 +162,10 @@ function ActivityList({ currentMonth }: { currentMonth: string }) {
        // Closed accounts are marked the way the level-2 lists mark them, and the
        // date names when, not merely that.
        accountName:
-        row.account_name === null ? 'closed account' : row.account_name,
+        row.account_name === null ? 'deleted account' : row.account_name,
        closedLabel:
         row.account_name !== null && row.account_is_closed
-         ? `(closed on ${formatDateToDDMMYYYY(row.account_closed_at)})`
+         ? `(deleted on ${formatDateToDDMMYYYY(row.account_closed_at)})`
          : null,
        record: row.amount,
        description: row.description,

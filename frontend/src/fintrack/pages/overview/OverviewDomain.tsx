@@ -67,8 +67,8 @@ const accountLabel = (
  if (!isClosed) return name;
 
  return closedAt
-  ? `${name} (closed on ${formatDateToDDMMYYYY(closedAt)})`
-  : `${name} (closed)`;
+  ? `${name} (deleted on ${formatDateToDDMMYYYY(closedAt)})`
+  : `${name} (deleted)`;
 };
 
 // The suffix alone, for LastMovementType.closedLabel - rendered in its own span
@@ -80,13 +80,13 @@ const closedLabel = (
 ): string | null => {
  if (!isClosed) return null;
 
- return closedAt ? `(closed on ${formatDateToDDMMYYYY(closedAt)})` : '(closed)';
+ return closedAt ? `(deleted on ${formatDateToDDMMYYYY(closedAt)})` : '(deleted)';
 };
 
 // Maps the server's columns to the row shape LastMovements reads. account_name is nullable: the LEFT
 // join in transactionRowShape.js keeps movements of a closed account, which deletes its row.
 const toTransactionRow = (row: OverviewTransactionRow): LastMovementType => ({
- accountName: row.account_name ?? 'closed account',
+ accountName: row.account_name ?? 'deleted account',
  closedLabel:
   row.account_name === null
    ? null
@@ -116,7 +116,7 @@ const toAllocationRow = (
  const account = accountLabel(
   row.sourceAccountName,
   row.sourceAccountIsClosed,
-  'a closed account',
+  'a deleted account',
  );
  // The word beside the sign, as PocketDetail.tsx states it: a negative row
  // released money back to the account, and a bare minus reads as a spend.

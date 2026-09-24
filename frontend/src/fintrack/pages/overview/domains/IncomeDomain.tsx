@@ -21,7 +21,7 @@ const UNATTRIBUTED_LABEL = 'Unattributed';
 
 // A source account closed since: the id survives on the movement, the name does
 // not. The same words the shell's movement list uses for it.
-const CLOSED_ACCOUNT_LABEL = 'closed account';
+const CLOSED_ACCOUNT_LABEL = 'deleted account';
 
 const shareOf = (share: number | null) =>
  share === null ? NO_SHARE : percent(share);
@@ -34,7 +34,7 @@ const sourceLabel = (source: OverviewIncomeSourcePart) =>
   : source.accountName === null
    ? CLOSED_ACCOUNT_LABEL
    : source.accountIsClosed
-    ? `${source.accountName} (closed)`
+    ? `${source.accountName} (deleted)`
     : source.accountName;
 
 function IncomeDomain({

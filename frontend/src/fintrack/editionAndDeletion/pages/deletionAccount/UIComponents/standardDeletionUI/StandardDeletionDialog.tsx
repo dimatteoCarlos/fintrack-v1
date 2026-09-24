@@ -16,7 +16,8 @@ export type StandardDeletionDialogPropType = {
  // variants render on the same raised surface.
  variant: 'soft' | 'hard';
  title: string;
- description: string;
+ // Omitted by CLOSE: its screen already says the deletion cannot be undone.
+ description?: string;
  // Only HARD supplies this: the sentence naming what is deliberately not
  // corrected. Rendered as its own banner so it cannot be mistaken for the
  // plain description above it.
@@ -139,7 +140,9 @@ const StandardDeletionDialogContent = ({
        {heading}
       </h3>
 
-      <p className="standard-deletion-dialog__description">{description}</p>
+      {description && (
+       <p className="standard-deletion-dialog__description">{description}</p>
+      )}
 
       {warning && (
        <div className="standard-deletion-dialog__warning" role="alert">

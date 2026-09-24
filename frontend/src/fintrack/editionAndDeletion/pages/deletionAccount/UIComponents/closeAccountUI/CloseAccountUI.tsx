@@ -3,6 +3,11 @@ import { useId, useMemo, useState } from 'react';
 import { UseCloseAccountReturnType } from '../../../../hooks/useCloseAccount.ts';
 import { ModalStatusType } from '../../../../types/deletionTypes.ts';
 import { DictionaryDataType } from '../../../../utils/languages.ts';
+import { currencyFormat } from '../../../../../helpers/functions.ts';
+import {
+ CURRENCY_OPTIONS,
+ DEFAULT_CURRENCY,
+} from '../../../../../helpers/constants.ts';
 
 import { StandardDeletionDialog } from '../standardDeletionUI/StandardDeletionDialog.tsx';
 import CharacterCounter from '../../../../../general_components/characterCounter/CharacterCounter.tsx';
@@ -32,9 +37,20 @@ export type CloseAccountUIPropType = {
  isBalanceReversed?: boolean;
 };
 
+// A server amount, sent as text, printed with the account's currency symbol. An
+// unparseable one stays as the server wrote it.
+const formatPreviewAmount = (text: string, currencyCode: string) => {
+ const amount = Number(text);
+
+ return Number.isNaN(amount)
+  ? text
+  : currencyFormat(currencyCode, amount, CURRENCY_OPTIONS[DEFAULT_CURRENCY]);
+};
+
 export const CloseAccountUI = ({
  t,
  isOpen,
+ targetAccountId,
  targetAccountName,
  targetAccountType,
  close,
@@ -50,8 +66,10 @@ const CLOSE_REASON_MAX_LENGTH = 255;
  const [closeReason, setCloseReason] = useState('');
 
  const {
+  targetAccount,
   residual,
   netWorth,
+  committedToPockets,
   canClose,
   isLoadingPreview,
   previewError,
@@ -70,6 +88,24 @@ const CLOSE_REASON_MAX_LENGTH = 255;
     : 'idle';
 
  const trimmedReason = closeReason.trim();
+
+ // The residual with the account's currency symbol; display only, decisions read the server's text.
+ const displayResidual = useMemo(() => {
+  if (residual === null) return null;
+
+  return targetAccount === null
+   ? residual
+   : formatPreviewAmount(residual, targetAccount.currencyCode);
+ }, [residual, targetAccount]);
+
+ // Null when nothing is committed or the preview has not said, so no notice is drawn.
+ const displayCommitted = useMemo(() => {
+  if (committedToPockets === null || targetAccount === null) return null;
+
+  return Number(committedToPockets) > 0
+   ? formatPreviewAmount(committedToPockets, targetAccount.currencyCode)
+   : null;
+ }, [committedToPockets, targetAccount]);
 
  // Each disabling condition has a visible cause. canClose is ignored on reversal, which exists
  // to make a blocking balance closeable; refusing on it would leave the button unpressable.
@@ -91,17 +127,24 @@ const CLOSE_REASON_MAX_LENGTH = 255;
  // The refusal, quoted before the owner meets it, from the balance the preview returned
  // (the figure the engine derives its own refusal from), not any stored figure.
  const balanceWarning = useMemo(() => {
-  if (isLoadingPreview || previewError || canClose || residual === null) {
+  if (isLoadingPreview || previewError || canClose || displayResidual === null) {
    return undefined;
   }
   // Same balance, two sentences: under the plain close it is a refusal; under the reversal
   // it states what will be moved, so quoting the refusal would say the button will fail
   // while it is about to succeed.
   if (isBalanceReversed) {
-   return t('closeAccountReversalNotice').replace('{residual}', residual);
+   return t('closeAccountReversalNotice').replace('{residual}', displayResidual);
   }
-  return t('closeAccountBlockedByBalance').replace('{residual}', residual);
- }, [canClose, isBalanceReversed, isLoadingPreview, previewError, residual, t]);
+  return t('closeAccountBlockedByBalance').replace('{residual}', displayResidual);
+ }, [
+  canClose,
+  displayResidual,
+  isBalanceReversed,
+  isLoadingPreview,
+  previewError,
+  t,
+ ]);
 
  const handleConfirm = () => {
   executeClose(closeReason, isBalanceReversed);
@@ -122,11 +165,6 @@ const CLOSE_REASON_MAX_LENGTH = 255;
    variant="hard"
    title={t(
     isBalanceReversed ? 'closeAccountReverseTitle' : 'closeAccountTitle',
-   )}
-   description={t(
-    isBalanceReversed
-     ? 'closeAccountReverseDescription'
-     : 'closeAccountDescription',
    )}
    warning={balanceWarning}
    confirmLabel={t(
@@ -154,7 +192,7 @@ const CLOSE_REASON_MAX_LENGTH = 255;
        className="close-account__balance-skeleton"
        aria-label={t('loading')}
       />
-     ) : previewError || residual === null ? (
+     ) : previewError || displayResidual === null ? (
       <span className="close-account__balance-value">&mdash;</span>
      ) : (
       <span
@@ -162,7 +200,7 @@ const CLOSE_REASON_MAX_LENGTH = 255;
         canClose ? '' : ' close-account__balance-value--blocking'
        }`}
       >
-       {residual}
+       {displayResidual}
       </span>
      )}
     </p>
@@ -212,11 +250,14 @@ const CLOSE_REASON_MAX_LENGTH = 255;
      </p>
     )}
 
-    {/* A pocket can only be funded from a bank account, so only 'bank' has a
-        commitment to release on close. */}
-    {targetAccountType === 'bank' && (
+    {/* The amount decides, not the type: only an account that backs a pocket
+        has one above zero, and the server sums exactly what the close releases. */}
+    {displayCommitted !== null && (
      <p className="close-account__pocket-notice" role="note">
-      {t('closeAccountPocketNotice')}
+      {t('closeAccountPocketNotice')
+       .replace('{amount}', displayCommitted)
+       .replace('{name}', targetAccountName)
+       .replace('{id}', String(targetAccountId))}
      </p>
     )}
 

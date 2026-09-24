@@ -89,8 +89,14 @@ const orderBy = ({ sortKey, sortDirection }) =>
  * @param {object} query - parsed query string: search (name, reason or category
  *   name), type (an account_type_name), sort (a key of SORTABLE_COLUMNS), order
  *   ('asc' or 'desc'), page, limit
+ * @param {string} timeZone - IANA zone the dates are rendered on; defaults to 'UTC'
  */
-export const getClosedAccountRegistry = async (db, userId, query = {}) => {
+export const getClosedAccountRegistry = async (
+  db,
+  userId,
+  query = {},
+  timeZone = 'UTC',
+) => {
   if (!userId) {
     throw createError(400, 'A user is required to list closed accounts.');
   }
@@ -106,6 +112,10 @@ export const getClosedAccountRegistry = async (db, userId, query = {}) => {
     query,
   );
 
+  // The zone travels as a placeholder, never interpolated.
+  values.push(timeZone);
+  const zone = `$${values.length}::text`;
+
   // COUNT(*) OVER() instead of a second statement, so the total always agrees with
   // the page even if another session writes between two reads.
   const listQuery = `
@@ -115,12 +125,13 @@ export const getClosedAccountRegistry = async (db, userId, query = {}) => {
       act.account_type_name,
       cur.currency_code,
       ar.account_starting_amount::text AS account_starting_amount,
-      ar.account_start_date,
+      (ar.account_start_date AT TIME ZONE ${zone})::date::text
+        AS account_start_date,
       ar.account_created_at,
       ar.category_name,
       ar.subcategory,
       cnt.category_nature_type_name,
-      ar.closed_at,
+      (ar.closed_at AT TIME ZONE ${zone})::date::text AS closed_at,
       ar.close_reason,
       COUNT(*) OVER() AS total_rows
     ${REGISTRY_SOURCE}

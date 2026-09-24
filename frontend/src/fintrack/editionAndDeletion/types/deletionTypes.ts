@@ -126,7 +126,7 @@ export type CloseExecutionPayloadType = {
 
 // Identity half of GET /account/delete/close_preview/:targetAccountId. residual
 // is TEXT and stays text through the screen so nothing rounds it in transit:
-// parse it only to compare against zero, never to render.
+// parse it only to compare against zero or to format it for display.
 export type ClosePreviewAccountType = {
   accountId: number;
   accountName: string;
@@ -158,6 +158,8 @@ export type ClosePreviewResponseType = {
     // Optional because frontend and backend deploy separately: a frontend
     // released ahead of the backend reads undefined and renders no impact block.
     netWorth?: ClosePreviewNetWorthType;
+    // Text, like the residual; optional for the same deploy-order reason.
+    committedToPockets?: string;
   };
 };
 

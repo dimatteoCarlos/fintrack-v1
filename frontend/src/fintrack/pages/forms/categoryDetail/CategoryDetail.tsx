@@ -198,16 +198,11 @@ function CategoryDetail() {
   const currency_code =
     budgetAccount?.currency ?? accountRecord?.currency_code ?? DEFAULT_CURRENCY;
 
-  // The account cannot report a month it did not exist in. Parsed by parts, not new Date on a
-  // string: an ISO midnight is the previous day west of Greenwich. Null means the record is pending.
-  const accountStartMonth = (() => {
-    const raw = accountRecord?.account_start_date;
-    if (!raw) return null;
-
-    if (typeof raw === 'string') return raw.slice(0, 7);
-
-    return `${raw.getFullYear()}-${String(raw.getMonth() + 1).padStart(2, '0')}`;
-  })();
+  // The account cannot report a month it did not exist in. account_start_local_date is the owner's
+  // calendar day; the UTC instant names the previous month for an evening opening. Null means pending.
+  const accountStartMonth = accountRecord?.account_start_local_date
+    ? String(accountRecord.account_start_local_date).slice(0, 7)
+    : null;
   // Withheld rather than zeroed while the payload is still on the wire: a
   // budget that has not arrived is not a budget of zero.
   const summaryData = budgetAccount
@@ -387,7 +382,9 @@ function CategoryDetail() {
                     className='form__datepicker__container'
                     style={{ textAlign: 'center', color: 'white' }}
                   >
-                    {formatDateToDDMMYYYY(accountRecord?.account_start_date)}
+                    {formatDateToDDMMYYYY(
+                      accountRecord?.account_start_local_date,
+                    )}
                   </div>
                 </div>
 

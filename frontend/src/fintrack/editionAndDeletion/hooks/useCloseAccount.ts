@@ -46,6 +46,9 @@ export const useCloseAccount = (targetAccountId: number | string) => {
  // without this key; either way there is no impact to state.
  const netWorth = previewResponse?.data?.netWorth ?? null;
 
+ // Null while the preview has not answered; the screen then says nothing about pockets.
+ const committedToPockets = previewResponse?.data?.committedToPockets ?? null;
+
  // Kept as text, never a number: the server sends the balance as the driver
  // returned it so nothing rounds it. It is parsed only for the zero test below.
  const residual = targetAccount?.residual ?? null;
@@ -91,7 +94,7 @@ export const useCloseAccount = (targetAccountId: number | string) => {
    const reason = closeReason.trim();
 
    if (reason.length === 0) {
-    return { success: false, message: 'A reason is required to close' };
+    return { success: false, message: 'A reason is required to delete' };
    }
 
    const payload: CloseExecutionPayloadType = {
@@ -106,7 +109,7 @@ export const useCloseAccount = (targetAccountId: number | string) => {
    if (executionError || !executionData) {
     return {
      success: false,
-     message: executionError || 'Close failed due to unknown API error',
+     message: executionError || 'Delete failed due to unknown API error',
      error: executionError,
     };
    }
@@ -135,6 +138,7 @@ export const useCloseAccount = (targetAccountId: number | string) => {
   targetAccount,
   residual,
   netWorth,
+  committedToPockets,
   canClose,
   isLoadingPreview,
   previewError,

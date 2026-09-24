@@ -253,8 +253,8 @@ function PocketDetail() {
  }
 
  // Required rate 0 means the goal is covered; null means the date passed while money is short.
- // Branch on === null, not falsiness. The achieved rate and projected date print a dash until the
- // monthly series is served (a lifetime average would hide when the pocket was funded).
+ // Branch on === null, not falsiness. The achieved rate is the net committed over the calendar
+ // months the plan has lived, the current one included (actualRate.js).
  const requiredMonthly = pocket.requiredMonthly;
 
  const pace =
@@ -264,10 +264,25 @@ function PocketDetail() {
       // The same served level as the hero's date reading, so a pocket at risk or
       // behind never shows its pace card as on track. Served, never derived here.
       level: pocket.level,
+      // Names the figure by its label, not by a number: the number lives once,
+      // in requiredRate below.
       verdict: pocket.funded
        ? 'The target is covered, so there is no rate left to keep.'
-       : `${amount(requiredMonthly)} a month keeps this target on its date.`,
-      requiredRate: pocket.funded ? DASH : `${amount(requiredMonthly)} / month`,
+       : 'The required rate below keeps the target on its date.',
+      // null once funded: the row is omitted below rather than printed as a dash.
+      requiredRate: pocket.funded ? null : `${amount(requiredMonthly)} / month`,
+      // null only for a plan dated after today; the row is omitted then.
+      actualRate:
+       pocket.actualRate === null
+        ? null
+        : `${amount(pocket.actualRate)} / month`,
+      // null when there is no rate or nothing left to reach: the row is omitted.
+      projectedCompletion:
+       pocket.projectedCompletion !== null
+        ? formatCalendarDate(pocket.projectedCompletion)
+        : pocket.actualRate === null || pocket.funded
+          ? null
+          : 'Not on track at this pace',
      };
 
  return (
@@ -317,21 +332,27 @@ function PocketDetail() {
      </p>
 
      <dl className='pocketDetail__paceFigures'>
-      <div className='pocketDetail__paceFigure'>
-       <dt>Required rate</dt>
-       <dd>{pace.requiredRate}</dd>
-      </div>
+      {pace.requiredRate !== null && (
+       <div className='pocketDetail__paceFigure'>
+        <dt>Required rate</dt>
+        <dd>{pace.requiredRate}</dd>
+       </div>
+      )}
 
-      <div className='pocketDetail__paceFigure'>
-       <dt>Actual rate</dt>
-       <dd>{DASH}</dd>
-      </div>
+      {pace.actualRate !== null && (
+       <div className='pocketDetail__paceFigure'>
+        <dt>Actual rate</dt>
+        <dd>{pace.actualRate}</dd>
+       </div>
+      )}
      </dl>
 
-     <p className='pocketDetail__paceProjection'>
-      <span>Projected completion</span>
-      <span>{DASH}</span>
-     </p>
+     {pace.projectedCompletion !== null && (
+      <p className='pocketDetail__paceProjection'>
+       <span>Projected completion</span>
+       <span>{pace.projectedCompletion}</span>
+      </p>
+     )}
     </div>
    )}
 
@@ -495,6 +516,8 @@ function PocketDetail() {
       desiredDate: pocket.desiredDate,
       allocated: pocket.allocated,
       remaining: pocket.remaining,
+      // The pace card's "Required rate": what is needed from now, null once funded.
+      requiredMonthly: pocket.funded ? null : pocket.requiredMonthly,
      }}
      currency={currency}
      direction={allocationDirection}

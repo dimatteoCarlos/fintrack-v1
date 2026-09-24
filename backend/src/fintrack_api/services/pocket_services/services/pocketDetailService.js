@@ -14,6 +14,7 @@ import {
 import { makePocketStatus } from '../core/makePocketStatus.js';
 import { makeAccountAllocation } from '../core/makeAccountAllocation.js';
 import { makeAllocationEntry } from '../core/makeAllocationEntry.js';
+import { makeActualRate } from '../core/actualRate.js';
 import { toAmount, money } from '../../budget_services/core/money.js';
 
 // A missing pocket and another user's pocket both answer 403: splitting them
@@ -125,8 +126,20 @@ export const pocketDetailService = {
   );
 
   const status = makePocketStatus(row, today);
+
+  // Added here, not in makePocketStatus: the board shares that function and
+  // never fetches one pocket's full history, which this screen already has.
+  const { actualRate, projectedCompletion } = makeActualRate(
+   historyRows,
+   status.planStart,
+   today,
+   status.remaining,
+  );
+
   const pocket = {
    ...status,
+   actualRate,
+   projectedCompletion,
    uncovered: sources.some((source) => source.covered === false),
   };
 

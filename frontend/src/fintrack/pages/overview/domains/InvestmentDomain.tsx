@@ -26,7 +26,7 @@ const MINUS = '−';
 const NO_FIGURE = '—';
 
 // The same words the income rows and the shell's movement list use for it.
-const CLOSED_ACCOUNT_LABEL = 'closed account';
+const CLOSED_ACCOUNT_LABEL = 'deleted account';
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -108,10 +108,10 @@ function ReconciliationStatement({ figures, formatAmount }: ReconciliationStatem
 
    {/* Printed at $0.00 too: it is a term of the identity, not a note to it. */}
    <dt className='domainAnalysis__term domainAnalysis__term--withTip'>
-    Closure adjustment
+    Deletion adjustment
     <KpiTooltip
-     label='Closure adjustment'
-     definition='What closing or annulling an investment account moved on it. Zero unless an account was closed or annulled.'
+     label='Deletion adjustment'
+     definition='What deleting or annulling an investment account moved on it. Zero unless an account was deleted or annulled.'
      surface='cream'
     />
    </dt>

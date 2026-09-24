@@ -536,15 +536,12 @@ export function PocketBoardReadings() {
           </p>
          </div>
 
-         {/* The pace to FINISH, never a bill due this month. "per month" and not
-             "a month", which reads as a duration rather than a rate. */}
+         {/* The pace to FINISH, never a bill due this month. */}
          <p className='pocketHero__pace'>
           <b className='pocketHero__figure pocketHero__figure--pace'>
            {amount(totalRequiredMonthly)}
           </b>
-          <span className='pocketHero__figureWord'>
-           to finish on time (per month)
-          </span>
+          <span className='pocketHero__figureWord'>to finish on time</span>
          </p>
         </div>
        </div>

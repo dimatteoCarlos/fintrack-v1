@@ -324,14 +324,6 @@ const AccountDeletionView = ({
 
               <h3 className='content-title'>{getReportTitle()}</h3>
 
-              {/* States where the reversal lands. The compensation account is not injected into the
-                  list: it belongs there only if the account transacted with it. */}
-              {isBalanceBlockingTheClose && (
-                <p className='account-relations__boundary' role='note'>
-                  {translateText('closeReversalBoundaryStatement')}
-                </p>
-              )}
-
               {renderReportContent()}
 
             </div>
@@ -347,6 +339,12 @@ const AccountDeletionView = ({
                   : 'otherMethodsSectionTitle',
               )}
             </h2>
+            {/* Says why the only button will refuse, before it is pressed. */}
+            {isBalanceBlockingTheClose && (
+              <p className='deletion-methods-blocked' role='note'>
+                {translateText('closeOnlyBlockedNotice')}
+              </p>
+            )}
             <p className='deletion-methods-description'>
               {translateText(
                 CLOSE_IS_THE_ONLY_METHOD
@@ -354,12 +352,6 @@ const AccountDeletionView = ({
                   : 'otherMethodsSectionDescription',
               )}
             </p>
-            {/* Says why the only button will refuse, before it is pressed. */}
-            {isBalanceBlockingTheClose && (
-              <p className='deletion-methods-blocked' role='note'>
-                {translateText('closeOnlyBlockedNotice')}
-              </p>
-            )}
 
             {/* The other route, directly under the notice that explains why it is offered;
                 shown only while the balance refuses the close. */}

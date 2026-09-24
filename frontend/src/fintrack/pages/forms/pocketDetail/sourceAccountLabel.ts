@@ -9,6 +9,6 @@ export const sourceAccountLabel = (
  if (entry.sourceAccountName === null) return unnamed;
 
  return entry.sourceAccountIsClosed
-  ? `${entry.sourceAccountName} (closed)`
+  ? `${entry.sourceAccountName} (deleted)`
   : entry.sourceAccountName;
 };

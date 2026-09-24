@@ -49,6 +49,8 @@ const COPY: Record<
   title: string;
   explanation: string;
   ceilingLabel: string;
+  // The ceiling line under the amount field, in this direction's own verb.
+  ceilingSentence: (ceiling: string, account: string) => string;
   submit: string;
   pending: string;
   confirmation: (figure: string, account: string, pocket: string) => string;
@@ -62,6 +64,8 @@ const COPY: Record<
   // not restate "Commit". "Allocated" is the module's word for cash committed to a goal.
   explanation: 'Stays in the account, allocated to this goal.',
   ceilingLabel: 'Unassigned',
+  ceilingSentence: (ceiling, account) =>
+   `You can commit up to ${ceiling} from ${account}`,
   submit: 'Commit',
   pending: 'Committing…',
   // Names the amount, the goal and the account: the panel is closed by the time
@@ -77,6 +81,8 @@ const COPY: Record<
   // What THIS pocket holds in the account, the most a release may take. Named
   // for the pocket because "here" reads ambiguously with no account in view.
   ceilingLabel: 'To this pocket',
+  ceilingSentence: (ceiling, account) =>
+   `You can release up to ${ceiling} from ${account}`,
   submit: 'Release',
   pending: 'Releasing…',
   confirmation: (figure, account, pocket) =>
@@ -92,6 +98,8 @@ type PocketPlan = {
  allocated: number;
  // Negative past the target: over-funding, not an error. Shown as an excess.
  remaining: number;
+ // The pace card's "Required rate"; null past the deadline or once funded, and then omitted.
+ requiredMonthly: number | null;
 };
 
 type PocketAllocationModalPropType = {
@@ -347,6 +355,16 @@ function PocketAllocationModal({
        {planAmount(Math.abs(plan.remaining))}
       </dd>
      </div>
+
+     {/* Fifth item, spanned full width; same label and figure as the pace card. */}
+     {plan.requiredMonthly !== null && (
+      <div className='pocketAllocation__planItem pocketAllocation__planItem--pace'>
+       <dt className='pocketAllocation__planLabel'>Required rate</dt>
+       <dd className='pocketAllocation__planValue'>
+        {planAmount(plan.requiredMonthly)}
+       </dd>
+      </div>
+     )}
     </dl>
 
     {banksFailed && (
@@ -428,7 +446,7 @@ function PocketAllocationModal({
 
     {ceilingText && selected && (
      <p className='pocketAllocation__ceiling'>
-      Up to {ceilingText} from {selected.accountName}
+      {copy.ceilingSentence(ceilingText, selected.accountName)}
      </p>
     )}
 

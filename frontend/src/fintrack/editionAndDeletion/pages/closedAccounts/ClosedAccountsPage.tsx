@@ -278,7 +278,7 @@ export const ClosedAccountsPage = () => {
         row, not the screenful being read. */}
     <div className='closed-accounts__export'>
      <ExportMenu
-      subject='the closed-account registry'
+      subject='the deleted-account registry'
       surface='dark'
       disabled={isLoading}
       onExport={(format) =>

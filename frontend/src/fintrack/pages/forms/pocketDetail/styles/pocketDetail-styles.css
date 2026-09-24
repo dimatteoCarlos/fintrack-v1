@@ -88,8 +88,11 @@
  background-color: var(--color-surface-raised);
 }
 
+/* The rule sits above the title; under it, proximity read it as underlining the heading. */
 .pocketDetail__section {
  margin-top: var(--space-6);
+ padding-top: var(--space-3);
+ border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
 /* Clearance under the last section: sections declare space only above, so the
@@ -99,15 +102,8 @@
  padding-bottom: var(--space-6);
 }
 
-/* A rule under the heading so the section reads as a band, on the title's own
-   container, which holds only the heading. */
 .pocketDetail__section .presentation__card__title__container {
  padding-bottom: var(--space-2);
- border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
- /* Clearance under the rule. --space-3 against the heading's own --space-2
-    keeps the rule closer to the words it underlines than to the content it
-    introduces. */
- margin-bottom: var(--space-3);
 }
 
 .pocketDetail__list {

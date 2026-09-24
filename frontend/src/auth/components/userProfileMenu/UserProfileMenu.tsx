@@ -271,7 +271,7 @@ const UserProfileMenu = () => {
               <button
                 className={styles.menuItem}
                 onClick={handleOpenClosedAccounts}
-                aria-label='Open the closed-account registry'
+                aria-label='Open the deleted-account registry'
               >
                 <ArchiveSvg
                   className={styles.menuItemIcon}

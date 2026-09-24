@@ -201,8 +201,10 @@ function AccountDetail() {
                     className='form__datepicker__container'
                     style={{ textAlign: 'center', color: 'white' }}
                   >
-                    {accountDetail?.account_start_date
-                      ? formatDateToDDMMYYYY(accountDetail.account_start_date)
+                    {accountDetail?.account_start_local_date
+                      ? formatDateToDDMMYYYY(
+                          accountDetail.account_start_local_date,
+                        )
                       : DASH}
                   </div>
                 </div>

@@ -50,8 +50,9 @@ export function transactionRowColumns(timeZonePlaceholder) {
     -- Both tests are needed: a closure that left no user_accounts row shows only as
     -- the missing row; one that kept the row shows only as the stamp read from account_registry.
     (ua.account_id IS NULL OR ar.closed_at IS NOT NULL) AS account_is_closed,
-    -- The date the "(closed)" tag names. Null on the pre-registry erased case above.
-    ar.closed_at AS account_closed_at`;
+    -- The date the "(closed)" tag names, on the owner's calendar. Null on the pre-registry erased case above.
+    (ar.closed_at AT TIME ZONE ${timeZonePlaceholder})::date::text
+      AS account_closed_at`;
 }
 
 // user_accounts is LEFT-joined because its row can be absent (accounts closed before the close path kept it,
