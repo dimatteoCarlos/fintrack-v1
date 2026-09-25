@@ -143,9 +143,8 @@ function ParetoBar({
 
       <span className='paretoBar__amount'>{money(row.amount)}</span>
 
-      <span className='paretoBar__cumulative'>
-       {percent(row.cumulativeShare)}
-      </span>
+      {/* The row's own share, the width of its segment. The running total lives in the foot line. */}
+      <span className='paretoBar__cumulative'>{percent(row.share)}</span>
      </li>
     ))}
 
