@@ -19,7 +19,7 @@ import { ACCOUNTING_CURRENCY_CODE } from '../../../config/fintrackConfig.js';
 // and a null would poison the sum; this notice separates "0 across no plans" from
 // "0 across three plans".
 export const NO_POCKET_NOTICE =
- 'No savings pocket has been planned, so the committed total is reported over none.';
+ 'No savings pocket has been planned, so the allocated total is reported over none.';
 
 export const overviewPocketService = {
  /**
@@ -69,6 +69,7 @@ export const overviewPocketService = {
 
   const { summary } = board;
   const hasPockets = summary.pocketCount > 0;
+  const levels = summary.levelCounts;
 
   const card = makeDomainCard({
    domain: 'pocket',
@@ -93,12 +94,14 @@ export const overviewPocketService = {
     // reader adding the visible amounts gets a third total with nothing to explain
     // it. Passed through as reported, null included.
     excess: summary.totalExcess,
-    // Feeds the status line under the four figures (`5 funded · 2 overdue · 1
-    // uncovered`): three counts, not a fourth card, so the Overview does not become
-    // a miniature board.
-    fundedCount: summary.fundedCount,
+    // Counts line in the board's two bands: Target reached is completed + aboveTarget, In progress the other
+    // five levels. overAllocatedAccountCount counts the accounts behind uncoveredCount, which counts pockets.
+    targetReachedCount: levels.completed + levels.aboveTarget,
+    inProgressCount:
+     levels.ahead + levels.onTrack + levels.behind + levels.atRisk + levels.overdue,
     overdueCount: summary.overdueCount,
     uncoveredCount: summary.uncoveredCount,
+    overAllocatedAccountCount: summary.overAllocatedAccountCount,
    },
    currency: ACCOUNTING_CURRENCY_CODE,
    window: {
@@ -119,6 +122,9 @@ export const overviewPocketService = {
    // Cut to TREND_MONTHS explicitly, so the card's chart is the same six points
    // whether or not the request asked for an analysis.
    trend: makeTrendSeries(months, TREND_MONTHS),
+   // Each pocket's level as the board classified it, for the overview page's
+   // Pareto rows (makeFinancialGoals). This endpoint's screen does not read it.
+   pocketLevels: board.pockets.map(({ pocketId, level }) => ({ pocketId, level })),
    ...(withAnalysis
     ? {
        analysis: makePocketAnalysis({

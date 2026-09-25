@@ -19,6 +19,9 @@ import {
   url_movement_transaction_record,
 } from '../../../../urlConfig.ts';
 import CardNoteSave from '../components/CardNoteSave.tsx';
+import EmptyListNotice, {
+  resolveEmptyCase,
+} from '../components/EmptyListNotice.tsx';
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import RadioInput from '../../../general_components/radioInput/RadioInput.tsx';
 import DropDownSelection from '../../../general_components/dropdownSelection/DropDownSelection.tsx';
@@ -45,6 +48,11 @@ import {
   DEFAULT_CURRENCY,
   PAGE_LOC_NUM,
 } from '../../../helpers/constants.ts';
+import {
+  MESSAGE_DURATION,
+  noticeCarriesLink,
+  TRACKER_MESSAGES,
+} from '../trackerMessages.ts';
 
 const VARIANT_DEFAULT: VariantType = 'tracker';
 const defaultCurrency: CurrencyType = DEFAULT_CURRENCY;
@@ -117,6 +125,7 @@ function Debts(): JSX.Element {
     apiData: debtorsResponse,
     error: fetchedErrorDebtors,
     isLoading: isLoadingDebtors,
+    status: debtorsStatus,
   } = useFetch<AccountByTypeResponseType>(fetchDebtorUrl as string);
 
   // The day this entry happened. Defaults to today, which is always inside the
@@ -171,7 +180,34 @@ function Debts(): JSX.Element {
     apiData: accountsResponse,
     isLoading: isLoadingAccounts,
     error: fetchedErrorAccounts,
+    status: accountsStatus,
   } = useFetch<AccountByTypeResponseType>(fetchAccountUrl as string);
+  // The backend answers 404 "No accounts of type" for a user with none, and
+  // useFetch turns that into error null. Status is null until a fetch ends.
+  // datatrack.accountType never leaves its initial 'bank', so this is the bank list.
+  const isAccountListSettled = !isLoadingAccounts && !fetchedErrorAccounts;
+  const receivedAccounts = isAccountListSettled
+    ? (accountsResponse?.data?.accountList ?? [])
+    : [];
+  const accountEmptyCase = resolveEmptyCase(
+    isAccountListSettled && accountsStatus === 404,
+    receivedAccounts.map((acc) => acc.account_start_date),
+    transactionActualDate,
+  );
+
+  const isDebtorListSettled = !isLoadingDebtors && !fetchedErrorDebtors;
+  const receivedDebtors = isDebtorListSettled
+    ? (debtorsResponse?.data?.accountList ?? [])
+    : [];
+  const debtorEmptyCase = resolveEmptyCase(
+    isDebtorListSettled && debtorsStatus === 404,
+    receivedDebtors.map((debtor) => debtor.account_start_date),
+    transactionActualDate,
+  );
+  // NewProfile needs a bank account to open a debtor, so while the bank notice
+  // offers its link the debtor notice states its fact without one: they are one
+  // sequence, not two alternatives.
+  const isDebtorLinkDeferred = noticeCarriesLink('bank', accountEmptyCase?.case);
 
   const optionsAccounts = useMemo(() => {
     if (fetchedErrorAccounts) {
@@ -385,27 +421,44 @@ function Debts(): JSX.Element {
       }
       // Refresh the global available balance (the total in bank accounts) after success.
       const newTotalBalance = await fetchNewBalance();
-      // Both branches write the same message state, so the success line must stay in its own branch or it would
-      // replace the warning before a render sees it. The movement recorded either way, hence the stale prompt.
-      if (typeof newTotalBalance === 'number') {
+      // console.log('newTotalBalance', newTotalBalance)
+      // The success message must not overwrite the refresh warning in the same tick.
+      // The movement is recorded either way, so the failing branch still says so.
+      const isBalanceRefreshed = typeof newTotalBalance === 'number';
+
+      if (isBalanceRefreshed) {
         setAvailableBudget(newTotalBalance);
         setMessageToUser('Debt transaction successfully recorded!');
       } else {
         setMessageToUser(BALANCE_STALE_PROMPT);
       }
-      setTimeout(() => setMessageToUser(null), 3000);
+      // The stale-balance warning is something the owner has to act on; the
+      // plain confirmation is not, so the two do not stay on screen equally.
+      setTimeout(
+        () => setMessageToUser(null),
+        isBalanceRefreshed
+          ? MESSAGE_DURATION.confirmation
+          : MESSAGE_DURATION.action,
+      );
+      //----------------------------------
     } catch (error) {
       console.error('Submission error (Zod):', error);
       setMessageToUser(
         error instanceof Error
           ? error.message
-          : 'An unexpected error occurred during submission.',
+          : TRACKER_MESSAGES.submissionFailure,
       );
-      setTimeout(() => setMessageToUser(null), 5000);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.action);
     }
   }
   useEffect(() => {
-    if (data && !isLoading && !error && !isAmountError) {
+    // if( !isLoading){setShowMessage(true);}
+    const isMovementRecorded =
+      Boolean(data) && !isLoading && !error && !isAmountError;
+
+    if (isMovementRecorded) {
+      // setShowMessage(true);
+      //--success
       setMessageToUser('Movement completed successfully!');
 
       if (resetFn) resetFn();
@@ -431,9 +484,16 @@ function Debts(): JSX.Element {
       setMessageToUser(error ?? (isAmountError ? 'Enter a valid amount' : ''));
     }
 
-    const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
-      setMessageToUser(null);
-    }, 5000);
+    // The branch above decides what is on screen, so it decides how long it stays.
+    const timer: ReturnType<typeof setTimeout> = setTimeout(
+      () => {
+        setMessageToUser(null);
+        // setIsReset(false);
+      },
+      isMovementRecorded
+        ? MESSAGE_DURATION.confirmation
+        : MESSAGE_DURATION.action,
+    );
 
     return () => {
       if (timer) clearTimeout(timer);
@@ -487,7 +547,7 @@ function Debts(): JSX.Element {
     ) {
       setValidationMessages((prev) => ({
         ...prev,
-        account: '* Please select an account',
+        account: TRACKER_MESSAGES.accountFieldRequired,
       }));
       setShowValidation((prev) => ({ ...prev, account: true }));
     } else {
@@ -506,7 +566,7 @@ function Debts(): JSX.Element {
     ) {
       setValidationMessages((prev) => ({
         ...prev,
-        note: '* Please write the note',
+        note: TRACKER_MESSAGES.noteFieldRequired,
       }));
       setShowValidation((prev) => ({ ...prev, note: true }));
     } else {
@@ -542,6 +602,16 @@ function Debts(): JSX.Element {
           isReset={isReset}
           setIsReset={setIsReset}
           transactionDateProps={transactionDateProps}
+          accountNotice={
+            debtorEmptyCase && (
+              <EmptyListNotice
+               kind='debtor'
+               action='record a debt movement'
+               emptyCase={debtorEmptyCase}
+               linkShownElsewhere={isDebtorLinkDeferred}
+              />
+            )
+          }
         />
 
         <CardSeparator />
@@ -560,18 +630,30 @@ function Debts(): JSX.Element {
             />
           </div>
 
+          {/* Silent while the notice stands in for the dropdown below: that
+              notice is this field's message. */}
           <div className='validation__errMsg'>
-            {showValidation.account && validationMessages['account']}
+            {!accountEmptyCase &&
+              showValidation.account &&
+              validationMessages['account']}
           </div>
 
-          <DropDownSelection
-            dropDownOptions={accountOptionsToRender}
-            updateOptionHandler={accountSelectHandler}
-            isReset={isReset}
-            setIsReset={setIsReset}
-            setIsResetDropdown={setIsResetAccount}
-            isResetDropdown={isResetAccount}
-          />
+          {accountEmptyCase ? (
+            <EmptyListNotice
+             kind='bank'
+             action='record a debt movement'
+             emptyCase={accountEmptyCase}
+            />
+          ) : (
+            <DropDownSelection
+              dropDownOptions={accountOptionsToRender}
+              updateOptionHandler={accountSelectHandler}
+              isReset={isReset}
+              setIsReset={setIsReset}
+              setIsResetDropdown={setIsResetAccount}
+              isResetDropdown={isResetAccount}
+            />
+          )}
 
           <CardNoteSave
             title={'note'}
@@ -579,7 +661,15 @@ function Debts(): JSX.Element {
             dataHandler={updateTrackerData}
             inputNote={datatrack.note}
             onSaveHandler={onSaveHandler}
-            isDisabled={isLoading || isLoadingAccounts || isLoadingDebtors}
+            // A notice stands where a dropdown would be, so there is nothing to
+            // select and nothing the button could submit.
+            isDisabled={
+              isLoading ||
+              isLoadingAccounts ||
+              isLoadingDebtors ||
+              !!accountEmptyCase ||
+              !!debtorEmptyCase
+            }
             showError={showValidation.note}
           />
         </div>

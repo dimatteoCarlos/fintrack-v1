@@ -79,3 +79,16 @@ export const POCKET_LEVELS = Object.freeze([
  'atRisk',
  'overdue',
 ]);
+
+// The word each level prints as, the same the board uses
+// (frontend helpers/pocketStatus.ts POCKET_STATUS_WORD), so a file and the
+// screen never name one level two ways.
+export const POCKET_LEVEL_WORD = Object.freeze({
+ completed: 'Completed',
+ aboveTarget: 'Over target',
+ ahead: 'Ahead',
+ onTrack: 'On track',
+ behind: 'Behind',
+ atRisk: 'At risk',
+ overdue: 'Overdue',
+});

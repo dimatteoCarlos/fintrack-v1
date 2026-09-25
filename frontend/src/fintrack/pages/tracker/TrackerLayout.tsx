@@ -10,6 +10,7 @@ import CoinSpinner from '../../loader/coin/CoinSpinner.tsx';
 import { MessageToUser } from '../../general_components/messageToUser/MessageToUser.tsx';
 import { useEffect, useState } from 'react';
 import useBalanceStore from '../../stores/useBalanceStore.ts';
+import { MESSAGE_DURATION } from './trackerMessages.ts';
 
 import './styles/tracker-style.css';
 
@@ -43,10 +44,12 @@ function TrackerLayout() {
 
       timer = setTimeout(() => {
         setMessageToUser(null);
-      }, 3000);
+      }, MESSAGE_DURATION.confirmation);
     } else if (error) {
+      // No timer: the balance failed to load and the figure on screen is wrong
+      // until the next fetch answers. It cleared after 4 seconds before, which
+      // hid the reason the header was showing nothing.
       setMessageToUser(error);
-      timer = setTimeout(() => setMessageToUser(null), 4000);
     }
     return () => {
       if (timer) clearTimeout(timer);

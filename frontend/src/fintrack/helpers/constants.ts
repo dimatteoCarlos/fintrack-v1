@@ -32,7 +32,8 @@ const configuredBackdatingWindow = Number.parseInt(
 export const BACKDATING_WINDOW_MONTHS =
   Number.isInteger(configuredBackdatingWindow) && configuredBackdatingWindow >= 1
     ? configuredBackdatingWindow
-    : 2;
+    : 6;
+//==================================
 
 export const DATE_TIME_FORMAT_DEFAULT = 'es-ES';
 

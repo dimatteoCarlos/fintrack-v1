@@ -4,6 +4,7 @@
 
 import PDFDocument from 'pdfkit';
 import { KNOWN_LIMITS } from '../knownLimits.js';
+import { POCKET_LEVEL_WORD } from '../../../fintrack_api/services/pocket_services/core/pocketLevel.js';
 
 // The 8 paths of frontend/src/assets/logo.svg (viewBox 0 0 104 24).
 const LOGO_VIEWBOX_HEIGHT = 24;
@@ -44,10 +45,6 @@ const PALETTE = {
  pillPositiveBorder: '#66cc66',
  pillPositiveSurface: '#eeffee',
  categoryOne: '#e69f00',
- pocket1: '#3f6b93',
- pocket2: '#b8763a',
- pocket3: '#6f5aa3',
- pocket4: '#3f8a8c',
  executionOk: '#4a6b8a',
  executionNear: '#8a6220',
  executionOver: '#a33636',
@@ -65,10 +62,8 @@ const PALETTE = {
 // Execution ratio from which a category counts as near its budget limit.
 const BUDGET_NEAR_LIMIT_PERCENT = 0.75;
 
-const POCKET_COLORS = [PALETTE.pocket1, PALETTE.pocket2, PALETTE.pocket3, PALETTE.pocket4];
-
-// The categorical scale of tokens.css: eight hues chosen for colour-blind readers.
-// Past the eighth they cycle, so the legend beside the ring is mandatory.
+// Categorical scale copied from tokens.css because pdfkit reads no CSS variable. Eight colour-blind-safe hues;
+// they cycle past the eighth, so the legend beside the ring is always required.
 const SOURCE_COLORS = [
  '#e69f00',
  '#56b4e9',
@@ -80,18 +75,8 @@ const SOURCE_COLORS = [
  '#bdb1b1',
 ];
 
-const POCKET_LEVEL_LABELS = {
- onTrack: 'On track',
- behind: 'Behind',
- atRisk: 'At risk',
- overdue: 'Overdue',
- ahead: 'Ahead',
- completed: 'Completed',
- aboveTarget: 'Above target',
-};
-
-// One colour per level, all seven pocketLevel.js can emit, so a met goal and a
-// goal still running do not print alike.
+// One ink per level, all seven the board can emit (pocketLevel.js:139-147).
+// The three good readings get their own colours so a met goal and a running goal do not print alike.
 const POCKET_LEVEL_COLORS = {
  completed: PALETTE.statusComplete,
  aboveTarget: PALETTE.info,
@@ -214,24 +199,33 @@ const dashCell = (footnotes, text) => {
 
 const rowByMetric = (rows, metric) => rows.find((row) => row.metric === metric) ?? { month: null, yearToDate: null };
 
-// Shared by every table in the document: one header band, a hairline rule per row
-// and a strong rule above a total row.
-function drawTable(doc, { x, y, width, columns, rows, compact = false }) {
+// Table primitive shared by every table in the document: one header band,
+// one hairline rule per row and one strong rule above a total row.
+function drawTable(doc, { x, y, width, columns, rows, compact = false, roomFor = null }) {
  const rowH = compact ? 11.5 : 13.5;
  const headerH = 14;
  const bodyFontSize = compact ? 6.5 : 7.5;
  const headerFontSize = compact ? 6.5 : 7;
 
- doc.rect(x, y, width, headerH).fill(PALETTE.info);
- let cx = x;
- doc.font('Helvetica-Bold').fontSize(headerFontSize).fillColor(PALETTE.onDark);
- columns.forEach((col) => {
-  doc.text(col.label, cx + 4, y + 4, { width: col.width - 8, align: col.align ?? 'left' });
-  cx += col.width;
- });
+ // With roomFor the table paginates: a row that would cross the margin opens a
+ // new page and the header is drawn again there. Fixed-size tables omit it.
+ const drawHeader = (top) => {
+  doc.rect(x, top, width, headerH).fill(PALETTE.info);
+  let cx = x;
+  doc.font('Helvetica-Bold').fontSize(headerFontSize).fillColor(PALETTE.onDark);
+  columns.forEach((col) => {
+   doc.text(col.label, cx + 4, top + 4, { width: col.width - 8, align: col.align ?? 'left' });
+   cx += col.width;
+  });
+  return top + headerH;
+ };
 
- let cy = y + headerH;
+ let cy = drawHeader(y);
  rows.forEach((row) => {
+  if (roomFor) {
+   const top = roomFor(cy, rowH + 3);
+   if (top !== cy) cy = drawHeader(top);
+  }
   if (row.variant === 'group') cy += 3;
 
   if (row.variant === 'total') {
@@ -726,30 +720,85 @@ function drawParetoChart(doc, { x, y, width, height, rows }) {
  return y + height + 4;
 }
 
-function drawPocketBars(doc, { x, y, width, pockets }) {
+// Section 13's per-pocket committed-of-target bars (mockup:3009-3030).
+function drawPocketBars(doc, { x, y, width, pockets, roomFor }) {
  const rowH = 18;
  const labelW = 96;
  const shareW = 44;
  const trackX = x + labelW;
  const trackW = width - labelW - shareW;
 
- pockets.forEach((pocket, i) => {
-  const ry = y + i * rowH;
-  doc.font('Helvetica').fontSize(8).fillColor(PALETTE.ink).text(pocket.name, x, ry + 4, { width: labelW - 4 });
+ let ry = y;
+ pockets.forEach((pocket) => {
+  ry = roomFor(ry, rowH);
+  // Cut to one line: a wrapped name ran into the label of the bar below.
+  doc.font('Helvetica').fontSize(8).fillColor(PALETTE.ink);
+  doc.text(clipToWidth(doc, pocket.name, labelW - 4), x, ry + 4, { width: labelW - 4, lineBreak: false });
   doc.rect(trackX, ry + 4, trackW, 8).fill(PALETTE.disabled);
   const ratio = pocket.target ? Math.min(1, pocket.allocated / pocket.target) : 0;
   doc.rect(trackX, ry + 4, trackW * ratio, 8).fill(POCKET_LEVEL_COLORS[pocket.level] ?? PALETTE.executionOk);
   doc.font('Helvetica').fontSize(7.5).fillColor(PALETTE.secondary)
    .text(pocket.target ? fmtRate(pocket.allocated / pocket.target) : '—', trackX + trackW + 4, ry + 4, { width: shareW - 4, align: 'right' });
+  ry += rowH;
  });
 
- return y + pockets.length * rowH;
+ return ry;
 }
 
-// Target-share donut: the colours identify pockets, not status.
+// Section 12's variance ranking, the board's Plan variance screen on paper: one
+// bar per pocket with a plan window, out from a zero axis, over to the right and
+// short to the left, the largest gap first and ties by name. No bar at zero.
+function drawPocketVariance(doc, { x, y, width, pockets, roomFor }) {
+ const rowH = 14;
+ const labelW = 150;
+ const amountW = 60;
+ const trackX = x + labelW;
+ const trackW = width - labelW - amountW;
+ const axisX = trackX + trackW / 2;
+ const rows = pockets
+  .filter((p) => p.aheadAtClose !== null && p.aheadAtClose !== undefined)
+  .sort((a, b) => Math.abs(b.aheadAtClose) - Math.abs(a.aheadAtClose) || a.name.localeCompare(b.name));
+ // Half the track is the widest gap, so every bar is read on one scale.
+ const widest = Math.max(0, ...rows.map((p) => Math.abs(p.aheadAtClose)));
+
+ let ry = y;
+ rows.forEach((pocket) => {
+  ry = roomFor(ry, rowH);
+  const mark = pocket.uncovered ? ' · Uncovered' : '';
+  doc.font('Helvetica').fontSize(7.5).fillColor(PALETTE.ink);
+  doc.text(`${clipToWidth(doc, pocket.name, labelW - 8 - doc.widthOfString(mark))}${mark}`, x, ry + 3, { width: labelW - 4, lineBreak: false });
+  doc.moveTo(axisX, ry).lineTo(axisX, ry + rowH).strokeColor(PALETTE.secondary).lineWidth(0.5).stroke();
+  const barW = widest === 0 ? 0 : (Math.abs(pocket.aheadAtClose) / widest) * (trackW / 2 - 2);
+  if (barW > 0) {
+   const short = pocket.aheadAtClose < 0;
+   doc.rect(short ? axisX - barW : axisX, ry + 3.5, barW, 7).fill(short ? PALETTE.executionOver : PALETTE.info);
+  }
+  doc.font('Helvetica').fontSize(7.5).fillColor(PALETTE.ink)
+   .text(fmtNumber(pocket.aheadAtClose, { signed: true }), trackX + trackW, ry + 3, { width: amountW, align: 'right', lineBreak: false });
+  ry += rowH;
+ });
+
+ return ry;
+}
+
+// Target-share donut: pocket identities, not status. Same fold as the income ring: seven largest
+// targets by name, the rest as one part, so no two arcs share a hue and the legend fits.
 function drawPocketTargetDonut(doc, { x, y, width, pockets }) {
- const withTarget = pockets.filter((p) => p.target);
+ const withTarget = pockets.filter((p) => p.target).sort((a, b) => b.target - a.target);
  const totalTarget = withTarget.reduce((sum, p) => sum + p.target, 0);
+ const tail = withTarget.slice(SOURCE_PARTS);
+ const parts = withTarget.slice(0, SOURCE_PARTS).map((pocket, i) => ({
+  label: pocket.name,
+  target: pocket.target,
+  color: SOURCE_COLORS[i],
+ }));
+ if (tail.length > 0) {
+  parts.push({
+   label: `Others · ${tail.length} pocket${tail.length === 1 ? '' : 's'}`,
+   target: tail.reduce((sum, p) => sum + p.target, 0),
+   color: SOURCE_COLORS[SOURCE_COLORS.length - 1],
+  });
+ }
  const cx = x + 54;
  const cy = y + 58;
  const outerR = 44;
@@ -758,19 +807,20 @@ function drawPocketTargetDonut(doc, { x, y, width, pockets }) {
  doc.circle(cx, cy, outerR).fill(PALETTE.disabled);
  doc.circle(cx, cy, innerR).fill('#ffffff');
  let start = 0;
- withTarget.forEach((pocket, i) => {
-  const frac = totalTarget ? pocket.target / totalTarget : 0;
-  drawRingArc(doc, cx, cy, outerR, innerR, start, start + frac, POCKET_COLORS[i % POCKET_COLORS.length]);
+ parts.forEach((part) => {
+  const frac = totalTarget ? part.target / totalTarget : 0;
+  drawRingArc(doc, cx, cy, outerR, innerR, start, start + frac, part.color);
   start += frac;
  });
  doc.font('Helvetica-Bold').fontSize(11).fillColor(PALETTE.ink).text(fmtNumber(totalTarget), cx - 40, cy - 8, { width: 80, align: 'center' });
  doc.font('Helvetica').fontSize(6.5).fillColor(PALETTE.secondary).text('total target', cx - 40, cy + 6, { width: 80, align: 'center' });
 
  let legendY = y + 10;
- withTarget.forEach((pocket, i) => {
-  doc.rect(x + 118, legendY, 7, 7).fill(POCKET_COLORS[i % POCKET_COLORS.length]);
-  doc.font('Helvetica').fontSize(7).fillColor(PALETTE.ink)
-   .text(`${pocket.name} ${fmtRate(totalTarget ? pocket.target / totalTarget : 0)}`, x + 129, legendY, { width: width - 129 });
+ parts.forEach((part) => {
+  const share = ` ${fmtRate(totalTarget ? part.target / totalTarget : 0)}`;
+  doc.rect(x + 118, legendY, 7, 7).fill(part.color);
+  doc.font('Helvetica').fontSize(7).fillColor(PALETTE.ink);
+  doc.text(`${clipToWidth(doc, part.label, width - 129 - doc.widthOfString(share))}${share}`, x + 129, legendY, { width: width - 129, lineBreak: false });
   legendY += 13;
  });
 
@@ -906,6 +956,16 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   return pageHeader(doc, { periodLabel, section, isFirst, generatedLabel, timeZone, yearToDateRangeLabel });
  };
 
+ // An empty section keeps its number and title and says why, so a skipped
+ // number never reads as something left out. A new page only if it cannot fit.
+ const drawNotApplicable = (top, title, reason, section) => {
+  const room = top + 30 > doc.page.height - doc.page.margins.bottom ? startPage(section) : top;
+  return drawNote(doc, M, drawSectionHeading(doc, M, room, CW, title), CW, `Not applicable: ${reason}`);
+ };
+
+ // =====================================================================
+ // Page 1 — summary
+ // =====================================================================
  let y = startPage('Summary', true);
 
  const tiles = [
@@ -1000,7 +1060,7 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   ],
   rows: [
    { cells: ['Cash position', fmtNumber(cashRow.month), fmtNumber(cashRow.yearToDate, { signed: true })], mutedCols: [2], variant: 'strong' },
-   { cells: ['Committed in pockets', fmtNumber(pocketsRow.month), fmtNumber(pocketsRow.yearToDate, { signed: true })], mutedCols: [1, 2], variant: 'detail' },
+   { cells: ['Allocated to pockets', fmtNumber(pocketsRow.month), fmtNumber(pocketsRow.yearToDate, { signed: true })], mutedCols: [1, 2], variant: 'detail' },
    { cells: ['Free cash', fmtNumber(freeCashRow.month), fmtNumber(freeCashRow.yearToDate, { signed: true })], mutedCols: [1, 2], variant: 'detail' },
    { cells: ['Investments (ledger balance)', fmtNumber(investRow.month), fmtNumber(investRow.yearToDate, { signed: true })], mutedCols: [2] },
    { cells: ['Owed to you', fmtNumber(receivableRow.month), fmtNumber(receivableRow.yearToDate, { signed: true })], mutedCols: [2] },
@@ -1014,7 +1074,7 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
    { cells: ['Net worth', fmtNumber(netWorthRow.month), fmtNumber(netWorthRow.yearToDate, { signed: true })], mutedCols: [2], variant: 'total' },
   ],
  });
- y = drawNote(doc, M, y + 3, CW, 'Committed in pockets and free cash are details of the cash position; pockets are never added to assets.', { italic: true });
+ y = drawNote(doc, M, y + 3, CW, 'Allocated to pockets and free cash are details of the cash position; pockets are never added to assets.', { italic: true });
 
  // Per-account balances sit under the section 2 aggregates they detail and read the
  // same figures one account at a time.
@@ -1071,7 +1131,9 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   individualMonths.length > 1
    ? `${individualMonths[0].label} to ${individualMonths[individualMonths.length - 1].label} ${referenceMonth.slice(0, 4)}, income and expenses as bars, net flow as a line, USD`
    : 'income and expenses as bars, net flow as a line, USD';
- // Blocks are numbered 1 to 14; a block with no data this period is omitted with its number.
+ // ONE NUMBER PER BLOCK, running 1 to 14, and 11.1 onward inside a section of
+ // several titled blocks. A block with no data this period keeps its number and
+ // states why it is empty.
  y = drawSectionHeading(doc, M, y, CW, '4. Net flow by month', chartRangeLabel);
  const chartHeight = (CW * 226) / 704;
  y = drawSeriesChart(doc, { x: M, y, width: CW, height: Math.min(chartHeight, 160), months: individualMonths, mode: 'flow' });
@@ -1115,6 +1177,13 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
  if (incomeBySource.length > 1) {
   y = drawSectionHeading(doc, M, y + 8, CW, '5. Income by source', `where the income of ${periodLabel} came from, USD`);
   y = drawIncomeSourceDonut(doc, { x: M, y, width: CW, sources: incomeBySource });
+ } else {
+  y = drawNotApplicable(
+   y + 8,
+   '5. Income by source',
+   incomeBySource.length === 1 ? `all of this month's income came from ${sourceName(incomeBySource[0])}.` : 'no income this month.',
+   'Cash flow',
+  );
  }
 
  y = drawSectionHeading(doc, M, y + 8, CW, '6. Expenses by category', `${periodLabel}, USD`);
@@ -1194,6 +1263,8 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
     `80% of this month's categorized spending is reached at rank ${crossingRank} of ${subcategories.length}, past the rows listed above.`,
    );
   }
+ } else {
+  y = drawNotApplicable(y + 12, '7. Expenses by subcategory', 'no categorized expense this month.', 'Expenses by subcategory');
  }
 
  y = startPage('Category detail');
@@ -1319,24 +1390,26 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
    { label: `${closeLabel} (USD)`, width: 90, align: 'right' },
   ],
   rows: [
-   { cells: ['Saved', fmtNumber(financialGoals.goalsTotalBalance ?? 0)] },
+   { cells: ['Allocated', fmtNumber(financialGoals.goalsTotalBalance ?? 0)] },
    { cells: ['Target', fmtNumber(financialGoals.goalsTotalTarget ?? 0)] },
    { cells: ['Remaining', fmtNumber(financialGoals.goalsTotalRemaining ?? 0)] },
   ],
  });
- y = drawNote(doc, M, y + 3, CW, "Saved is the total across every pocket and equals committed in pockets.");
+ y = drawNote(doc, M, y + 3, CW, "Allocated is the total across every pocket and equals section 2's allocated-to-pockets line.");
 
 
  const byCounterparty = debtAnalysis?.byCounterparty ?? [];
- // No debtor or lender account this period: the section would be a heading over an
- // empty table repeating the zero section 3 already reports for the Debtors group.
+ // No debtor or lender account exists this period: the heading and why, never
+ // a heading over an empty table.
  if (byCounterparty.length > 0) {
   y = startPage('Debts by counterparty');
   y = drawSectionHeading(doc, M, y, CW, '11. Debts by counterparty', `${closeLabel}, USD; ranked by balance, receivable then payable`);
   const receivableTotal = byCounterparty.filter((r) => r.direction === 'receivable').reduce((s, r) => s + r.balance, 0);
   const payableTotal = byCounterparty.filter((r) => r.direction === 'payable').reduce((s, r) => s + Math.abs(r.balance), 0);
-  // Same prior-balance lookup as section 3's change column: an account with no prior
-  // balance reads "opened this year", covered by known limit 1 rather than a footnote.
+  // Account-keyed prior balance, as in the per-account change column of section 3: a closed account
+  // has no prior close and reads "opened this year".
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('11.1 Balance by counterparty', M, y);
+  y = doc.y + 3;
   y = drawTable(doc, {
    x: M,
    y,
@@ -1376,13 +1449,13 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   const youOwe = byCounterparty.filter((r) => r.direction === 'payable');
   const splitTop2 = y + 8;
   const half = (CW - 20) / 2;
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Who owes you', M, splitTop2);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('11.2 Who owes you', M, splitTop2);
   let leftY2 = doc.y + 3;
   owesYou.forEach((row) => {
    doc.font('Helvetica').fontSize(7).fillColor(PALETTE.success).text(`${row.accountName} · ${fmtNumber(row.balance)}`, M, leftY2, { width: half });
    leftY2 = doc.y + 2;
   });
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Who you owe', M + half + 20, splitTop2);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('11.3 Who you owe', M + half + 20, splitTop2);
   let rightY2 = doc.y + 3;
   youOwe.forEach((row) => {
    doc.font('Helvetica').fontSize(7).fillColor(PALETTE.error).text(`${row.accountName} · ${fmtNumber(Math.abs(row.balance))}`, M + half + 20, rightY2, { width: half });
@@ -1390,6 +1463,8 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   });
   y = Math.max(leftY2, rightY2) + 8;
 
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('11.4 Net debt position', M, y);
+  y = doc.y + 3;
   y = drawTable(doc, {
    x: M,
    y,
@@ -1408,12 +1483,14 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   y = drawNote(doc, M, y + 3, CW, `Matches section 3's Debtors group: ${fmtNumber(receivableRow.month)} owed to you, ${fmtNumber(payableRow.month)} you owe, net ${fmtNumber(netDebtRow.month)}.`);
 
   const legs = debtAnalysis?.legsOverTime ?? [];
-  if (legs.length) {
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink)
+   .text('11.5 Receivable and payable balances by month, USD', M, y + 6);
+  y = doc.y + 3;
+  if (legs.length === 0) {
+   y = drawNote(doc, M, y, CW, 'Not applicable: no debt balance closed a month this year.');
+  } else {
    const legMonths = legs.map((p) => ({ label: fmtMonthShort(`${p.month}-01`), receivable: p.receivable, payable: p.payable }));
    const debtChartHeight = Math.min((CW * 226) / 704, 130);
-   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink)
-    .text('Receivable and payable balances by month, USD', M, y + 6);
-   y = doc.y + 3;
    y = drawSeriesChart(doc, { x: M, y, width: CW, height: debtChartHeight, months: legMonths, mode: 'debt' });
    // Fixed label column plus an even split of the rest, as in the monthly breakdown
    // table: a fixed 60pt per month goes negative past ~8 months and pdfkit then stacks
@@ -1435,21 +1512,72 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
     ],
    });
   }
+ } else {
+  y = drawNotApplicable(y + 8, '11. Debts by counterparty', 'no debtor or lender account at month close.', 'Debts by counterparty');
  }
 
  const pockets = pocketBoard?.pockets ?? [];
- // Without pockets both pocket pages would be empty, so they are skipped.
+ // No pocket exists this period: sections 12 and 13 state it on the page
+ // already open instead of taking two pages each.
  if (pockets.length > 0) {
   y = startPage('Pockets status');
-  y = drawSectionHeading(doc, M, y, CW, '12. Pockets status', `${closeLabel}, USD; a remaining in parentheses is an over-funded pocket`);
-  // Each drawing states what its percentage measures: the bars use the pocket's own
-  // target, the ring the sum of all targets; unlabelled they read as one figure twice.
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Committed of target, pocket by pocket', M, y);
-  y = doc.y + 3;
-  y = drawPocketBars(doc, { x: M, y, width: CW, pockets });
-  y = drawNote(doc, M, y + 4, CW, 'The percentage is that pocket\'s committed money over its own target. The filled portion is committed; the light track is the remainder of target. Colour repeats the Status column and is never the only cue.');
+  y = drawSectionHeading(doc, M, y, CW, '12. Pockets status', `${closeLabel}, USD; in parentheses: a remaining over target, a variance short of the plan`);
 
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Share of all targets, pocket by pocket', M, y + 4);
+  // Sections 12 and 13 grow with the pocket count, so each block asks for its
+  // height first and moves to a new page when it would cross the margin.
+  const pocketRoom = (top, height) =>
+   top + height > doc.page.height - doc.page.margins.bottom ? startPage('Pockets status') : top;
+
+  // The board's hero line: required by this close, allocated, signed gap and ratio. Only pockets
+  // with a plan window count, as on the board; with none the line says so.
+  const summary = pocketBoard?.summary ?? null;
+  if (summary) {
+   const gap = summary.totalGapAtClose;
+   const nothingDue = summary.totalScheduledByClose === 0;
+   const gapSide = nothingDue || gap === null || gap === 0 ? '' : gap < 0 ? ' short' : ' over';
+   doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('12.1 Against the plans at month close', M, y);
+   doc.font('Helvetica').fontSize(7.5).fillColor(PALETTE.ink).text(
+    summary.scheduledPocketCount === 0
+     ? 'No pocket has a plan window, so nothing is required to measure against.'
+     : [
+       `Required ${fmtNumber(summary.totalScheduledByClose) ?? '—'}`,
+       `Allocated ${fmtNumber(summary.scheduledPocketsAllocated) ?? '—'}`,
+       `Variance ${fmtNumber(gap, { signed: true }) ?? '—'}${gapSide}`,
+       `Plan progress ${nothingDue ? 'nothing required yet' : fmtPercentValue(summary.adherenceAtClose) ?? '—'}`,
+       `${summary.scheduledPocketCount} of ${summary.pocketCount} pockets with a plan`,
+      ].join(' · '),
+    M,
+    doc.y + 2,
+    { width: CW },
+   );
+   y = doc.y + 8;
+  }
+
+  // The Variance above, pocket by pocket. A pocket with no plan window has
+  // none, and with no plan window anywhere the block says so.
+  const hasVariance = pockets.some((p) => p.aheadAtClose !== null && p.aheadAtClose !== undefined);
+  y = pocketRoom(y, 32);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('12.2 Variance at month close, pocket by pocket', M, y);
+  y = doc.y + 3;
+  if (!hasVariance) {
+   y = drawNote(doc, M, y, CW, 'Not applicable: no pocket has a plan window.') + 4;
+  } else {
+   y = drawPocketVariance(doc, { x: M, y, width: CW, pockets, roomFor: pocketRoom });
+   y = drawNote(doc, M, pocketRoom(y + 4, 20), CW, 'Allocated minus what the plan requires by month close, largest gap first: a bar to the right is over the plan, to the left short of it. A pocket with no plan window has no variance and is not drawn.');
+   y += 4;
+  }
+
+  // Each drawing labels its percentage: bars are allocated over the pocket's own target, the ring is
+  // the pocket's target over all targets. Unlabelled, the two denominators read as one figure.
+  y = pocketRoom(y, 32);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('12.3 Allocated of target, pocket by pocket', M, y);
+  y = doc.y + 3;
+  y = drawPocketBars(doc, { x: M, y, width: CW, pockets, roomFor: pocketRoom });
+  y = drawNote(doc, M, pocketRoom(y + 4, 20), CW, 'The percentage is that pocket\'s allocated money over its own target. The filled portion is allocated; the light track is the remainder of target. Colour repeats the Status column and is never the only cue.');
+
+  // The label, the ring's fixed 118pt and its note move together.
+  y = pocketRoom(y + 4, 150);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('12.4 Share of all targets, pocket by pocket', M, y);
   y = doc.y + 3;
   y = drawPocketTargetDonut(doc, { x: M, y, width: CW, pockets });
   y = drawNote(doc, M, y, CW, 'The percentage here is that pocket\'s target over the sum of every target, which is how the goals divide up, not how far along any of them is.');
@@ -1458,16 +1586,31 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
   const totalTarget = pockets.reduce((s, p) => s + (p.target ?? 0), 0);
   const totalAllocated = pockets.reduce((s, p) => s + (p.allocated ?? 0), 0);
   const totalRemaining = pockets.reduce((s, p) => s + (p.remaining ?? 0), 0);
+  const totalVariance = pockets.reduce((s, p) => s + (p.aheadAtClose ?? 0), 0);
+  // One line per row: the name is cut so the Uncovered mark still fits beside
+  // it, in the font drawTable sets on a body row.
+  const pocketColW = CW - 4 * 58 - 74 - 60;
+  const pocketCell = (pocket) => {
+   doc.font('Helvetica').fontSize(7.5);
+   const mark = pocket.uncovered ? ' · Uncovered' : '';
+   return `${clipToWidth(doc, pocket.name, pocketColW - 8 - doc.widthOfString(mark))}${mark}`;
+  };
+  // The label, the header and two rows at least, so none of them ends a page alone.
+  y = pocketRoom(y, 53);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('12.5 Status, pocket by pocket', M, y);
+  y = doc.y + 3;
   y = drawTable(doc, {
    x: M,
    y,
    width: CW,
+   roomFor: pocketRoom,
    columns: [
-    { label: 'Pocket', width: CW - 4 * 70 - 60 },
-    { label: 'Target (USD)', width: 70, align: 'right' },
-    { label: 'Committed (USD)', width: 70, align: 'right' },
-    { label: 'Committed YTD', width: 70, align: 'right' },
-    { label: 'Remaining (USD)', width: 70, align: 'right' },
+    { label: 'Pocket', width: pocketColW },
+    { label: 'Target', width: 58, align: 'right' },
+    { label: 'Allocated', width: 58, align: 'right' },
+    { label: 'Net committed YTD', width: 74, align: 'right' },
+    { label: 'Remaining', width: 58, align: 'right' },
+    { label: 'Variance', width: 58, align: 'right' },
     { label: 'Status', width: 60 },
    ],
    rows: [
@@ -1476,38 +1619,42 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
      const ytdCell = prior === undefined ? 'opened this year' : fmtNumber(pocket.allocated - prior, { signed: true });
      return {
       cells: [
-       pocket.name,
+       pocketCell(pocket),
        pocket.target === null || pocket.target === undefined ? '—' : fmtNumber(pocket.target),
        fmtNumber(pocket.allocated ?? 0),
        ytdCell,
        fmtNumber(pocket.remaining ?? 0),
-       POCKET_LEVEL_LABELS[pocket.level] ?? pocket.level,
+       pocket.aheadAtClose === null || pocket.aheadAtClose === undefined ? '—' : fmtNumber(pocket.aheadAtClose, { signed: true }),
+       POCKET_LEVEL_WORD[pocket.level] ?? pocket.level,
       ],
       mutedCols: [3],
-      // Column 5 (Status) is drawn as a coloured pill.
-      badges: { 5: POCKET_LEVEL_COLORS[pocket.level] ?? PALETTE.executionOk },
+      // The Status word on its own pill, the mockup's own drawing of it.
+      badges: { 6: POCKET_LEVEL_COLORS[pocket.level] ?? PALETTE.executionOk },
      };
     }),
     {
-     cells: ['Total', fmtNumber(totalTarget), fmtNumber(totalAllocated), '', fmtNumber(totalRemaining), ''],
+     cells: ['Total', fmtNumber(totalTarget), fmtNumber(totalAllocated), '', fmtNumber(totalRemaining), hasVariance ? fmtNumber(totalVariance, { signed: true }) : '', ''],
      variant: 'total',
     },
    ],
   });
-  y = drawNote(doc, M, y + 3, CW, `${pocketBoard?.summary?.fundedCount ?? 0} funded · ${pocketBoard?.summary?.overdueCount ?? 0} overdue`);
+  const levels = summary?.levelCounts ?? {};
+  const targetReached = (levels.completed ?? 0) + (levels.aboveTarget ?? 0);
+  const inProgress = ['ahead', 'onTrack', 'behind', 'atRisk', 'overdue'].reduce((s, level) => s + (levels[level] ?? 0), 0);
+  y = drawNote(doc, M, pocketRoom(y + 3, 36), CW, `Target reached ${targetReached} · In progress ${inProgress} · Uncovered ${summary?.uncoveredCount ?? 0}`);
   drawNote(
    doc,
    M,
    y,
    CW,
-   "Funded is committed at or above target; overdue is a passed date with the target unmet. The board's third count, pockets whose source account no longer covers what is committed to it, is not reported here.",
+   'Target reached is allocated at or above target. Variance is allocated minus what the plan requires by month close; a pocket with no plan window has none. Uncovered draws on funds that fall short of total commitments.',
    { italic: true },
   );
 
   y = startPage('Pockets status');
-  y = drawSectionHeading(doc, M, y, CW, '13. Pockets status', 'funding accounts, USD');
+  y = drawSectionHeading(doc, M, y, CW, '13. Pockets status', 'funding accounts and timing, USD');
 
-  y = drawNote(doc, M, y, CW, "Committed is a point-in-time balance at month close, the same convention section 3 uses for account balances - not a monthly movement.");
+  y = drawNote(doc, M, y, CW, "Allocated is a point-in-time balance at month close, the same convention section 3 uses for account balances - not a monthly movement.");
 
   const fundingRows = [];
   let totalCommitted = 0;
@@ -1526,27 +1673,32 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
     });
    });
   });
-  fundingRows.push({ cells: ['Total committed', fmtNumber(totalCommitted), ''], variant: 'total' });
+  fundingRows.push({ cells: ['Total allocated', fmtNumber(totalCommitted), ''], variant: 'total' });
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('13.1 Funding accounts, pocket by pocket', M, y + 4);
+  y = doc.y + 3;
   y = drawTable(doc, {
    x: M,
    y,
    width: CW,
+   roomFor: pocketRoom,
    columns: [
     { label: 'Pocket / account', width: CW - 200 },
-    { label: 'Committed (USD)', width: 100, align: 'right' },
+    { label: 'Allocated (USD)', width: 100, align: 'right' },
     { label: '% of target', width: 100, align: 'right' },
    ],
    rows: fundingRows,
   });
-  y = drawNote(doc, M, y + 3, CW, "Each pocket's own committed figure is the sum of the accounts that fund it; the total matches section 2's committed-in-pockets line.");
+  y = drawNote(doc, M, pocketRoom(y + 3, 14), CW, "Each pocket's own allocated figure is the sum of the accounts that fund it; the total matches section 2's allocated-to-pockets line.");
 
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Timing and required monthly', M, y + 4);
+  y = pocketRoom(y + 4, 50);
+  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('13.2 Timing and required monthly', M, y);
   y = doc.y + 3;
   y = drawTable(doc, {
    x: M,
    y,
    width: CW,
    compact: true,
+   roomFor: pocketRoom,
    columns: [
     { label: 'Pocket', width: CW - 3 * 100 },
     { label: 'Desired date', width: 100, align: 'right' },
@@ -1565,18 +1717,23 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
     };
    }),
   });
-  y = drawNote(doc, M, y + 3, CW, 'Required monthly is undefined once the desired date has passed with the target unmet; "Date passed" states that directly rather than showing 0.00 or an unexplained dash.', { italic: true });
+  y = drawNote(doc, M, pocketRoom(y + 3, 20), CW, 'Required monthly is undefined once the desired date has passed with the target unmet; "Date passed" states that directly rather than showing 0.00 or an unexplained dash.', { italic: true });
+ } else {
+  y = drawNotApplicable(y + 8, '12. Pockets status', 'no savings pocket at month close.', 'Pockets status');
+  y = drawNotApplicable(y + 4, '13. Pockets status', 'no savings pocket at month close.', 'Pockets status');
  }
 
- // Drawn last: every footnote mark is raised by a table above, so the list is complete
- // only once all figures exist; a later section could raise a mark no one printed.
- const notesBlockHeight = 40 + footnotes.all().length * 22 + KNOWN_LIMITS.length * 22;
+ // Notes section, drawn last: every mark is raised by a table above it, and a section
+ // drawn after it could raise a mark that never gets printed.
+ const notesBlockHeight = 52 + footnotes.all().length * 22 + KNOWN_LIMITS.length * 22;
  if (y + 12 + notesBlockHeight > doc.page.height - doc.page.margins.bottom) {
   y = startPage('Notes');
  } else {
   y += 12;
  }
  y = drawSectionHeading(doc, M, y, CW, '14. Notes', 'An em dash is unavailable, never zero');
+ doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('14.1 Unavailable figures', M, y);
+ y = doc.y + 3;
  if (footnotes.all().length === 0) {
   doc.font('Helvetica').fontSize(7).fillColor(PALETTE.secondary).text('No unavailable figures this period.', M, y, { width: CW });
   y = doc.y + 6;
@@ -1586,7 +1743,7 @@ function renderDocument(doc, data, { generatedAt, timeZone }) {
    y = doc.y + 3;
   });
  }
- doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('Known limits', M, y + 4);
+ doc.font('Helvetica-Bold').fontSize(7.5).fillColor(PALETTE.ink).text('14.2 Known limits', M, y + 4);
  y = doc.y + 3;
  // Bulleted, not lettered: nothing points at these, and a second lettered list would
  // read as a continuation of the footnotes.

@@ -98,8 +98,13 @@ type PocketPlan = {
  allocated: number;
  // Negative past the target: over-funding, not an error. Shown as an excess.
  remaining: number;
- // The pace card's "Required rate"; null past the deadline or once funded, and then omitted.
+ // Same figure as the pocket detail's pace card "Required rate per month" (computeRequiredMonthly): needed from now.
+ // Null past the deadline or once funded; the item is left off the list rather than shown as a dash.
  requiredMonthly: number | null;
+ // The pace card's "To allocate by month end": the plan's line at this month's
+ // close less what is allocated, 0 when nothing is to add, and that close as
+ // 'YYYY-MM-DD' so the label names the month. Null when the card omits it.
+ monthToAllocate: { amount: number; closeDate: string } | null;
 };
 
 type PocketAllocationModalPropType = {
@@ -356,10 +361,33 @@ function PocketAllocationModal({
       </dd>
      </div>
 
-     {/* Fifth item, spanned full width; same label and figure as the pace card. */}
+      {/* Last row: what this month asks for, then the rate that closes the shortfall on time, labelled as in
+          the pace card. An item alone in the row spans the full width. */}
+     {plan.monthToAllocate !== null && (
+      <div
+       className={`pocketAllocation__planItem${
+        plan.requiredMonthly === null ? ' pocketAllocation__planItem--pace' : ''
+       }`}
+      >
+       {/* The date and not "month end": the modal has no month on screen. */}
+       <dt className='pocketAllocation__planLabel'>
+        To allocate by {formatCalendarDate(plan.monthToAllocate.closeDate)}
+       </dt>
+       <dd className='pocketAllocation__planValue'>
+        {plan.monthToAllocate.amount > 0
+         ? planAmount(plan.monthToAllocate.amount)
+         : 'Nothing to add'}
+       </dd>
+      </div>
+     )}
+
      {plan.requiredMonthly !== null && (
-      <div className='pocketAllocation__planItem pocketAllocation__planItem--pace'>
-       <dt className='pocketAllocation__planLabel'>Required rate</dt>
+      <div
+       className={`pocketAllocation__planItem${
+        plan.monthToAllocate === null ? ' pocketAllocation__planItem--pace' : ''
+       }`}
+      >
+       <dt className='pocketAllocation__planLabel'>Required rate per month</dt>
        <dd className='pocketAllocation__planValue'>
         {planAmount(plan.requiredMonthly)}
        </dd>

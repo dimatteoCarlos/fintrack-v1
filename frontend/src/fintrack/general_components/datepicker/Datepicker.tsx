@@ -69,8 +69,10 @@ function Datepicker({
       selected={date}
       onChange={handleChange}
       showYearDropdown
-      scrollableYearDropdown
-      yearDropdownItemNumber={5}
+      // Native select: the scroll list ignores minDate/maxDate (offered future years on a past-only form),
+      // rendered as an unstyled overlay, and left .react-datepicker__year-select styles unused; select mode
+      // builds its options from exactly those bounds.
+      dropdownMode='select'
 
       placeholderText='DD/MM/YYYY'
       dateFormat={DATE_FORMAT}

@@ -1,6 +1,6 @@
 // One ranked total drawn as a single stacked bar, with the legend that reads it.
 
-import { useId, useState } from 'react';
+import { ReactNode, useId, useState } from 'react';
 import { currencyFormat } from '../../../helpers/functions';
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '../../../helpers/constants';
 import {
@@ -15,9 +15,10 @@ import {
 
 const formatNumberCountry = CURRENCY_OPTIONS[DEFAULT_CURRENCY];
 
-// The Pareto reading's own definition (0.8), so a default rather than a required
-// prop; a caller with a different convention passes its own.
-const CONCENTRATION_MARK = 0.8;
+// Where the Pareto reading is taken. 0.8 is the reading's own definition rather
+// than a preference, so it is a default and not a required prop; a caller with
+// a different convention still passes its own.
+export const CONCENTRATION_MARK = 0.8;
 
 // A ranked row plus the running share only this reading needs. DonutChart.tsx
 // draws the same array, so the row shape and the colour (categoryInk) are shared
@@ -26,6 +27,9 @@ export type ParetoRow = RankedRow & {
  // 0-1, this row plus every row above it: what makes the reading a Pareto and
  // not a ranking. A donut has no use for it.
  cumulativeShare: number;
+ // Drawn after the name when the domain classifies its rows: today each
+ // pocket's status mark and word, as the pocket board shows them.
+ status?: ReactNode;
 };
 
 // Generic: the server returns every ranking (expense, income, investment, debt, pocket) already ranked with
@@ -131,6 +135,8 @@ function ParetoBar({
 
       <span className='paretoBar__name'>{row.label}</span>
 
+      {row.status && <span className='paretoBar__status'>{row.status}</span>}
+
       {row.isFlagged && (
        <span className='paretoBar__flag'>over budget</span>
       )}
@@ -186,6 +192,8 @@ function ParetoBar({
       />
 
       <span className='paretoBar__name'>{row.label}</span>
+
+      {row.status && <span className='paretoBar__status'>{row.status}</span>}
 
       {row.isFlagged && (
        <span className='paretoBar__flag'>over budget</span>

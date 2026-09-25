@@ -58,6 +58,7 @@ function Overview() {
   // the payload is on the wire, since not yet is not empty.
   const domainCards = useOverviewStore((state) => state.domainCards);
   const referenceMonth = useOverviewStore((state) => state.referenceMonth);
+  const currentMonth = useOverviewStore((state) => state.currentMonth);
   const isMonthEmpty =
     domainCards !== null &&
     Object.values(domainCards).every((card) => card.transactionCount === 0);
@@ -183,7 +184,17 @@ function Overview() {
                 null for, so the heading never stands alone. */}
             {domainCards !== null && (
               <div className='presentation__card__title__container flx-row-sb'>
-                <CardTitle subtitle='Flow is measured across the month; position is read at its close'>
+                {/* The running month has not closed, so its position is today's,
+                    the cut Global Financial Goals states for the same figures. */}
+                <CardTitle
+                  subtitle={
+                    referenceMonth !== null &&
+                    currentMonth !== null &&
+                    referenceMonth.slice(0, 7) === currentMonth.slice(0, 7)
+                      ? 'Flow is measured across the month so far; position is read to date'
+                      : 'Flow is measured across the month; position is read at its close'
+                  }
+                >
                   {monthLabel(referenceMonth)}
                 </CardTitle>
               </div>

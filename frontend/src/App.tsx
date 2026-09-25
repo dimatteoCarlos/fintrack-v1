@@ -34,6 +34,9 @@ const BudgetVariance = lazy(
   () => import('./fintrack/pages/budget/BudgetVariance'),
 );
 const Pocket = lazy(() => import('./fintrack/pages/pocket/Pocket'));
+const PocketVariance = lazy(
+  () => import('./fintrack/pages/pocket/PocketVariance'),
+);
 const Debtors = lazy(() => import('./fintrack/pages/debts/Debtors'));
 
 import OverviewLayout from './fintrack/pages/overview/OverviewLayout';
@@ -220,6 +223,16 @@ function App() {
                   element: (
                     <LazyRoute>
                       <Pocket />
+                    </LazyRoute>
+                  ),
+                },
+                // Under PocketLayout, as Budget's variance is under
+                // BudgetLayout: the hero and the month stay above the chart.
+                {
+                  path: 'variance',
+                  element: (
+                    <LazyRoute>
+                      <PocketVariance />
                     </LazyRoute>
                   ),
                 },

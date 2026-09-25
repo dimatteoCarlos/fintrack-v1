@@ -70,9 +70,11 @@ type CategoryBudgetPayloadType = {
   type: 'category_budget';
   currency: CurrencyType;
   budget: number | string;
-  // `date` dates the account row; `transactionActualDate` dates the movement that
-  // opens it, otherwise stamped with the server clock - leaving a backdated
-  // category reporting nothing for the months before its creation.
+  // The opening day travels twice. `date` dates the account row;
+  // `transactionActualDate` dates the movement that opens it, which
+  // accountCategoryCreationcontroller.js:53-56 otherwise stamps with the server
+  // clock — leaving a backdated category reporting nothing for the months
+  // between its starting point and its creation.
   date: Date | string;
   transactionActualDate: string;
   nature: string;

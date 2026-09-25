@@ -177,7 +177,7 @@
    on-light feedback family: two blues on one line, a token apart, would read
    as two different states rather than as one stated twice. */
 .summaryPocket__reading--ok {
- border-left-color: var(--color-status-ok);
+ border-left-color: var(--color-status-complete);
 }
 
 /* The board paints this level with the same token on its cards and its marks,

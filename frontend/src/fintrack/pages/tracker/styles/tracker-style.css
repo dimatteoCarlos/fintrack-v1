@@ -737,6 +737,24 @@ textarea:invalid {
  color: var(--color-feedback-error-content);
 }
 
+/* The empty-list notice is a warning, and text colour alone cannot carry that at --font-size-xs (amber 6.41:1 and
+   grey 6.79:1 on this card). The rule marks the line; the amber falls on the fact only. */
+.categoryStatus--notice {
+ border-left: var(--border-width-thick) solid
+  var(--color-status-warning-on-card);
+ padding-left: var(--space-3);
+}
+
+/* Restates its size for the same reason .categoryStatus__text does: the
+   universal selector in index.css sets 16px, so a nested inline element left to
+   inherit renders a third larger than the sentence it belongs to. */
+.categoryStatus__fact {
+ font-size: var(--font-size-xs);
+ line-height: 1.3;
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-status-warning-on-card);
+}
+
 .categoryStatus__retry {
  min-height: var(--size-control-sm);
  padding: var(--space-1) var(--space-3);
@@ -772,6 +790,44 @@ textarea:invalid {
  pointer-events: none;
 }
 
+/* Outline of .categoryStatus__retry, the other control on this notice, so the two read as one family. Omits the retry
+   min-height on purpose: the row already reserves that height. As an anchor it restates font-size and font-family,
+   since the universal selector in index.css would otherwise size it apart from the sentence beside it. */
+.categoryStatus__link {
+ display: inline-flex;
+ align-items: center;
+ padding: var(--space-1) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-strong);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ line-height: 1.3;
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-primary);
+ text-decoration: none;
+ transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+/* Cream rather than the ink fill of .categoryStatus__retry: a near-black block under the pointer is louder than the
+   action deserves on a light card (14.75:1 under the dark label). */
+.categoryStatus__link:hover {
+ background-color: var(--color-accent);
+ color: var(--color-content-primary);
+}
+
+.categoryStatus__link:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-strong);
+ outline-offset: var(--border-width-thick);
+}
+
+/* The ink fill moves here, so press and hover stay two distinct answers. */
+.categoryStatus__link:active {
+ background-color: var(--color-content-primary);
+ color: var(--color-surface-inverse);
+}
+
 /* aria-hidden in the markup: a screen reader gains nothing from an empty bar. */
 .categoryStatus__skeleton {
  width: 60%;
@@ -796,7 +852,8 @@ textarea:invalid {
   animation: none;
  }
 
- .categoryStatus__retry {
+ .categoryStatus__retry,
+ .categoryStatus__link {
   transition: none;
  }
 }

@@ -63,7 +63,11 @@ type TopCardPropType<TFormDataType extends Record<string, unknown>> = {
   // without it the rate preview would use today's rate while the save uses the chosen day's.
   day?: string;
 
-  // Handler for Transfer's special case.
+  // Rendered in place of the account dropdown: a dropdown with no options can do nothing,
+  // so the sentence explaining why takes its room. Optional; without it the dropdown always shows.
+  accountNotice?: React.ReactNode;
+
+  //--handle special case of Transfer
   customSelectHandler?: (selectedOption: DropdownOptionType | null) => void;
 };
 
@@ -84,6 +88,8 @@ const TopCard = <TFormDataType extends Record<string, unknown>>({
   radioInputProps,
   transactionDateProps,
   day,
+  accountNotice,
+  //-------
   customSelectHandler,
 }: TopCardPropType<TFormDataType>): JSX.Element => {
   const {
@@ -252,19 +258,27 @@ const TopCard = <TFormDataType extends Record<string, unknown>>({
           )}
         </div>
 
+        {/*show validation message for account field  */}
+        {/* Silent under accountNotice: that notice is this field's message, and
+            asking for a selection contradicts a sentence saying there is none. */}
         <span className='validation__errMsg '>
-          {shouldShowError ? errorMessage : ''}
+          {shouldShowError && !accountNotice ? errorMessage : ''}
+          {/* {validationMessages[`${title2.toLowerCase().trim()}`]} */}
         </span>
 
-        <DropDownSelection
-          dropDownOptions={topCardOptions}
-          updateOptionHandler={finalSelectHandler}
-          ariaLabel={accountFieldLabel}
-          isReset={isReset}
-          isResetDropdown={isResetDropdown}
-          setIsReset={setIsReset}
-          setIsResetDropdown={setIsResetDropdown}
-        />
+        {accountNotice ? (
+          accountNotice
+        ) : (
+          <DropDownSelection
+            dropDownOptions={topCardOptions}
+            updateOptionHandler={finalSelectHandler}
+            ariaLabel={accountFieldLabel}
+            isReset={isReset}
+            isResetDropdown={isResetDropdown}
+            setIsReset={setIsReset}
+            setIsResetDropdown={setIsResetDropdown}
+          />
+        )}
       </div>
     </>
   );

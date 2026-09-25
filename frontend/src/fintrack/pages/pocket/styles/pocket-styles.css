@@ -433,8 +433,7 @@ button.line__container {
 }
 
 /* visibility and not display: the rows must keep taking their height. */
-.pocketHero--empty > .pocketHero__equation,
-.pocketHero--empty > .pocketHero__progress {
+.pocketHero--empty > .pocketHero__equation {
  visibility: hidden;
 }
 
@@ -525,11 +524,11 @@ button.line__container {
    the margin. Colour only seconds the sign and the word beneath it (monochrome print, colour blindness).
    Neither modifier applies while the plans have required nothing yet. */
 .pocketHero__value--under {
- color: var(--color-schedule-under);
+ color: var(--color-financial-negative-content);
 }
 
 .pocketHero__value--over {
- color: var(--color-schedule-over);
+ color: var(--color-financial-positive-content);
 }
 
 /* One step under the heading at both ends of the range (its ceiling is the heading's floor; its floor is
@@ -553,14 +552,17 @@ button.line__container {
  text-overflow: clip;
 }
 
-/* Cash went into the goals. A release is not a loss, so it is not painted against the owner. */
+/* Cash went into the goals; a release is not a loss, so it keeps the line's own ink.
+   Brighter positive ink and medium weight: --color-amount-positive (#5b8c93) barely
+   separates from the raised surface at this size. */
 .pocketHero__meta--committed {
- color: var(--color-amount-positive);
+ color: var(--color-financial-positive-content);
+ font-weight: var(--font-weight-medium);
 }
 
-/* Committed past a target: the blue the "Above target" square already wears, so the amount and its level
-   read as one and the strip below never shows the figure in a different colour. Not the warning amber:
-   money past its goal is notable, not wrong. */
+/* Committed past a target: blue like the Over target star, so the amount and its level read as one.
+   Not warning amber: money past its goal is notable, not wrong, and can be moved
+   without setting any plan back. */
 .pocketHero__meta--excess {
  color: var(--color-status-info);
 }
@@ -747,15 +749,43 @@ button.line__container {
  color: var(--color-content-on-dark);
 }
 
-.pocketHero__progress {
- display: flex;
- flex-direction: column;
- gap: var(--space-2);
+.pocketHero__card--link:hover .pocketHero__label,
+.pocketHero__card--link:hover .pocketHero__toggle {
+ color: var(--color-content-on-dark);
 }
 
-/* A sentence led by a glyph, with the figure inside the words rather than opposite a label. */
+.pocketHero__card--link:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+/* The split the linked screen draws, and a chevron pointing forward, not down:
+   this card opens a screen instead of a body. Funding accounts puts its
+   overcommitted count in the same place, before its own toggle. */
+.pocketHero__cardLinkEnd,
+.pocketHero__cardHeadEnd {
+ display: flex;
+ align-items: center;
+ gap: var(--space-2);
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+ white-space: nowrap;
+}
+
+.pocketHero__toggle--link .pocketHero__toggleChevron {
+ transform: rotate(-90deg);
+}
+
+/* ── The board's own reading ─────────────────────────────────────────────── */
+
+/* Once the board below is scrolled, the hero keeps its three figures only. */
+.pocketHero--compact .pocketHero__reading {
+ display: none;
+}
+
+/* The Plan progress card's sentence, with the figure inside the words rather
+   than flush right opposite a label, as the approved mockup draws it. */
 .pocketHero__progressRow {
- /* A paragraph, not a flex row: the glyph lives in the sentence, so there is nothing to distribute. */
  margin: 0;
  /* The default UI size: one step smaller read as fine print beside the tiles it explains. */
  font-size: var(--font-size-sm);
@@ -764,25 +794,8 @@ button.line__container {
  color: var(--color-content-on-dark-muted);
 }
 
-/* Sized to the text beside it (--size-glyph-inline): the rule that shrinks the set is scoped to the
-   reading cards and this row sits outside it. text-bottom sits the glyph on the descender line; the
-   baseline would put it a descender's depth too high. */
-.pocketHero__progressRow .pocketHero__glyph {
- /* Inline-block, not the block used elsewhere in this sheet: a block takes its own line in a sentence. */
- display: inline-block;
- width: var(--size-glyph-inline);
- height: var(--size-glyph-inline);
- vertical-align: text-bottom;
-}
-
-/* Filled at this size, outlined at the others: the set's 0.375 pen on a 24 unit grid lands under a quarter
-   of a device pixel at 16px and stops resolving, while the three bars survive as a fill. */
-.pocketHero__progressRow .pocketHero__glyph rect {
- fill: currentColor;
-}
-
-/* index.css sets font-size on the universal selector, so this span would not take the paragraph's size
-   (it computed to 16px against the paragraph's 14). The percentage inside inherits from here. */
+/* index.css sets font-size on the universal selector, so this span does not inherit
+   the paragraph's size and must set its own. The percentage inside inherits from here. */
 .pocketHero__progressText {
  font-size: inherit;
 }
@@ -859,15 +872,17 @@ button.line__container {
  border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* The completed mark is .status__tick in generalStyles.css, shared with the board card and the detail
-   panel so its geometry is the same size on every screen. */
+/* The reached-goal mark is .status__star in generalStyles.css, beside
+   .status__square, shared with the board card and the detail panel so the
+   same level is never drawn at two sizes. */
 
 /* A reading, not a caption: full ink at body size, lower case, no letter spacing. */
 .pocketHero__mark {
  display: grid;
- /* Fixed-width mark column, not auto, so the words start at the same x on every row (the tick is
-    narrower than a square). */
- grid-template-columns: var(--space-4) 1fr auto;
+ /* The mark's column is a fixed width and not `auto`, so the words start at the
+    same x on every row: the tick is 0.5rem wide and a square is wider, and an
+    auto column would indent the six squared rows past the ticked one. */
+ grid-template-columns: var(--space-4) minmax(0, max-content) 1fr auto;
  align-items: center;
  gap: var(--space-2);
  padding: 0 var(--space-2);
@@ -881,8 +896,14 @@ button.line__container {
  font-variant-numeric: tabular-nums;
 }
 
-/* The mark and its word on the left, the count on the right, the middle column pushing them apart. No
-   vertical padding: seven rows would spend half a row's height on it. */
+/* The info button sits right after the word, in the cell the word's own width
+   leaves, so its tip can open without the word's overflow clipping it. */
+.pocketHero__markInfo {
+ justify-self: start;
+}
+
+/* Mark and word on the left, count on the right, the middle column pushes them apart.
+   No vertical padding: seven rows would spend half a row's height on it. */
 .pocketHero__markWord {
  display: flex;
  align-items: baseline;
@@ -1054,8 +1075,16 @@ button.line__container {
  white-space: nowrap;
 }
 
-/* An account that committed more than it holds. The word is the reading and the colour only seconds it
-   (monochrome print, colour blindness); same wording as the pocket detail's source rows. */
+/* The same faint label as unassigned and balance beside it. */
+.pocketHero__accountAmountLabel {
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-regular);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* An account that has committed more than it holds. The word is the reading; the colour only
+   backs it, since a hue alone fails in monochrome print and with colour blindness.
+   Same wording as the pocket detail's source rows. */
 .pocketHero__accountFlag {
  font-size: var(--font-size-3xs);
  font-weight: var(--font-weight-medium);
@@ -1246,6 +1275,11 @@ button.line__container {
  flex-shrink: 0;
 }
 
+/* The month's shortfall, in the board's short red. */
+.pocketHero__targetShort {
+ color: var(--color-financial-negative-content);
+}
+
 .pocketHero__targetRemaining {
  font-size: var(--font-size-xs);
  color: var(--color-content-on-dark-subtle);
@@ -1276,10 +1310,11 @@ button.line__container {
  color: var(--color-status-info);
 }
 
-/* The slack beside the ahead count takes ahead's own green, not the surplus blue above: each extra wears the
-   colour of the reading it hangs off. Same selector shape, or it would lose on specificity. */
-.pocketHero__markWord > .pocketHero__markExtra--ahead {
- color: var(--color-status-ahead);
+/* The slack beside the ahead count is MONEY over the plan, so it wears the
+   board's over teal, not ahead's green, which names time. Same selector shape,
+   or it would lose on specificity. */
+.pocketHero__markWord > .pocketHero__markExtra--over {
+ color: var(--color-financial-positive-content);
 }
 
 /* Larger than the 0.75rem the shared square has elsewhere: two colours 1.21 apart do not separate at 12px,
@@ -1320,8 +1355,353 @@ button.line__container {
  color: var(--color-content-on-dark-muted);
 }
 
-/* The arithmetic behind the bar, as a sentence and not tiles: the figures explain the ratio above and are
-   not read against each other. It wraps freely (three lines at 360px). */
+/* The Plan variance screen: a panel on the board's surface, headed by its title
+   and a way back, as Budget's variance screen is. */
+.pocketVariance {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-3);
+ min-width: 0;
+ padding: var(--space-3);
+ border-radius: var(--radius-md);
+ background-color: var(--color-surface-raised);
+}
+
+.pocketVariance__head {
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: var(--space-3);
+}
+
+.pocketVariance__title {
+ margin: 0;
+ overflow: hidden;
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-lg);
+ font-weight: var(--font-weight-bold);
+ text-overflow: ellipsis;
+ white-space: nowrap;
+}
+
+/* The same outline badge Budget's variance screen returns with. */
+.pocketVariance__back {
+ display: inline-flex;
+ flex-shrink: 0;
+ align-items: center;
+ gap: var(--space-1);
+ padding: var(--space-1) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-medium);
+ text-decoration: none;
+ transition: background-color var(--motion-fast),
+  border-color var(--motion-fast), color var(--motion-fast);
+}
+
+.pocketVariance__back:hover {
+ background-color: var(--color-surface-inverse);
+ border-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+}
+
+.pocketVariance__back:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--space-1);
+}
+
+.pocketVariance__backArrow {
+ inline-size: 1.1em;
+ block-size: 1.1em;
+ flex-shrink: 0;
+}
+
+.pocketVariance__caption,
+.pocketVariance__foot,
+.pocketVariance__notice {
+ margin: 0;
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+ line-height: var(--line-height-body);
+}
+
+.pocketVariance__notice {
+ padding-block: var(--space-6);
+ text-align: center;
+}
+
+/* Which reading the chart draws: the outline badge of the way back, filled
+   when chosen. */
+.pocketVariance__views {
+ display: flex;
+ flex-wrap: wrap;
+ gap: var(--space-2);
+}
+
+.pocketVariance__view {
+ padding: var(--space-1) var(--space-3);
+ border: var(--border-width-thin) solid var(--color-border-inverse);
+ border-radius: var(--radius-full);
+ background-color: transparent;
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-xs);
+ font-weight: var(--font-weight-medium);
+ cursor: pointer;
+ transition: background-color var(--motion-fast),
+  border-color var(--motion-fast), color var(--motion-fast);
+}
+
+.pocketVariance__view:hover {
+ background-color: var(--color-surface-deep);
+}
+
+.pocketVariance__view:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: var(--border-width-thick);
+}
+
+.pocketVariance__view:active {
+ transform: scale(0.97);
+}
+
+.pocketVariance__view:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+.pocketVariance__view.is-active {
+ background-color: var(--color-surface-inverse);
+ border-color: var(--color-surface-inverse);
+ color: var(--color-content-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .pocketVariance__view {
+  transition: none;
+ }
+
+ .pocketVariance__view:active {
+  transform: none;
+ }
+}
+
+/* Plan variance: one signed bar per pocket from a central axis, ranked by size, like budget variance.
+   Columns are declared once so header and rows share grid lines; proportional so
+   name and amount grow with the card instead of leaving the width to the bar. */
+.pocketVariance__columns,
+.pocketVariance__cells {
+ --variance-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 2fr);
+
+ display: grid;
+ grid-template-columns: var(--variance-columns);
+ align-items: center;
+ gap: var(--space-2);
+}
+
+/* xs, one step under the rows' sm. The spans restate inherit: index.css sizes
+   every element at 16px, which is what the header rendered at until 2026-09-24. */
+.pocketVariance__columns {
+ padding-block-end: var(--space-1);
+ border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+}
+
+.pocketVariance__columns > span {
+ font-size: inherit;
+}
+
+.pocketVariance__columnAxis {
+ text-align: center;
+}
+
+.pocketVariance__columnAmount {
+ text-align: end;
+}
+
+/* No scroller of its own: the screen's scroller carries the rows. */
+.pocketVariance__rows {
+ margin: 0;
+ padding: 0;
+ list-style: none;
+}
+
+.pocketVariance__row {
+ border-block-end: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.pocketVariance__row:last-child {
+ border-block-end: none;
+}
+
+/* The whole row opens the pocket, like the Next target rows above it. */
+.pocketVariance__cells {
+ padding-block: var(--space-2);
+ color: inherit;
+ text-decoration: none;
+ transition: background-color var(--motion-fast);
+}
+
+.pocketVariance__cells:hover,
+.pocketVariance__cells:focus-visible {
+ background-color: var(--color-surface-deep);
+}
+
+.pocketVariance__cells:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-border-inverse);
+ outline-offset: calc(var(--border-width-thick) * -1);
+}
+
+.pocketVariance__name {
+ display: flex;
+ min-inline-size: 0;
+ align-items: center;
+ gap: var(--space-1);
+ color: var(--color-content-on-dark);
+ font-size: var(--font-size-sm);
+}
+
+.pocketVariance__name .status__square,
+.pocketVariance__name .status__star {
+ flex-shrink: 0;
+}
+
+/* A long name wraps onto more lines rather than being cut. */
+.pocketVariance__nameText {
+ min-inline-size: 0;
+ overflow-wrap: anywhere;
+ font-size: inherit;
+}
+
+.pocketVariance__track {
+ position: relative;
+ display: block;
+ block-size: var(--space-3);
+}
+
+.pocketVariance__axis {
+ position: absolute;
+ inset-block: calc(var(--space-1) * -1);
+ inset-inline-start: 50%;
+ border-inline-start: var(--border-width-thin) dashed var(--color-border-subtle);
+}
+
+/* No radius, and a 2px floor so a small gap still paints something. */
+.pocketVariance__bar {
+ position: absolute;
+ inset-block: 0;
+ min-inline-size: 2px;
+}
+
+.pocketVariance__bar--over {
+ inset-inline-start: 50%;
+ background-color: var(--color-financial-positive);
+}
+
+.pocketVariance__bar--short {
+ inset-inline-end: 50%;
+ background-color: var(--color-financial-negative);
+}
+
+/* This month's rate: the allocated bar grows from the start toward a mark at
+   what the plan requires per month, both on one scale for every row. */
+.pocketVariance__fill {
+ position: absolute;
+ inset-block: 0;
+ inset-inline-start: 0;
+ min-inline-size: 2px;
+}
+
+.pocketVariance__fill--over {
+ background-color: var(--color-financial-positive);
+}
+
+.pocketVariance__fill--short {
+ background-color: var(--color-financial-negative);
+}
+
+.pocketVariance__mark {
+ position: absolute;
+ inset-block: calc(var(--space-1) * -1);
+ border-inline-start: var(--border-width-thick) solid var(--color-content-on-dark);
+}
+
+/* The rate chart's key: the bar's two colours and the mark, drawn as the rows
+   draw them. */
+.pocketVariance__legend {
+ display: flex;
+ flex-wrap: wrap;
+ gap: var(--space-1) var(--space-3);
+ margin: 0;
+ padding: 0;
+ list-style: none;
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+}
+
+.pocketVariance__legendItem {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-1);
+ font-size: inherit;
+}
+
+.pocketVariance__swatch {
+ inline-size: var(--space-3);
+ block-size: var(--space-2);
+}
+
+.pocketVariance__swatch--over {
+ background-color: var(--color-financial-positive);
+}
+
+.pocketVariance__swatch--short {
+ background-color: var(--color-financial-negative);
+}
+
+.pocketVariance__swatchMark {
+ block-size: var(--space-3);
+ border-inline-start: var(--border-width-thick) solid var(--color-content-on-dark);
+}
+
+/* On a narrow card the direction word drops under the amount. */
+.pocketVariance__amount {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: baseline;
+ justify-content: flex-end;
+ gap: var(--space-1);
+ font-size: var(--font-size-sm);
+ font-variant-numeric: tabular-nums;
+}
+
+.pocketVariance__amount--over {
+ color: var(--color-financial-positive-content);
+}
+
+.pocketVariance__amount--short {
+ color: var(--color-financial-negative-content);
+}
+
+.pocketVariance__direction {
+ color: var(--color-content-on-dark-subtle);
+ font-size: var(--font-size-xs);
+}
+
+@media (max-width: 480px) {
+ .pocketVariance__name {
+  font-size: var(--font-size-xs);
+ }
+}
+
+/* The arithmetic behind the bar, as a sentence: the figures explain the ratio and are not
+   compared, so a grid would give four equal columns to four unequal facts.
+   It wraps freely; at 360px it takes three lines. */
 .pocketHero__reading {
  margin: 0;
  font-size: var(--font-size-sm);
@@ -1342,11 +1722,11 @@ button.line__container {
    move the other. The words beside each figure carry the reading — the colour
    only seconds it. */
 .pocketHero__num--under {
- color: var(--color-schedule-under);
+ color: var(--color-financial-negative-content);
 }
 
 .pocketHero__num--over {
- color: var(--color-schedule-over);
+ color: var(--color-financial-positive-content);
 }
 
 /* The parenthesis holds together with the phrase it qualifies, so the counts
@@ -1399,26 +1779,6 @@ button.line__container {
  gap: var(--space-3);
 }
 
-.pocketHero__balance {
- display: flex;
- flex-direction: column;
- gap: var(--space-2);
- min-width: 0;
-}
-
-.pocketHero__figureRow {
- display: flex;
- flex-wrap: wrap;
- align-items: baseline;
- column-gap: var(--space-2);
- margin: 0;
-}
-
-.pocketHero__figureRow--required {
- padding-top: var(--space-2);
- border-top: var(--border-width-thin) solid var(--color-border-subtle);
-}
-
 /* An amount never breaks inside itself, the same rule as the hero values. */
 .pocketHero__figure {
  font-weight: var(--font-weight-bold);
@@ -1428,20 +1788,6 @@ button.line__container {
  color: var(--color-content-on-dark);
  overflow-wrap: normal;
  word-break: keep-all;
-}
-
-/* Plain ink: a green here tied the balance to the "over schedule" count below it. */
-.pocketHero__figure--allocated {
- font-size: var(--font-size-xl);
-}
-
-.pocketHero__figure--required {
- font-size: var(--font-size-lg);
-}
-
-/* Violet only while allocated is below required; plain ink otherwise. */
-.pocketHero__figure--under {
- color: var(--color-schedule-under);
 }
 
 .pocketHero__figure--pace {
@@ -1459,12 +1805,9 @@ button.line__container {
  flex-direction: column;
  gap: var(--space-3);
  min-width: 0;
- padding-top: var(--space-3);
- border-top: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
-/* One tile: the pocket count over the schedule counts it splits into, stacked at
-   every width, because side by side the counts took two lines at 768. */
+/* One tile: the count of pockets that hold a plan. */
 .pocketHero__planTile {
  display: flex;
  flex-direction: column;
@@ -1518,22 +1861,6 @@ button.line__container {
  color: var(--color-content-on-dark-subtle);
 }
 
-/* Allowed to wrap, unlike the sentence's counts: a clipped count is a wrong count.
-   No rule above it: the tile's own border already groups it with the count. */
-.pocketHero__planSchedule {
- margin: 0;
- font-size: var(--font-size-sm);
- line-height: var(--line-height-body);
- text-wrap: balance;
- color: var(--color-content-on-dark-muted);
-}
-
-/* A count stays with its word, so a wrap can only fall on the slash. */
-.pocketHero__planSide {
- font-size: inherit;
- white-space: nowrap;
-}
-
 .pocketHero__pace {
  display: flex;
  flex-wrap: wrap;
@@ -1542,38 +1869,9 @@ button.line__container {
  margin: 0;
 }
 
-/* Figures left, tile and pace right. 360 and not 480 because this measures the card, not the window: the
-   88% column and the reserved scrollbar leave the content box at 372px on a 480px viewport. */
+/* The pace figure sizes off the card's own inline size, which is what keeps a
+   seven-digit amount inside its row. */
 @container pocketPortfolio (min-width: 360px) {
- .pocketHero__portfolio {
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0;
- }
-
- .pocketHero__balance {
-  justify-content: center;
-  padding-right: var(--space-4);
- }
-
- .pocketHero__plans {
-  justify-content: center;
-  padding-top: 0;
-  padding-left: var(--space-4);
-  border-top: none;
-  border-left: var(--border-width-thin) solid var(--color-border-subtle);
- }
-
- /* Amounts size off the card's own inline size (cqi) only here, where the left column is auto: a seven-digit
-    figure would take its width out of the plan tile, and "4 of 4 pockets" is nowrap so it would overflow.
-    Stacked the row has the whole card, so those rules keep their fixed step. Ceilings are today's sizes. */
- .pocketHero__figure--allocated {
-  font-size: clamp(var(--font-size-base), 4.75cqi, var(--font-size-xl));
- }
-
- .pocketHero__figure--required {
-  font-size: clamp(var(--font-size-base), 4cqi, var(--font-size-lg));
- }
-
  .pocketHero__figure--pace {
   font-size: clamp(var(--font-size-base), 4cqi, var(--font-size-lg));
  }
@@ -1583,7 +1881,7 @@ button.line__container {
    exactly on the line; a deep-surface stripe (not a darker green) survives monochrome print.
    The 45deg has no token: the scale declares no angles. */
 .pocketHero__barFill--over {
- background-color: var(--color-schedule-over);
+ background-color: var(--color-financial-positive);
  background-image: repeating-linear-gradient(
   45deg,
   transparent 0 var(--space-2),
@@ -1767,7 +2065,7 @@ button.line__container {
 }
 
 .pocketCard__status--ok {
- color: var(--color-status-ok);
+ color: var(--color-status-complete);
 }
 
 /* On plan has nothing to flag, so it takes the card's own ink rather than a
@@ -1840,9 +2138,9 @@ button.line__container {
  transition: width var(--motion-slow);
 }
 
-/* Blue for above target: this card has no band heading, so amber would read as at risk, the opposite
-   situation. The board hero can use amber because its heading names the band. Consumed by STATUS_TONE
-   in ListPocket. */
+/* Tones for the over target and on plan levels, read by ListPocket's STATUS_TONE map.
+   Blue for over target: amber would look like at risk, its opposite, and a card in a list
+   has no band heading to tell them apart as the board hero does. */
 .pocketCard__barFill--info {
  background-color: var(--color-status-info);
 }
@@ -1854,7 +2152,7 @@ button.line__container {
 }
 
 .pocketCard__barFill--ok {
- background-color: var(--color-status-ok);
+ background-color: var(--color-status-complete);
 }
 
 .pocketCard__barFill--warning {
@@ -1877,7 +2175,9 @@ button.line__container {
 .pocketCard__amounts {
  display: flex;
  align-items: baseline;
- gap: var(--space-2);
+ justify-content: space-between;
+ flex-wrap: wrap;
+ gap: var(--space-1) var(--space-2);
  margin: 0;
 }
 
@@ -1890,6 +2190,15 @@ button.line__container {
  color: var(--color-content-on-dark);
 }
 
+/* Small beside the heading-size amount it names, like the target's own label. */
+.pocketCard__allocatedLabel {
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-regular);
+ text-transform: uppercase;
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+}
+
 /* index.css sets font-size on the universal selector, so this span does not
    inherit the size of the line it sits in and has to restate it. Uppercase, the
    same way the detail panel sets the labels beside its figures. */
@@ -1900,14 +2209,11 @@ button.line__container {
 }
 
 .pocketCard__target {
- min-width: 0;
  font-size: var(--font-size-2xs);
  font-weight: var(--font-weight-regular);
  letter-spacing: var(--letter-spacing-wide);
  color: var(--color-content-on-dark-subtle);
  white-space: nowrap;
- overflow: hidden;
- text-overflow: ellipsis;
 }
 
 /* Right-aligned over the full track, not over the fill's edge: following the fill runs the number off the
@@ -1928,7 +2234,7 @@ button.line__container {
 }
 
 .pocketCard__percent--ok {
- color: var(--color-status-ok);
+ color: var(--color-status-complete);
 }
 
 .pocketCard__percent--warning {
@@ -1954,13 +2260,20 @@ button.line__container {
 .pocketCard__facts {
  display: grid;
  grid-template-columns: repeat(2, minmax(0, 1fr));
- gap: var(--space-1) var(--space-3);
+ gap: var(--space-2) var(--space-3);
  margin: 0;
+}
+
+/* The whole goal under this month's facts, parted by a faint dashed rule. */
+.pocketCard__facts--goal {
+ padding-top: var(--space-2);
+ border-top: var(--border-width-thin) dashed var(--color-border-subtle);
 }
 
 .pocketCard__fact {
  display: flex;
  flex-direction: column;
+ gap: var(--space-1);
  min-width: 0;
 }
 
@@ -1985,33 +2298,48 @@ button.line__container {
  text-overflow: ellipsis;
 }
 
-.pocketCard__factValue--ok {
- color: var(--color-status-ok);
+/* The plan's own rate under the required one. Same reset as the value, one step
+   down in size and ink so it reads as the term of comparison. */
+.pocketCard__factNote {
+ margin: 0;
+ font-size: var(--font-size-2xs);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+ white-space: nowrap;
+}
+
+/* The plan notes are sentences and outgrow a half-width cell on a phone. */
+.pocketCard__factNote--wrap {
+ white-space: normal;
 }
 
 .pocketCard__factValue--alert {
  color: var(--color-status-alert);
 }
 
-/* The pocket's money gap against the line its plan implies. Warning ink only below that line (as the At
-   risk square); subtle grey when ahead or when the plan publishes no line. --font-size-xs like the grid
-   values: it puts the classification in words. */
-.pocketCard__gap {
- margin: 0;
- font-size: var(--font-size-xs);
- font-weight: var(--font-weight-medium);
- letter-spacing: var(--letter-spacing-wide);
- color: var(--color-status-warning);
+/* Month-close money gap: teal when over the plan's line, red when short. This inverts the budget
+   convention (red is over) because a pocket short of its line is missing money.
+   Content tokens, not the flat ones, which are too dim as text on the raised surface. */
+.pocketCard__factValue--short {
+ color: var(--color-financial-negative-content);
 }
 
-.pocketCard__gap--none {
- font-weight: var(--font-weight-regular);
- color: var(--color-content-on-dark-subtle);
+.pocketCard__factValue--over {
+ color: var(--color-financial-positive-content);
 }
 
-/* Same step as the line above: the two close the card together, and one left smaller would read as the
-   quieter of a pair. */
+/* Money past the target, the blue of the Over target star. Not a warning: it
+   is cash that can be released without setting any plan back. */
+.pocketCard__factValue--target {
+ color: var(--color-status-info);
+}
+
+/* Closes the card, at the same step as the facts above it. */
 .pocketCard__sources {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: center;
+ gap: var(--space-2);
  margin: 0;
  font-size: var(--font-size-xs);
  font-weight: var(--font-weight-regular);
@@ -2019,18 +2347,31 @@ button.line__container {
  color: var(--color-content-on-dark-subtle);
 }
 
-/* The most alarming thing the card can say, so it is the only line that paints
-   a ground of its own. It is not a fourth status: a funded pocket reaches this
-   line too. */
-.pocketCard__uncovered {
- margin: 0;
- padding: var(--space-1) var(--space-2);
+/* Whether the funding accounts still hold what they committed: green Covered, red Uncovered.
+   Independent of the level: a pocket can be covered and behind, or uncovered and ahead. */
+.pocketCoverage {
+ flex-shrink: 0;
+ padding: 0 var(--space-1);
+ border: var(--border-width-thin) solid;
  border-radius: var(--radius-xs);
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-semibold);
+ letter-spacing: var(--letter-spacing-wide);
+ line-height: 1.6;
+ text-transform: uppercase;
+ white-space: nowrap;
+}
+
+.pocketCoverage--covered {
+ border-color: var(--color-coverage-covered-border);
+ background-color: var(--color-coverage-covered-surface);
+ color: var(--color-coverage-covered-content);
+}
+
+.pocketCoverage--uncovered {
+ border-color: var(--color-financial-negative-border);
  background-color: var(--color-financial-negative-surface);
  color: var(--color-financial-negative-content);
- font-size: var(--font-size-2xs);
- font-weight: var(--font-weight-medium);
- letter-spacing: var(--letter-spacing-wide);
 }
 
 /* The placeholder takes the shape of the card it stands in for, so the board
@@ -2119,9 +2460,5 @@ button.line__container {
 
  .pocketLayout .pocketHero:not(.pocketHero--readings) {
   padding: var(--space-1) 0;
- }
-
- .pocketLayout .pocketHero__progress {
-  gap: var(--space-1);
  }
 }

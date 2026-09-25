@@ -60,9 +60,20 @@ export async function getPocketsForUser(pool, userId, monthStart, timeZone) {
       AND pa.allocation_actual_date <  (($2::timestamp + INTERVAL '1 month') AT TIME ZONE $3)
    ), 0)::text                             AS "releasedInMonth",
    to_char(p.desired_date, 'YYYY-MM-DD')   AS "desiredDate",
-   COUNT(DISTINCT pa.source_account_id) FILTER (
-    WHERE pa.allocation_actual_date < (($2::timestamp + INTERVAL '1 month') AT TIME ZONE $3)
-   )::int                                  AS "sourceCount",
+   -- The accounts holding something for this pocket at the close, the same rule
+   -- getPocketSourceHoldings applies: one released in full nets to zero and is no
+   -- longer a source, so the card cannot count what the sources list omits.
+   (
+    SELECT COUNT(*)::int
+    FROM (
+     SELECT pa2.source_account_id
+     FROM pocket_allocations pa2
+     WHERE pa2.pocket_id = p.pocket_id
+      AND pa2.allocation_actual_date < (($2::timestamp + INTERVAL '1 month') AT TIME ZONE $3)
+     GROUP BY pa2.source_account_id
+     HAVING SUM(pa2.amount) <> 0
+    ) held
+   )                                       AS "sourceCount",
    lower(ct.currency_code)                 AS currency
   FROM pockets p
   JOIN currencies ct ON ct.currency_id = p.currency_id

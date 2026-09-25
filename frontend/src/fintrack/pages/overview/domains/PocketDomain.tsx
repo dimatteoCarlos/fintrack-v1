@@ -17,7 +17,8 @@ import { KpiTooltip } from '../../../general_components/kpiTooltip/KpiTooltip';
 import { currencyFormat } from '../../../helpers/functions';
 import {
  POCKET_STATUS_WORD,
- pocketMarkIsTick,
+ pocketMarkIsStar,
+ pocketStarTone,
  pocketSquareClass,
 } from '../../../helpers/pocketStatus';
 import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from '../../../helpers/constants';
@@ -57,17 +58,17 @@ function FreeCashStatement({ figures, formatAmount }: FreeCashStatementProps) {
     {figure((terms) => formatAmount(terms.bankBalance))}
    </dd>
 
-   <dt className='domainAnalysis__term'>Committed to pockets</dt>
+   <dt className='domainAnalysis__term'>Allocated to pockets</dt>
    <dd className='domainAnalysis__value'>
     {figure((terms) => signed(MINUS, terms.committed))}
    </dd>
 
    <dt className='domainAnalysis__term domainAnalysis__term--withTip'>
-    Over-committed accounts
+    Overcommitted accounts
     {/* The panel is cream. */}
     <KpiTooltip
-     label='Over-committed accounts'
-     definition='Promised to pockets beyond what the account holds. Each account stops at zero, so this is added back and never taken from another account. Formula: Σ per account of max(0, committed − balance).'
+     label='Overcommitted accounts'
+     definition='Promised to pockets beyond what the account holds. Each account stops at zero, so this is added back and never taken from another account. Formula: Σ per account of max(0, allocated − balance).'
      surface='cream'
     />
    </dt>
@@ -111,7 +112,7 @@ function PocketDomain({
   <>
    <DomainSeries
     // The level-1 trend's words: a pocket is a plan, so nothing is "saved".
-    label='Committed to pockets'
+    label='Allocated to pockets'
     nature='position'
     points={analysis?.series ?? null}
     currency={card.currency}
@@ -150,12 +151,12 @@ function PocketDomain({
          value: pocket.progress,
          // Rounded as the pocket board rounds it, so the two screens agree.
          label: `${Math.round(pocket.progress)}%`,
-         spokenSuffix: 'of its goal',
+         spokenSuffix: 'of its target',
          // The server's level, in the board's word and mark (pocketStatus.ts).
          status: {
           word: POCKET_STATUS_WORD[pocket.level],
-          tone: pocketMarkIsTick(pocket.level) ? 'complete' : pocketSquareClass(pocket.level),
-          isTick: pocketMarkIsTick(pocket.level),
+          tone: pocketMarkIsStar(pocket.level) ? pocketStarTone(pocket.level) : pocketSquareClass(pocket.level),
+          isStar: pocketMarkIsStar(pocket.level),
          },
         }}
         link={pocketLink(pocket.pocketId, origin)}

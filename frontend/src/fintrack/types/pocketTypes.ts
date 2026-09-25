@@ -42,9 +42,17 @@ export type PocketStatus = {
  // Not named "movable"/"releasable": releasing it leaves the pocket exactly on its line.
  // null together with planInstalment.
  aheadOfPlan: number | null;
- // Required monthly pace over the plan's pace: a printed fact, not a classifier (`level` is server-side).
- // null once the deadline has passed or the window holds no full month; 0 once the target
- // is covered, so a truthiness check would conflate the two.
+ // The same two readings at the CLOSE of the selected month (what the hero states). Board only: the detail endpoint
+ // reads at today. null together with planInstalment; aheadAtClose is committed minus scheduledByClose, signed.
+ scheduledByClose: number | null;
+ aheadAtClose: number | null;
+ // What the line adds within the selected month: scheduledByClose less the
+ // line at the previous month's close. A plan begun mid-month asks only for its
+ // days. Board only; null together with planInstalment.
+ scheduledInMonth: number | null;
+ // Required per month over what the plan set: a fact to print, not a classifier (`level` is decided on the server).
+ // null once the deadline has passed or the window holds no full month; 0 once the target is covered, so a
+ // truthiness check would collapse the two.
  paceRatio: number | null;
  // Negative once the deadline has passed. A printed fact, never a classifier.
  daysRemaining: number;
@@ -56,8 +64,9 @@ export type PocketStatus = {
  // maps the served word to a colour and label (pocketStatus.ts); never derive it from
  // funded/overdue/paceRatio.
  level: PocketStatusLevel;
- // How many distinct accounts fund this pocket, bounded at the close of the
- // selected month, same as `allocated`.
+ // How many accounts fund this pocket, bounded at the close of the selected
+ // month, same as `allocated`. Only accounts with a non-zero net count: one
+ // released in full is no longer a source, as in the sources list.
  sourceCount: number;
  currency: CurrencyType;
  // The funding accounts no longer hold what this pocket says they committed.
@@ -95,8 +104,10 @@ export type PocketBoardSummary = {
  // Distinct accounts holding an allocation above zero to any pocket; summing the
  // rows' sourceCount would count an account once per pocket it funds.
  sourceAccountCount: number;
- // The furthest deadline, YYYY-MM-DD on the owner's calendar; null when there are
- // no pockets. Same handling as the row's desiredDate.
+ // Of those accounts, how many are committed past their balance.
+ overAllocatedAccountCount: number;
+ // The furthest deadline, YYYY-MM-DD on the owner's calendar; null when there are no pockets. Never new Date() on it:
+ // that reads UTC midnight and renders the previous day west of UTC.
  latestDesiredDate: string | null;
  // Board-wide movement in the selected month: a net and its two positive gross halves.
  // All three travel because a net of -180.00 states neither how much went in nor out.
@@ -112,9 +123,9 @@ export type PocketBoardSummary = {
  // key is always present, zeros included.
  levelCounts: Record<PocketStatusLevel, number>;
 
- // Schedule fold: nine fields measuring the board against what its plans required by the month's close.
- // All nine count only pockets with a plan window (`scheduledByNow` not null), so
- // `scheduledPocketsAllocated` is expected to differ from `totalAllocated`.
+ // The schedule fold: measured against what each plan required by the close of the month, not lifetime goals, so it
+ // cannot derive from the figures above. It counts only pockets with a plan window (`scheduledByNow` not null), so
+ // never subtract it from `totalAllocated`: the two cover different sets.
 
  // What the already-due instalments required by the close of the selected month,
  // summed over the scheduled pockets.
@@ -127,8 +138,12 @@ export type PocketBoardSummary = {
  totalScheduleGap: number | null;
  // The pace those plans now need per month to finish on time.
  totalRequiredMonthly: number | null;
- // 0-100, above 100 when the board is past what its plans asked for. Unclamped, unlike
- // `overallProgress`, so it matches the operands the card prints; only the bar's fill is clamped.
+ // Net committed per month over the months each plan has lived, summed over the pockets that still need a pace (the
+ // set totalRequiredMonthly adds up, so the two compare). Signed, since a release lowers it; null when none.
+ totalActualRate: number | null;
+ // 0-100 and above 100 when the board is past its plans. Unclamped on purpose: the card prints both operands, so a
+ // clamped per-pocket fold would disagree with the reader's own division. Only the bar's fill clamps; the label
+ // states the true value.
  scheduleAdherence: number | null;
 
  // How many pockets hold a plan window at all.
@@ -143,6 +158,23 @@ export type PocketBoardSummary = {
  // Beside the board-wide movement figures, not a redefinition of them; the
  // board-wide gross halves do not decompose it, and no scoped halves are served.
  scheduledPocketsMovedInMonth: number | null;
+
+ // The schedule read at the CLOSE of the selected month (what the hero states), over the same pockets holding a plan
+ // window. The fields above read at the evaluation date and stay.
+ // What the plans ask to be held by the close, summed.
+ totalScheduledByClose: number | null;
+ // Committed minus totalScheduledByClose, signed. The money to put in to be on
+ // schedule when it may move between pockets, or the surplus when positive.
+ totalGapAtClose: number | null;
+ // Committed over totalScheduledByClose, 0-100 and above. Unclamped, like
+ // scheduleAdherence. null when the plans require nothing by the close.
+ adherenceAtClose: number | null;
+ // The gap split by the sign of each pocket's own gap before summing: surplus above the line and its count, shortfall
+ // below it (a negative sum) and its count. A pocket exactly on its line is in neither.
+ surplusAtClose: number | null;
+ surplusCountAtClose: number | null;
+ shortfallAtClose: number | null;
+ shortfallCountAtClose: number | null;
 };
 
 // What the endpoint answers, inside the envelope every route of this API wraps
@@ -173,14 +205,26 @@ export type PocketBoardResponse = {
 
 // The detail of one pocket; create, edit, allocate and release answer with this payload too.
 
-// The board row minus sourceCount (the sources table lists those accounts), derived so they cannot drift.
-// This endpoint carries no month, so values differ: `allocated` is the lifetime sum, the
-// `*InMonth` figures are null (print a dash), and plan fields are evaluated at today.
-export type PocketDetailPocket = Omit<PocketStatus, 'sourceCount'> & {
- // Net committed over the months the plan has lived, current month included; null for a future plan.
+// The pocket on its own screen: the board row minus `sourceCount`, since the sources table lists those accounts.
+// Shared type, different values: `allocated` is the lifetime sum, the three `*InMonth` fields are null (print a dash),
+// and the plan fields are evaluated at today, since this endpoint resolves no month.
+export type PocketDetailPocket = Omit<
+ PocketStatus,
+ 'sourceCount' | 'scheduledByClose' | 'aheadAtClose' | 'scheduledInMonth'
+> & {
+ // Net committed over the calendar months the plan has lived, current month
+ // included. Per pocket, on this endpoint only; the board serves the sum as
+ // totalActualRate. Null only for a plan dated after today.
  actualRate: number | null;
  // remaining / actualRate months from today; null without a rate, a remainder or a positive pace.
  projectedCompletion: string | null;
+ // The close of the month containing today, 'YYYY-MM-DD', and the plan's line
+ // there: the board card's month-end figures. Optional until a backend serving
+ // them is deployed.
+ monthClose?: string;
+ scheduledByClose?: number | null;
+ aheadAtClose?: number | null;
+ scheduledInMonth?: number | null;
 };
 
 // One account funding this pocket. Four fields are nullable together, and null is not zero: the

@@ -6,6 +6,7 @@ import { TRANSACTIONS_DATASET_COLUMNS } from '../../export_api/core/toTransactio
 // Same renderer as the movements export, so a detail block here is escaped and
 // formatted identically.
 import { writeCsv } from '../../export_api/core/writers/writeCsv.js';
+import { POCKET_LEVEL_WORD } from '../../fintrack_api/services/pocket_services/core/pocketLevel.js';
 
 // One Month column rather than Period Start / End: a row covers one calendar month.
 // Frequency stays as a constant column, since a file whose columns change between
@@ -141,7 +142,18 @@ const POCKET_COLUMNS = [
  'Released In Month',
  'Funding Accounts',
  'Note',
+ // Appended and never inserted: a reader's formulas address the columns above
+ // by position.
+ 'Required by Month End',
+ 'Variance at Month End',
+ 'Coverage',
 ];
+
+// The board's own words for a pocket's level and coverage. Coverage is blank for
+// a pocket no account funds yet, which the board leaves unmarked too.
+const pocketStatusWord = (level) => POCKET_LEVEL_WORD[level] ?? level ?? '';
+const pocketCoverageWord = (pocket) =>
+ pocket.uncovered ? 'Uncovered' : pocket.sourceCount > 0 ? 'Covered' : '';
 
 /**
  * Convert a pocket board to CSV, one row per pocket in board order (a second ordering would
@@ -164,7 +176,7 @@ export function convertPocketBoardToCSV(pockets, allocations) {
    // Negative when over-funded, deliberately not clamped: the excess is the fact.
    escapeCsvNumberField(formatAmount(pocket.remaining)),
    escapeCsvNumberField(formatAmount(pocket.progress)),
-   escapeCsvField(pocket.level ?? ''),
+   escapeCsvField(pocketStatusWord(pocket.level)),
    escapeCsvField(pocket.desiredDate ?? ''),
    escapeCsvNumberField(formatPlain(pocket.daysRemaining)),
    // Null after the deadline: the remainder is no monthly pace once the date has
@@ -174,6 +186,11 @@ export function convertPocketBoardToCSV(pockets, allocations) {
    escapeCsvNumberField(formatAmount(pocket.releasedInMonth)),
    escapeCsvNumberField(formatPlain(pocket.sourceCount)),
    escapeCsvField(pocket.note ?? ''),
+   // Signed: positive is over what the plan requires, negative is short. Both
+   // empty for a pocket with no plan window.
+   escapeCsvNumberField(formatAmount(pocket.scheduledByClose)),
+   escapeCsvNumberField(formatAmount(pocket.aheadAtClose)),
+   escapeCsvField(pocketCoverageWord(pocket)),
   ].join(','),
  );
 
@@ -341,6 +358,9 @@ const POCKET_SHEET_FIELDS = withLabels(
   { key: 'releasedInMonth', type: 'number' },
   { key: 'sourceCount', type: 'number' },
   { key: 'note', type: 'text' },
+  { key: 'scheduledByClose', type: 'number' },
+  { key: 'aheadAtClose', type: 'number' },
+  { key: 'coverage', type: 'text' },
  ],
  POCKET_COLUMNS,
 );
@@ -423,6 +443,8 @@ export function buildPocketBoardSheets(pockets, allocations) {
  const boardRows = (Array.isArray(pockets) ? pockets : []).map((pocket) => ({
   ...pocket,
   currency: (pocket.currency ?? '').toUpperCase(),
+  level: pocketStatusWord(pocket.level),
+  coverage: pocketCoverageWord(pocket),
  }));
 
  const allocationRows = (Array.isArray(allocations) ? allocations : []).map((row) => ({

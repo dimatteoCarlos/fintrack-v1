@@ -331,6 +331,23 @@
  font-variant-numeric: tabular-nums;
 }
 
+/* A gloss under a figure, in the weight and colour of the label above it. */
+.pocketDetail__paceFigure .pocketDetail__paceNote {
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-regular);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* The month's figure in the board card's colours: short of the line, or not. */
+.pocketDetail__paceFigure .pocketDetail__paceValue--short {
+ color: var(--color-financial-negative-content);
+}
+
+.pocketDetail__paceFigure .pocketDetail__paceValue--over {
+ color: var(--color-financial-positive-content);
+}
+
 .pocketDetail__paceProjection {
  display: flex;
  align-items: baseline;

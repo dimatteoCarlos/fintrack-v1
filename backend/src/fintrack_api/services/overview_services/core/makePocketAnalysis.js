@@ -14,7 +14,7 @@ export const NO_POCKETS_PLANNED_NOTICE =
 // artifact: an expense against committed money is always accepted, so an account
 // can end a month owing its pockets more than it holds.
 export const OVERCOMMITTED_NOTICE =
- 'More is committed to pockets than the bank and cash accounts hold at the close of this period.';
+ 'More is allocated to pockets than the bank and cash accounts hold at the close of this period.';
 
 /**
  * Build the frozen pocket analysis. It publishes three terms, not two: committed plus free does NOT

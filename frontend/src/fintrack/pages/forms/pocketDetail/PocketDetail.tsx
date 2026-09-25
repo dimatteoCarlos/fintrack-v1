@@ -20,8 +20,15 @@ import PocketAllocationModal, {
 } from './pocketAllocationModal/PocketAllocationModal.tsx';
 import { CardTitle } from '../../../general_components/CardTitle.tsx';
 import RateTooltip from '../../../general_components/rateTooltip/RateTooltip.tsx';
-import { StatusSquare } from '../../../general_components/boxComponents/BoxComponents.tsx';
-import { pocketSquareClass } from '../../../helpers/pocketStatus.ts';
+import {
+ StatusSquare,
+ StatusStar,
+} from '../../../general_components/boxComponents/BoxComponents.tsx';
+import {
+ pocketMarkIsStar,
+ pocketSquareClass,
+ pocketStarTone,
+} from '../../../helpers/pocketStatus.ts';
 import { usePocketDetailStore } from '../../../stores/usePocketDetailStore.ts';
 import useAuth from '../../../../auth/hooks/useAuth.ts';
 import { isIanaTimeZone } from '../../../../auth/auth_utils/timeZoneOptions.ts';
@@ -252,10 +259,32 @@ function PocketDetail() {
   );
  }
 
- // Required rate 0 means the goal is covered; null means the date passed while money is short.
- // Branch on === null, not falsiness. The achieved rate is the net committed over the calendar
- // months the plan has lived, the current one included (actualRate.js).
+ // Built after the guards, where the pocket is known to have arrived.
+ // A required rate of exactly 0 means the goal is reached; null means the date passed with money still short.
+ // Branch on the two explicitly: falsiness collapses them because 0 is falsy.
+
+ // The pace card: required rate is a division of stored values; achieved rate is net committed over the
+ // calendar months the plan has lived. Omitted once the date has passed, where requiredMonthly is null
+ // and an all-dash card would invite reading figures that do not exist.
  const requiredMonthly = pocket.requiredMonthly;
+
+ // What to put in by this month's close: the plan's line there less what is
+ // allocated, the board card's figure. null on a backend that does not serve
+ // the close yet, once funded, and while the plan asks for nothing yet.
+ const monthClose =
+  pocket.funded ||
+  typeof pocket.monthClose !== 'string' ||
+  typeof pocket.scheduledByClose !== 'number' ||
+  typeof pocket.aheadAtClose !== 'number' ||
+  pocket.scheduledByClose === 0
+   ? null
+   : {
+      date: pocket.monthClose,
+      dateText: formatCalendarDate(pocket.monthClose),
+      planned: pocket.scheduledByClose,
+      toAllocate: Math.max(0, -pocket.aheadAtClose),
+      over: Math.max(0, pocket.aheadAtClose),
+     };
 
  const pace =
   requiredMonthly === null
@@ -267,7 +296,7 @@ function PocketDetail() {
       // Names the figure by its label, not by a number: the number lives once,
       // in requiredRate below.
       verdict: pocket.funded
-       ? 'The target is covered, so there is no rate left to keep.'
+       ? 'The target is reached, so there is no rate left to keep.'
        : 'The required rate below keeps the target on its date.',
       // null once funded: the row is omitted below rather than printed as a dash.
       requiredRate: pocket.funded ? null : `${amount(requiredMonthly)} / month`,
@@ -276,6 +305,33 @@ function PocketDetail() {
        pocket.actualRate === null
         ? null
         : `${amount(pocket.actualRate)} / month`,
+      // The pace the plan itself set, which the status compares the required
+      // rate against. null when the plan has no window.
+      plannedRate:
+       pocket.planInstalment === null
+        ? null
+        : `${amount(pocket.planInstalment)} / month`,
+      // The note states the subtraction, so the figure never reads as the
+      // plan's line printed twice when nothing is allocated yet.
+      monthGap:
+       monthClose === null
+        ? null
+        : monthClose.toAllocate > 0
+          ? {
+             dateText: monthClose.dateText,
+             value: amount(monthClose.toAllocate),
+             note: `plan ${amount(monthClose.planned)} less ${amount(pocket.allocated)} allocated`,
+             tone: 'pocketDetail__paceValue--short',
+            }
+          : {
+             dateText: monthClose.dateText,
+             value: 'Nothing to add',
+             note:
+              monthClose.over > 0
+               ? `${amount(monthClose.over)} over the plan`
+               : 'on the plan',
+             tone: 'pocketDetail__paceValue--over',
+            },
       // null when there is no rate or nothing left to reach: the row is omitted.
       projectedCompletion:
        pocket.projectedCompletion !== null
@@ -327,29 +383,53 @@ function PocketDetail() {
    {pace && (
     <div className='pocketDetail__pace'>
      <p className='pocketDetail__paceVerdict'>
-      <StatusSquare alert={pocketSquareClass(pace.level)} />
+      {pocketMarkIsStar(pace.level) ? (
+       <StatusStar tone={pocketStarTone(pace.level)} />
+      ) : (
+       <StatusSquare alert={pocketSquareClass(pace.level)} />
+      )}
       <span className='pocketDetail__readingText'>{pace.verdict}</span>
      </p>
 
      <dl className='pocketDetail__paceFigures'>
-      {pace.requiredRate !== null && (
+      {pace.monthGap !== null && (
        <div className='pocketDetail__paceFigure'>
-        <dt>Required rate</dt>
-        <dd>{pace.requiredRate}</dd>
+        <dt>To allocate by {pace.monthGap.dateText}</dt>
+        <dd className={pace.monthGap.tone}>{pace.monthGap.value}</dd>
+        <dd className='pocketDetail__paceNote'>{pace.monthGap.note}</dd>
        </div>
       )}
 
       {pace.actualRate !== null && (
        <div className='pocketDetail__paceFigure'>
-        <dt>Actual rate</dt>
+        <dt>Actual rate per month</dt>
         <dd>{pace.actualRate}</dd>
+       </div>
+      )}
+
+      {pace.requiredRate !== null && (
+       <div className='pocketDetail__paceFigure'>
+        <dt>Required rate per month</dt>
+        <dd>{pace.requiredRate}</dd>
+       </div>
+      )}
+
+      {pace.plannedRate !== null && !pocket.funded && (
+       <div className='pocketDetail__paceFigure'>
+        <dt>Planned rate per month</dt>
+        <dd>{pace.plannedRate}</dd>
+        {/* The plan's line is daily, so a calendar month asks for its own
+            days; the same note the pocket card carries. */}
+        <dd className='pocketDetail__paceNote'>
+         on average: a calendar month asks for its own days
+        </dd>
        </div>
       )}
      </dl>
 
      {pace.projectedCompletion !== null && (
       <p className='pocketDetail__paceProjection'>
-       <span>Projected completion</span>
+       <span>Projected completion at actual rate</span>
        <span>{pace.projectedCompletion}</span>
       </p>
      )}
@@ -405,9 +485,10 @@ function PocketDetail() {
            {amount(source.heldByThisPocket)}
           </span>
 
-          {/* The ACCOUNT's own state, not this pocket's share of it. */}
+          {/* The ACCOUNT's own state, not this pocket's share of it. Not
+              "over-allocated": over is the board's word for money past the plan. */}
           {source.covered === false && (
-           <span className='pocketDetail__flag'>over-allocated</span>
+           <span className='pocketDetail__flag'>overcommitted</span>
           )}
          </div>
         </li>
@@ -516,8 +597,14 @@ function PocketDetail() {
       desiredDate: pocket.desiredDate,
       allocated: pocket.allocated,
       remaining: pocket.remaining,
-      // The pace card's "Required rate": what is needed from now, null once funded.
+      // Same figure as the pace card's "Required rate per month": what is needed from now to close on time.
+      // Null past the date, like the card; funded shows nothing rather than a stale $0.
       requiredMonthly: pocket.funded ? null : pocket.requiredMonthly,
+      // The pace card's "To allocate by month end", 0 when nothing is to add.
+      monthToAllocate:
+       monthClose === null
+        ? null
+        : { amount: monthClose.toAllocate, closeDate: monthClose.date },
      }}
      currency={currency}
      direction={allocationDirection}

@@ -86,7 +86,7 @@ function AccountPocketCommitments({
     <span className='accountPockets__head'>
      <WalletSvg className='accountPockets__glyph' />
 
-     <span className='accountPockets__label'>Committed to pockets</span>
+     <span className='accountPockets__label'>Allocated to pockets</span>
     </span>
 
     <button
@@ -131,7 +131,7 @@ function AccountPocketCommitments({
        over-allocated account survives monochrome and colour blindness. */}
    {isOverAllocated === true && (
     <p className='accountPockets__flag'>
-     Allocated past this account&apos;s balance.
+     Overcommitted: allocated past this account&apos;s balance.
     </p>
    )}
 

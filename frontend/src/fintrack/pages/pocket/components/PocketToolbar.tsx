@@ -25,9 +25,7 @@ const SORT_OPTIONS: { value: PocketSortKey; label: string }[] = [
 const FILTER_OPTIONS: { value: PocketQuickFilter; label: string }[] = [
  { value: 'all', label: 'All' },
  { value: 'completed', label: POCKET_STATUS_WORD.completed },
- // The only option not using its level's own word: in this ordered list "Above"
- // is clear, but on a card beside an amount it would not say above what.
- { value: 'aboveTarget', label: 'Above' },
+ { value: 'aboveTarget', label: POCKET_STATUS_WORD.aboveTarget },
  { value: 'ahead', label: POCKET_STATUS_WORD.ahead },
  { value: 'onTrack', label: POCKET_STATUS_WORD.onTrack },
  { value: 'behind', label: POCKET_STATUS_WORD.behind },
@@ -37,6 +35,10 @@ const FILTER_OPTIONS: { value: PocketQuickFilter; label: string }[] = [
  // option, so a longer label would widen the whole strip. Same word as the
  // hero's coverage row.
  { value: 'uncovered', label: 'Uncovered' },
+ // The money gap at the close of the month, not levels: the same two sides the
+ // hero counts as over and short.
+ { value: 'overPlan', label: 'Over plan' },
+ { value: 'shortOfPlan', label: 'Short of plan' },
 ];
 
 const SEARCH_MAX_LENGTH = 50;

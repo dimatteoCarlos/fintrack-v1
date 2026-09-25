@@ -75,6 +75,10 @@
 
 .react-datepicker {
  transition: transform var(--motion-normal);
+ /* Every part of this panel is a control: the month name, the weekday
+    initials, the day cells. Selecting their text does nothing, and dragging
+    while picking a day left the header highlighted in blue. */
+ user-select: none;
 }
 
 .react-datepicker__tab-loop {
@@ -93,9 +97,45 @@
  display: none;
 }
 
+/* The library paints the month arrows #ccc on the #f0f0f0 header (1.6:1), so they are invisible. Only the
+   back arrow renders: forms bound maxDate to today and the library omits the forward one.
+   Selectors are scoped under .react-datepicker because react-datepicker.css loads after this file and wins ties. */
+.react-datepicker .react-datepicker__navigation-icon::before,
+.react-datepicker .react-datepicker__navigation:hover *::before {
+ border-color: var(--color-content-primary);
+}
+
+/* The month name computes text-align: center yet paints flush left, under the back arrow the library pins
+   left. Centring it as a flex item works where text-align does not; the inline padding clears the arrow. */
+/* The same size as the weekday initials, the day cells and the year select, so
+   the header carries no type step of its own; the library's bold weight is what
+   still marks it as the heading. */
+.react-datepicker .react-datepicker__current-month {
+ display: flex;
+ justify-content: center;
+ padding-inline: var(--space-8);
+ font-size: var(--font-size-sm);
+}
+
+/* The library scales the portal variant's month name to 1.44rem against 0.944rem anchored, so headers differ
+   between screens. The wider portal day cells are kept as the finger target.
+   Three classes deep to beat the library's two-class portal rule, which wins ties on source order. */
+.react-datepicker__portal .react-datepicker .react-datepicker__current-month {
+ font-size: var(--font-size-sm);
+}
+
 .react-datepicker__month-container {
  background-color: #5b5b5b;
  color: #f7f7f7;
+}
+
+/* Centred as a flex box, not by text-align: the cell computes centre but paints its number at the left edge,
+   so the disc would miss the day it marks. inline-flex keeps the library's inline layout.
+   Scoped under .react-datepicker because the library's rule loads later and wins ties. */
+.react-datepicker .react-datepicker__day {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
 }
 
 .react-datepicker__day {
@@ -105,22 +145,21 @@
  transition: background-color var(--motion-fast);
 }
 
-/* The day text above is pinned to white, and the teal semaphore ground carried
-   only 3.74:1 under it. The sunken surface takes that pair to 19.56:1. */
+/* Teal is the colour the picker is recognised by; dark text on it gives 5.01:1, where the pinned
+   white text gave only 3.74:1. */
 .react-datepicker__day.react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
- background-color: var(--color-surface-sunken) !important;
+ background-color: var(--color-status-ok) !important;
+ color: var(--color-content-primary) !important;
  border-radius: 50% !important;
 }
 
-/* Same contrast fix for hover, on every day. The dark neutrals sit within 1.12:1
-   of each other, so the ring, not the fill, separates hover from selected. */
-.react-datepicker__day:hover {
- background-color: var(--color-surface-raised) !important;
- outline: var(--border-width-thick) solid var(--color-border-inverse);
- outline-offset: var(--border-width-thick);
+/* Cream fill, not the near-black surface: a black disc under the pointer was barely a change.
+   The chosen day is excluded because hover sets no text colour, so the dark text would vanish on the near-black ground. */
+.react-datepicker__day:not(.react-datepicker__day--selected):not(.react-datepicker__day--keyboard-selected):hover {
+ background-color: var(--color-accent) !important;
+ color: var(--color-content-primary) !important;
  border-radius: 50% !important;
- font-weight: var(--font-weight-bold) !important;
 }
 
 /* A day is reachable by keyboard, and the library only paints the selected one.
@@ -157,7 +196,9 @@
  border: var(--border-width-thin) solid var(--color-border-strong);
  border-radius: var(--radius-sm);
 
- padding: 0.2rem var(--space-6) 0.2rem var(--space-2);
+ /* No vertical padding: the old 0.2rem is below the smallest space token. line-height cannot
+    replace it because the browser forces normal on a native select. */
+ padding: 0 var(--space-6) 0 var(--space-2);
 
  font-size: var(--font-size-sm);
  font-weight: var(--font-weight-semibold);
@@ -166,9 +207,83 @@
  transition: background-color var(--motion-fast), border-color var(--motion-fast);
 }
 
+/* The header month already names the year, so only the chevron that opens the list stays visible.
+   appearance: none drops the native arrow, which painted in currentColor and went transparent with the label.
+   The label is hidden with font-size: 0, not colour, because a focused select repaints it in the system highlight. */
+.react-datepicker .react-datepicker__year-select {
+ appearance: none;
+ -webkit-appearance: none;
+ width: var(--space-8);
+ height: var(--space-4);
+ padding: 0;
+ font-size: 0;
+ color: transparent;
+ background-color: transparent;
+ border: none;
+}
+
+/* The chevron is drawn on the container because a pseudo-element does not render inside a <select>.
+   Two borders of a rotated square need no asset and take the reading colour from the token. */
+/* Centred as a flex line, not by text-align: the header's inherited centring does not reach this
+   content, which left the control under the back arrow. */
+.react-datepicker .react-datepicker__header__dropdown {
+ display: flex;
+ justify-content: center;
+}
+
+/* Sized to the select it holds. It carried line-height: 0, which collapsed the
+   row to nothing and let the control fall onto the weekday initials below. */
+.react-datepicker .react-datepicker__year-dropdown-container {
+ position: relative;
+ display: inline-block;
+ width: var(--space-8);
+ height: var(--space-4);
+}
+
+.react-datepicker .react-datepicker__year-dropdown-container::after {
+ content: '';
+ position: absolute;
+ inset: 0;
+ margin: auto;
+ width: var(--space-2);
+ height: var(--space-2);
+ border-right: var(--border-width-thick) solid var(--color-content-primary);
+ border-bottom: var(--border-width-thick) solid var(--color-content-primary);
+ transform: translateY(-25%) rotate(45deg);
+ /* The select sits over this and must keep every click. */
+ pointer-events: none;
+ transition: border-color var(--motion-fast);
+}
+
+/* No focus box: the generic select rule drew a ring around the lone chevron. Focus is still visible
+   because the chevron itself takes the calendar's selection colour. */
+.react-datepicker .react-datepicker__year-select:focus-visible {
+ outline: none;
+}
+
+.react-datepicker
+ .react-datepicker__year-dropdown-container:has(
+  .react-datepicker__year-select:focus-visible
+ )::after {
+ border-color: var(--color-status-ok);
+}
+
+/* The list the browser opens is painted apart from the closed control, so it
+   has to be given back the reading colour the rule above takes away. */
+.react-datepicker .react-datepicker__year-select option {
+ color: var(--color-content-primary);
+}
+
 .react-datepicker__year-select:hover,
 .react-datepicker__month-select:hover {
  background-color: var(--color-accent);
+}
+
+/* The cream fill above would put back the box the rule further up removes. The
+   chevron is a glyph on the header, so the pointer is the only feedback it
+   carries; the focus outline below still marks it for the keyboard. */
+.react-datepicker .react-datepicker__year-select:hover {
+ background-color: transparent;
 }
 
 .react-datepicker__year-select:focus-visible,

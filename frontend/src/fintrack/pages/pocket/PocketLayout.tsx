@@ -1,4 +1,11 @@
-import { useCallback, useEffect } from 'react';
+//frontend\src\fintrack\pages\pocket\PocketLayout.tsx
+import {
+ Dispatch,
+ SetStateAction,
+ useCallback,
+ useEffect,
+ useState,
+} from 'react';
 import { TitleHeader } from '../../general_components/titleHeader/TitleHeader.tsx';
 import { usePocketBoardStore } from '../../stores/usePocketBoardStore.ts';
 import PocketBigBoxResult from './components/PocketBigBoxResult.tsx';
@@ -9,6 +16,11 @@ import { downloadPocketExport } from '../../api/exportApi.ts';
 import './styles/pocket-styles.css';
 import CoinSpinner from '../../loader/coin/CoinSpinner.tsx';
 import { Outlet, useSearchParams } from 'react-router-dom';
+
+// What the board below hands back to this layout through the Outlet.
+export type PocketOutletContextType = {
+ setIsHeroCompact: Dispatch<SetStateAction<boolean>>;
+};
 
 function PocketLayout() {
  // The module's single request: the header and the list below are both drawn
@@ -26,8 +38,11 @@ function PocketLayout() {
  const error = usePocketBoardStore((state) => state.error);
  const fetchBoard = usePocketBoardStore((state) => state.fetchBoard);
 
- // The month lives in the URL, not in state: the pocket detail is a route beside
- // this layout, so a month held here would be lost when a pocket is opened.
+ // Set by the board's scroller: scrolled, the hero shrinks to its figures.
+ const [isHeroCompact, setIsHeroCompact] = useState(false);
+
+ // The month lives in the URL: the pocket detail is a route beside this layout,
+ // so a month held in state here would be lost when a pocket is opened.
  const [searchParams, setSearchParams] = useSearchParams();
  const monthParam = searchParams.get('month');
 
@@ -140,10 +155,11 @@ function PocketLayout() {
       referenceMonth={referenceMonth}
       currentMonth={currentMonth}
       notice={notice}
+      isCompact={isHeroCompact}
      />
     )}
 
-    <Outlet />
+    <Outlet context={{ setIsHeroCompact } satisfies PocketOutletContextType} />
    </div>
   </>
  );

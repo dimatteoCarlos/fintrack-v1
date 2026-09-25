@@ -43,7 +43,7 @@ const METRIC_LABELS = {
  netDebtPosition: 'Net debt position',
  receivable: 'Receivable',
  payable: 'Payable',
- pocketsCommitted: 'Committed in pockets',
+ pocketsCommitted: 'Allocated to pockets',
 };
 
 const ACCOUNTS_AND_BALANCES_COLUMNS = [

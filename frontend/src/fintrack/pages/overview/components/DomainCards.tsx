@@ -98,9 +98,21 @@ const deltaLine = ({ delta, priorTotalAmount, priorPeriodCoverage, currency }: D
  );
 };
 
-// The change clause with the arrow painted, for Income, Debt and Investment: colour says direction, not
-// health, so only cards with no status square qualify (both colour systems would compete at 12px).
-// On Debt the arrow follows the signed net (receivable - payable), hence the two legs beneath.
+// The pocket card's month, in the board hero's words (PocketBigBoxResult.tsx:363):
+// its delta is the net committed inside the month, a movement, so it is stated
+// as one and not compared with the prior month. Null only on an empty board.
+const pocketMovementLine = ({ delta, currency }: DeltaFields) => {
+ if (delta === null) return null;
+ if (delta === 0) return 'No net movement';
+
+ return delta > 0
+  ? `${money(currency, delta)} net committed`
+  : `${money(currency, Math.abs(delta))} net released`;
+};
+
+// The same clause with the arrow painted, for cards with no status square and one meaning of "up".
+// Income, Debt (signed net) and Investment qualify; Expense, Pocket and PnL carry a square.
+// Debt's arrow follows the signed net, not the amount owed, so an "up" arrow there is not bad news.
 const coloredDeltaLine = (
  { delta, priorTotalAmount, priorPeriodCoverage, currency }: DeltaFields,
 ) => {
@@ -244,9 +256,8 @@ const pocketSquare = (card: OverviewPocketCard): SquareClass => {
  if (!card.target) return 'unknown';
  if (card.progress >= POCKET_TARGET_REACHED) return 'info';
 
- // A pocket with nothing funding it is short of the plan without being late,
- // which is what the amber level says on the board.
- return card.uncoveredCount > 0 ? 'warning' : 'neutral';
+ // Uncovered is not a level: the board keeps coverage apart, and this card shows it in its counts line.
+ return 'neutral';
 };
 
 // The bar takes the square's reading except 'neutral', which uses the warning
@@ -265,27 +276,51 @@ const PocketBlock = ({ card }: { card: OverviewPocketCard }) => {
 
  return (
   <CardMetricBlock
-   // 'of every pocket', not a bare 'Target': under a month heading a bare label
-   // reads as the month's target, but target_amount has no time bound and the
-   // figures measured against it are cumulative to the close of the month.
-   label='Target of every pocket'
+   // 'Total' because the card sits under a month heading, yet target_amount has no time bound
+   // and the figures measured against it are cumulative to the close of the reference month.
+   label='Total target, all pockets'
    amount={money(card.currency, card.target)}
    progress={card.progress}
-   progressLabel='Share of the pocket targets committed'
+   progressLabel='Share of the pocket targets allocated'
    tone={pocketBarTone(square)}
    square={square}
    remainder={`${money(card.currency, card.remaining)} still to allocate`}
-   // 'overall progress', not 'committed' (the headline's word for another figure): progress is coverage,
-   // SUM(MIN(allocated, target)) / SUM(target), so it can read 9.4% beside a headline share of 16.1%.
+   // 'overall progress', not 'allocated': progress is coverage, SUM(MIN(allocated, target)) / SUM(target),
+   // which differs from the headline's allocated share, and one word must not name two figures.
    share={`${card.progress.toFixed(SHARE_DECIMALS)}% overall progress`}
    shareLevel={square === '' ? 'ok' : square}
   />
  );
 };
 
-// "(2 lenders)" beside a leg: an amount alone cannot tell one obligation from nine. The noun follows the
-// leg's sign; omitted at zero. Number.isFinite, not `count <= 0`: `undefined <= 0` is false, so a backend
-// predating the counts printed "undefined", which the type cannot catch since the response is parsed.
+// The board's two bands, then the two readings that ask for action, each only
+// above zero and in the board's overcommitted flag (PocketFundingAccounts.tsx:240).
+// Under the target block because the bands split its overall progress by pocket.
+const PocketCounts = ({ card }: { card: OverviewPocketCard }) => (
+ <div className='domainCard__counts'>
+  <span className='domainCard__count'>
+   Target reached <b className='domainCard__countNumber'>{card.targetReachedCount}</b>
+  </span>
+  <span className='domainCard__count'>
+   In progress <b className='domainCard__countNumber'>{card.inProgressCount}</b>
+  </span>
+  {card.uncoveredCount > 0 && (
+   <span className='domainCard__count domainCard__count--alert'>
+    {card.uncoveredCount} uncovered
+   </span>
+  )}
+  {card.overAllocatedAccountCount > 0 && (
+   <span className='domainCard__count domainCard__count--alert'>
+    {card.overAllocatedAccountCount} overcommitted account
+    {card.overAllocatedAccountCount === 1 ? '' : 's'}
+   </span>
+  )}
+ </div>
+);
+
+// "(2 lenders)" beside the leg; the wording follows the sign (below zero is owed, so lenders). Only above zero.
+// Number.isFinite, not `count <= 0`: `undefined <= 0` is false, so an absent field printed "undefined".
+// The field is absent when the backend predates the counts, which the parsed response type cannot catch.
 const counterparties = (
  count: number | undefined,
  singular: string,
@@ -537,7 +572,7 @@ function DomainCards() {
        the target, so it sits on that line. With no target there is no reading and
        the square returns to the subtitle as 'unknown', said once. */}
    <DomainCard
-    label='Pocket · committed'
+    label='Pocket · allocated'
     domain='pocket'
     nature='position'
     square={pocket.target ? undefined : pocketSquare(pocket)}
@@ -547,9 +582,11 @@ function DomainCards() {
          cumulative, so the change line (summary.totalMovedInMonth, net committed
          inside the reference month) is the only figure of the month itself. */
       <div className='domainCard__lines'>
-       <span>{deltaLine(pocket)}</span>
+       <span>{pocketMovementLine(pocket)}</span>
 
        <PocketBlock card={pocket} />
+
+       <PocketCounts card={pocket} />
       </div>
      ) : (
       'no target set on any pocket'
@@ -560,12 +597,11 @@ function DomainCards() {
      {money(pocket.currency, pocket.totalAmount)}
     </div>
 
-    {/* The term that makes the card add up: remaining is clamped per pocket before the server sums it, so
-        allocated - excess + remaining = target. It hangs off the headline, as on the board, being part of
-        that figure. Drawn only when positive; a zero line would correct arithmetic that needs none. */}
+    {/* Makes the card add up: remaining is clamped per pocket, so allocated - excess + remaining = target.
+        Hangs off the headline, as on the board, since it is part of that figure. Drawn only when above zero. */}
     {pocket.excess !== null && pocket.excess > 0 && (
      <span className='domainCard__aside'>
-      {money(pocket.currency, pocket.excess)} of it committed above goal
+      {money(pocket.currency, pocket.excess)} over target
      </span>
     )}
    </DomainCard>

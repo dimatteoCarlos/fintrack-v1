@@ -16,6 +16,9 @@ import {
 import CardSeparator from '../components/CardSeparator.tsx';
 import Datepicker from '../../../general_components/datepicker/Datepicker.tsx';
 import CardNoteSave from '../components/CardNoteSave.tsx';
+import EmptyListNotice, {
+  resolveEmptyCase,
+} from '../components/EmptyListNotice.tsx';
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import TopCard from '../components/TopCard.tsx';
 
@@ -39,6 +42,7 @@ import {
 import { earliestDatableDay, toCalendarDay } from '../../../helpers/functions.ts';
 import { isAccountOpenOn } from '../../../hooks/useTransactionDate.ts';
 import { DEFAULT_CURRENCY, PAGE_LOC_NUM } from '../../../helpers/constants.ts';
+import { MESSAGE_DURATION, TRACKER_MESSAGES } from '../trackerMessages.ts';
 
 const VARIANT_DEFAULT: VariantType = 'tracker';
 const defaultCurrency: CurrencyType = DEFAULT_CURRENCY;
@@ -62,13 +66,8 @@ const initialValidatedData: BasicTrackerMovementValidatedDataType = {
   note: '',
 };
 
-// Rule: external deposits/withdrawals come from the slack bank account, which is not rendered or visible.
-
-// The one message this screen sends down the message channel that is not a confirmation. Compared exactly:
-// PnL sets "Processing transaction..." before validating and edits validationMessages field by field, so
-// reading the tone off the validation state would paint that progress line as an error.
-const CORRECTION_PROMPT = 'Please correct the highlighted fields';
-
+// Main component: profit and loss adjustment tracker
+// Rule: external deposit/withdraw transfers come from the slack bank account, which is not rendered or visible.
 function PnL(): JSX.Element {
   const { pathname } = useLocation();
   const trackerState = pathname.split('/')[PAGE_LOC_NUM];
@@ -126,6 +125,7 @@ function PnL(): JSX.Element {
     apiData: accountDataApiResponse,
     isLoading: isLoadingAccountDataApiResponse,
     error: fetchedErrorAccountDataApiResponse,
+    status: accountDataStatus,
   } = useFetch<AccountByTypeResponseType>(fetchUrl as string);
 
   // The chosen day as the calendar label the server validates, so the account
@@ -135,6 +135,20 @@ function PnL(): JSX.Element {
     [formInputData.date],
   );
 
+  // The backend answers 404 "No accounts of type" for a user with none, and
+  // useFetch turns that into error null. Status is null until a fetch ends.
+  const isAccountListSettled =
+    !isLoadingAccountDataApiResponse && !fetchedErrorAccountDataApiResponse;
+  const receivedAccounts = isAccountListSettled
+    ? (accountDataApiResponse?.data?.accountList ?? [])
+    : [];
+  const accountEmptyCase = resolveEmptyCase(
+    isAccountListSettled && accountDataStatus === 404,
+    receivedAccounts.map((acc) => acc.account_start_date),
+    chosenCalendarDay,
+  );
+
+  //Transform accounts data for dropdown
   const accountsToSelect = useMemo(() => {
     if (isLoadingAccountDataApiResponse) return [];
     if (fetchedErrorAccountDataApiResponse) return [];
@@ -323,15 +337,16 @@ function PnL(): JSX.Element {
     e.preventDefault();
     if (resetFn) resetFn();
     setShowMessage(true);
-    setMessageToUser('Processing transaction...');
+    setMessageToUser(TRACKER_MESSAGES.processing);
+    // Evaluate all fields using useFormManager custom hook's validation system
     const { isValid, messages, validatedData } = validateAllPnL();
 
     if (!isValid || !validatedData) {
       setValidationMessages(messages);
       // Force showing all validation messages
       activateAllValidations(true);
-      setMessageToUser(CORRECTION_PROMPT);
-      setTimeout(() => setMessageToUser(null), 3000);
+      setMessageToUser(TRACKER_MESSAGES.correction);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.action);
       return;
     }
     // Server side: updates the balances of the bank or investment account and of its counter account, slack
@@ -384,11 +399,11 @@ function PnL(): JSX.Element {
         setMessageToUser(null);
         setShowMessage(false);
         setIsReset(false);
-      }, 4000);
+      }, MESSAGE_DURATION.confirmation);
     } catch (error) {
       console.error('Submission error:', error);
       setMessageToUser('Error processing transaction');
-      setTimeout(() => setMessageToUser(null), 5000);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.action);
       setShowMessage(true);
     }
   }
@@ -404,7 +419,7 @@ function PnL(): JSX.Element {
     if (error && !isLoading) {
       setMessageToUser(error);
       setShowMessage(true);
-      setTimeout(() => setShowMessage(false), 5000);
+      setTimeout(() => setShowMessage(false), MESSAGE_DURATION.action);
     }
   }, [error, isLoading]);
 
@@ -475,6 +490,15 @@ function PnL(): JSX.Element {
           setIsReset={setIsReset}
           customSelectHandler={handleAccountSelect}
           day={chosenCalendarDay}
+          accountNotice={
+            accountEmptyCase && (
+              <EmptyListNotice
+               kind='bank_and_investment'
+               action='record a profit or loss'
+               emptyCase={accountEmptyCase}
+              />
+            )
+          }
         />
         <CardSeparator />
         <div className='state__card--bottom'>
@@ -513,7 +537,9 @@ function PnL(): JSX.Element {
             }}
             inputNote={formInputData.note}
             onSaveHandler={onSaveHandler}
-            isDisabled={isLoading}
+            // A notice stands where the dropdown would be, so there is nothing
+            // to select and nothing the button could submit.
+            isDisabled={isLoading || !!accountEmptyCase}
             showError={showValidation.note}
           />
         </div>
@@ -521,13 +547,18 @@ function PnL(): JSX.Element {
 
       {showMessage && !isLoading && (
         <div className='fade-message'>
+          {/* The tone is read off the exact message and never off the validation
+              state: this screen sets the progress line BEFORE it validates and
+              never empties validationMessages. */}
           <MessageToUser
             isLoading={false}
             error={error}
             messageToUser={messageToUser}
             variant='tracker'
             tone={
-              messageToUser === CORRECTION_PROMPT ? 'correction' : 'confirmation'
+              messageToUser === TRACKER_MESSAGES.correction
+                ? 'correction'
+                : 'confirmation'
             }
           />
         </div>

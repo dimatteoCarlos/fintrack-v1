@@ -1,11 +1,25 @@
-// The pocket board: every pocket the caller owns plus the totals over them, from one request.
+// backend/src/fintrack_api/services/pocket_services/services/pocketBoardService.js
 
-import { getCalendarToday, getPocketsForUser } from '../db/pocketRepository.js';
+// The pocket board: every pocket the caller owns plus the totals over them, from one request. All figures, counts
+// included, are computed here so a header and the list under it cannot disagree. Every figure is cumulative to the
+// month's close; the plan's line is read at that close while level, pace and deadline stay at the evaluation date.
+
+import {
+ getCalendarToday,
+ getPocketHistoryForUser,
+ getPocketsForUser,
+} from '../db/pocketRepository.js';
 import {
  getAccountAllocations,
  getPocketSourceHoldings,
 } from '../db/accountAllocationRepository.js';
 import { makePocketStatus } from '../core/makePocketStatus.js';
+import { makeActualRate } from '../core/actualRate.js';
+import {
+ makeCloseSchedule,
+ monthCloseDate,
+ previousCloseDate,
+} from '../core/closeSchedule.js';
 import { makeAccountAllocation } from '../core/makeAccountAllocation.js';
 import { POCKET_LEVELS } from '../core/pocketLevel.js';
 import { toAmount, toRate, money } from '../../budget_services/core/money.js';
@@ -20,17 +34,10 @@ const HUNDRED = 100;
  * @param {string} today - YYYY-MM-DD on the owner's calendar
  * @returns {string} YYYY-MM-DD
  */
-const resolveEvaluationDate = (monthStart, today) => {
- if (monthStart.slice(0, 7) === today.slice(0, 7)) {
-  return today;
- }
-
- const year = Number(monthStart.slice(0, 4));
- const month = Number(monthStart.slice(5, 7));
- const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-
- return `${monthStart.slice(0, 7)}-${String(lastDay).padStart(2, '0')}`;
-};
+const resolveEvaluationDate = (monthStart, today) =>
+ monthStart.slice(0, 7) === today.slice(0, 7)
+  ? today
+  : monthCloseDate(monthStart);
 
 // Invariant guard: every pocket is in the accounting currency, and a silent 1:1 sum would corrupt a total.
 const MIXED_CURRENCY_NOTICE =
@@ -57,12 +64,41 @@ const findUncoveredPockets = (accountRows, holdingRows) => {
  );
 };
 
+/** Each pocket's actual rate, from the one history read of the whole board.
+ * @returns {Map<number, number|null>} pocketId to actualRate
+ */
+const makeActualRates = (pockets, historyRows, evaluationDate) => {
+ const rowsByPocket = new Map();
+
+ for (const row of historyRows) {
+  const rows = rowsByPocket.get(row.pocketId);
+
+  if (rows) {
+   rows.push(row);
+  } else {
+   rowsByPocket.set(row.pocketId, [row]);
+  }
+ }
+
+ return new Map(
+  pockets.map((pocket) => [
+   pocket.pocketId,
+   makeActualRate(
+    rowsByPocket.get(pocket.pocketId) ?? [],
+    pocket.planStart,
+    evaluationDate,
+    pocket.remaining,
+   ).actualRate,
+  ]),
+ );
+};
+
 /**
  * Fold the rows into the header, summing the rounded row values so it reconciles to the cent.
  * Each pocket is clamped BEFORE the sum: an over-funded pocket must not cancel a short one, and
  * overallProgress is SUM(MIN(allocated, target)) / SUM(target). An empty board has null amounts, 0 counts.
  */
-const makeSummary = (pockets, accountAllocations) => {
+const makeSummary = (pockets, accountAllocations, actualRates) => {
  const pocketCount = pockets.length;
 
  // Pockets with a plan window: the schedule fields are null together when the window holds no full month,
@@ -77,8 +113,16 @@ const makeSummary = (pockets, accountAllocations) => {
   scheduledPocketsAllocated: null,
   totalScheduleGap: null,
   totalRequiredMonthly: null,
+  totalActualRate: null,
   scheduleAdherence: null,
   scheduledPocketsMovedInMonth: null,
+  totalScheduledByClose: null,
+  totalGapAtClose: null,
+  adherenceAtClose: null,
+  surplusAtClose: null,
+  surplusCountAtClose: null,
+  shortfallAtClose: null,
+  shortfallCountAtClose: null,
  };
 
  const counts = {
@@ -105,7 +149,14 @@ const makeSummary = (pockets, accountAllocations) => {
   sourceAccountCount: accountAllocations.filter((a) =>
    money(a.accountAllocated).greaterThan(0),
   ).length,
-  // A maximum, not the last row of a query ordered for the list; YYYY-MM-DD text sorts chronologically.
+  // Those source accounts committed past their balance: the account reading
+  // behind uncoveredCount, which counts pockets, so one account can uncover several.
+  overAllocatedAccountCount: accountAllocations
+   .map(makeAccountAllocation)
+   .filter((a) => a.isOverAllocated && money(a.accountAllocated).greaterThan(0))
+   .length,
+  // The furthest goal, taken as a maximum rather than the last row of the list's query, whose order may change.
+  // Dates are YYYY-MM-DD text, so lexicographic order is chronological.
   latestDesiredDate:
    pocketCount === 0
     ? null
@@ -199,6 +250,35 @@ const makeSummary = (pockets, accountAllocations) => {
   },
  );
 
+ // The pockets totalRequiredMonthly adds up: a funded one needs 0, a past-deadline one has no pace.
+ // The actual rate is summed over the same set so the two figures compare like for like.
+ const pacePockets = scheduled.filter((p) => p.requiredMonthly > 0);
+
+ // The plan's line at the month's close and each pocket's gap to it. The gap is split by sign before summing:
+ // the net is what must be added if money moves between pockets, the sides are pockets to draw from and to fill.
+ const closeSums = scheduled.reduce(
+  (acc, p) => {
+   const gap = money(p.aheadAtClose);
+
+   return {
+    scheduled: acc.scheduled.plus(money(p.scheduledByClose)),
+    gap: acc.gap.plus(gap),
+    surplus: gap.greaterThan(0) ? acc.surplus.plus(gap) : acc.surplus,
+    surplusCount: acc.surplusCount + (gap.greaterThan(0) ? 1 : 0),
+    shortfall: gap.lessThan(0) ? acc.shortfall.plus(gap) : acc.shortfall,
+    shortfallCount: acc.shortfallCount + (gap.lessThan(0) ? 1 : 0),
+   };
+  },
+  {
+   scheduled: money(0),
+   gap: money(0),
+   surplus: money(0),
+   surplusCount: 0,
+   shortfall: money(0),
+   shortfallCount: 0,
+  },
+ );
+
  const scheduleTotals =
   scheduled.length === 0
    ? noSchedule
@@ -207,8 +287,21 @@ const makeSummary = (pockets, accountAllocations) => {
       scheduledPocketsAllocated: toAmount(scheduleSums.allocated),
       totalScheduleGap: toAmount(scheduleSums.gap),
       totalRequiredMonthly: toAmount(scheduleSums.requiredMonthly),
-      // Quotient of the two sums, unclamped: clamping per-pocket ratios would drop surplus and read below
-      // the amounts beside it. Null, never zero, when nothing has fallen due yet.
+      // Signed, like the gap: a release in one pocket and a commitment in another
+      // did both happen, and the pace of the whole is their difference. Null when
+      // no pocket is asked for a pace, so the screen omits it instead of a zero.
+      totalActualRate:
+       pacePockets.length === 0
+        ? null
+        : toAmount(
+           pacePockets.reduce(
+            (total, p) => total.plus(money(actualRates.get(p.pocketId) ?? 0)),
+            money(0),
+           ),
+          ),
+      // Quotient of the two sums, unclamped: clamping each pocket at 100 would drop the surplus of pockets over
+      // their line and contradict the two amounts printed beside it. Null, not zero, when nothing has been
+      // required yet (a plan whose first instalment is not yet due).
       scheduleAdherence: scheduleSums.scheduledByNow.isZero()
        ? null
        : toRate(
@@ -218,6 +311,20 @@ const makeSummary = (pockets, accountAllocations) => {
          ),
       // Scoped to the scheduled pockets; the board-wide committed and released halves do not decompose it.
       scheduledPocketsMovedInMonth: toAmount(scheduleSums.moved),
+      totalScheduledByClose: toAmount(closeSums.scheduled),
+      totalGapAtClose: toAmount(closeSums.gap),
+      // The same quotient rule as scheduleAdherence: two sums, unclamped, and null
+      // when the plans require nothing by the close.
+      adherenceAtClose: closeSums.scheduled.isZero()
+       ? null
+       : toRate(
+          scheduleSums.allocated.dividedBy(closeSums.scheduled).times(HUNDRED),
+         ),
+      surplusAtClose: toAmount(closeSums.surplus),
+      surplusCountAtClose: closeSums.surplusCount,
+      // Negative, as the sum of negative gaps: the sign is the fact.
+      shortfallAtClose: toAmount(closeSums.shortfall),
+      shortfallCountAtClose: closeSums.shortfallCount,
      };
 
  return {
@@ -247,23 +354,37 @@ export const pocketBoardService = {
   * @returns {Promise<{summary: object, pockets: object[], meta: object}>}
   */
  async getBoard(pool, userId, timeZone, monthStart) {
-  const [today, rows, accountRows, holdingRows] = await Promise.all([
-   getCalendarToday(pool, timeZone),
-   getPocketsForUser(pool, userId, monthStart, timeZone),
-   getAccountAllocations(pool, userId),
-   getPocketSourceHoldings(pool, userId),
-  ]);
+  const [today, rows, accountRows, holdingRows, historyRows] =
+   await Promise.all([
+    getCalendarToday(pool, timeZone),
+    getPocketsForUser(pool, userId, monthStart, timeZone),
+    getAccountAllocations(pool, userId),
+    getPocketSourceHoldings(pool, userId),
+    getPocketHistoryForUser(pool, userId, monthStart, timeZone),
+   ]);
 
   const evaluationDate = resolveEvaluationDate(monthStart, today);
 
   const uncovered = findUncoveredPockets(accountRows, holdingRows);
 
-  const pockets = rows.map((row) => ({
-   ...makePocketStatus(row, evaluationDate),
-   uncovered: uncovered.has(row.pocketId),
-  }));
+  const closeDate = monthCloseDate(monthStart);
+  const priorCloseDate = previousCloseDate(monthStart);
 
-  const summary = makeSummary(pockets, accountRows);
+  const pockets = rows.map((row) => {
+   const status = makePocketStatus(row, evaluationDate);
+
+   return {
+    ...status,
+    ...makeCloseSchedule(status, closeDate, priorCloseDate),
+    uncovered: uncovered.has(row.pocketId),
+   };
+  });
+
+  const summary = makeSummary(
+   pockets,
+   accountRows,
+   makeActualRates(pockets, historyRows, evaluationDate),
+  );
 
   // Guarding on currency alone would fire on an empty board, where a null
   // currency means "no pockets", not "two currencies".

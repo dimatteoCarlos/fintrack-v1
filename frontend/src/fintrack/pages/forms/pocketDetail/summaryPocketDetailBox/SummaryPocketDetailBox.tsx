@@ -11,13 +11,14 @@ import { PocketDetailPocket } from '../../../../types/pocketTypes';
 import PiggyCoinSvg from '../../../../../assets/pocketSvg/PiggyUniversalCoinSvg.svg?react';
 import {
  StatusSquare,
- StatusTick,
+ StatusStar,
 } from '../../../../general_components/boxComponents/BoxComponents.tsx';
 import {
  POCKET_STATUS_WORD,
- pocketMarkIsTick,
+ pocketMarkIsStar,
  pocketReadingModifier,
  pocketSquareClass,
+ pocketStarTone,
 } from '../../../../helpers/pocketStatus.ts';
 import PocketReadingIcon from '../PocketReadingIcon.tsx';
 import './styles/summaryDetailBox-style.css';
@@ -147,17 +148,16 @@ function SummaryPocketDetailBox({ pocket }: SummaryPocketDetailPropType) {
        className='summaryPocket__readingIcon'
       />
       <span className='summaryPocket__readingText'>
-       The funding accounts no longer hold what is committed here.
+       Uncovered
       </span>
      </p>
     )}
 
-    {/* A tick for the one finished level, a square for the other six, asked of
-        the shared helper so this panel and the board card draw the same shape.
-        The border keeps its hue: a line cannot be a shape. */}
+    {/* A star marks a reached goal, a square the other levels, via the shared helper so this panel and the board
+        card draw the same shape. The border keeps its hue: a line cannot be a shape. */}
     <p className={`summaryPocket__reading ${pocketReadingModifier(dateLevel)}`}>
-     {pocketMarkIsTick(dateLevel) ? (
-      <StatusTick />
+     {pocketMarkIsStar(dateLevel) ? (
+      <StatusStar tone={pocketStarTone(dateLevel)} />
      ) : (
       <StatusSquare alert={pocketSquareClass(dateLevel)} />
      )}

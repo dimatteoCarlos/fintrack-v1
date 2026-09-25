@@ -260,18 +260,22 @@ body {
   background-color: var(--color-status-neutral);
 }
 
-/* A met goal, marked by shape: two borders on a rotated box, the only mark on this scale that survives
-   colour blindness (five of seven levels sit within 1.11:1). Off the sizing scale, which has no entry
-   between the status square and the icon; the right margin offsets the rotation's spill past 0.5rem. */
-.status__tick {
+/* A reached goal, marked by shape as well as colour: a star, green for Completed and blue for
+   Over target. Under colour-blindness simulation the seven levels collapse to two hue families.
+   Slightly larger than the square, since a star fills less of its box. */
+.status__star {
   display: inline-block;
   flex-shrink: 0;
-  width: 0.5rem;
+  width: 0.8rem;
   height: 0.8rem;
-  border-right: var(--border-width-thick) solid var(--color-status-complete);
-  border-bottom: var(--border-width-thick) solid var(--color-status-complete);
-  transform: rotate(45deg) translateY(-0.1rem);
-  margin-right: var(--space-1);
+}
+
+.status__star--complete {
+  color: var(--color-status-complete);
+}
+
+.status__star--info {
+  color: var(--color-status-info);
 }
 
 textarea::placeholder,

@@ -4,7 +4,7 @@
 import { Link } from 'react-router-dom';
 import {
  StatusSquare,
- StatusTick,
+ StatusStar,
 } from '../../../general_components/boxComponents/BoxComponents.tsx';
 import {
  CURRENCY_OPTIONS,
@@ -17,8 +17,9 @@ import {
 import {
  POCKET_STATUS_WORD,
  PocketStatusLevel,
- pocketMarkIsTick,
+ pocketMarkIsStar,
  pocketSquareClass,
+ pocketStarTone,
 } from '../../../helpers/pocketStatus.ts';
 import { PocketStatus } from '../../../types/pocketTypes.ts';
 
@@ -26,9 +27,13 @@ import { PocketStatus } from '../../../types/pocketTypes.ts';
 // the answer is absent, where 0 would state an amount.
 const DASH = '—';
 
-// Tone shared by the card's word, bar fill and percentage so they cannot disagree. Not the
-// square's class: completed is drawn as a tick and has no tone. The word is always printed,
-// since colour alone fails colour blindness and monochrome print.
+// The average month the server's planInstalment is built on (planSchedule.js),
+// so a money gap divided by the plan's daily pace lands in the same days.
+const DAYS_PER_MONTH = 30.44;
+
+// The tone shared by the card's word, bar fill and percentage. Not the square's class:
+// completed is drawn as a shape with no tone. Colour alone fails colour blindness, so
+// every card also prints the word.
 const STATUS_TONE: Record<PocketStatusLevel, string> = {
  completed: 'ok',
  aboveTarget: 'info',
@@ -57,9 +62,12 @@ type PocketCardPropType = {
  // Where the reader came from, so the detail's back control returns there and
  // not to the module default. The hero and the list pass different values.
  previousRoute: string;
+ // The last day of the board's month, 'YYYY-MM-DD'. The month-end labels print
+ // it, because "month end" does not say which month.
+ closeDate: string | null;
 };
 
-function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
+function PocketCard({ pocket, previousRoute, closeDate }: PocketCardPropType) {
  const {
   pocketId,
   name,
@@ -71,8 +79,11 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
   desiredDate,
   daysRemaining,
   requiredMonthly,
-  scheduledByNow,
+  planStart,
+  planInstalment,
   aheadOfPlan,
+  scheduledByClose,
+  aheadAtClose,
   sourceCount,
   uncovered,
   currency,
@@ -94,8 +105,28 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
 
  const tone = STATUS_TONE[level];
 
- // The percentage label is unclamped and passes 100 once the goal is passed;
- // only the fill is clamped, since a fill wider than its rail is a paint error.
+ // How far along the plan's line the pocket stands, in days: the money gap over the plan's
+ // daily pace. Only the time levels carry it, and only when the gap points their way.
+ // At risk spells "behind" because its word names no direction.
+ const planDays =
+  aheadOfPlan === null || planInstalment === null || planInstalment <= 0
+   ? 0
+   : Math.round(Math.abs(aheadOfPlan) / (planInstalment / DAYS_PER_MONTH));
+
+ const statusDays = ((): string => {
+  if (level === 'overdue')
+   return daysRemaining < 0 ? ` · ${plural(Math.abs(daysRemaining), 'day')}` : '';
+  if (planDays === 0 || aheadOfPlan === null) return '';
+  if (level === 'ahead' && aheadOfPlan > 0) return ` · ${plural(planDays, 'day')}`;
+  if (level === 'behind' && aheadOfPlan < 0) return ` · ${plural(planDays, 'day')}`;
+  if (level === 'atRisk' && aheadOfPlan < 0)
+   return ` · ${plural(planDays, 'day')} behind`;
+  return '';
+ })();
+
+ // The row's percentage is not clamped and passes 100 when the goal is passed,
+ // which is a fact the label prints. The track is clamped instead, because a
+ // fill wider than its rail is a paint error and not a reading.
  const barWidth = Math.min(Math.max(progress, 0), 100);
 
  // A shortfall and an excess are the same subtraction with opposite signs but
@@ -113,24 +144,33 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
      ? 'Not needed'
      : amount(requiredMonthly);
 
- // The label follows the figure, so a pocket with no rate left is not labelled
- // as one.
- const paceLabel = requiredMonthly === null ? 'To settle' : 'Required rate';
+ // The label follows the figure and stops naming a rate when none is left. It matches the
+ // pocket detail's pace card and allocation modal, so one number keeps one name.
+ const paceLabel = requiredMonthly === null ? 'To settle' : 'Required rate per month';
 
- // The pocket against its plan's line, in money, so At risk states by how much and which way.
- // A plan window shorter than a month publishes no line. aheadOfPlan is served, signed,
- // and never recomputed here. Nothing due yet is checked first, so money allocated before the
- // schedule asks for any does not read as ahead; an exact 0 reads as on the plan.
- const scheduleText =
-  scheduledByNow === null || aheadOfPlan === null
-   ? 'The plan has no window — no pace is shown'
-   : scheduledByNow === 0
-     ? 'Nothing due yet'
-     : aheadOfPlan === 0
-       ? 'On the plan'
-       : aheadOfPlan < 0
-         ? `${amount(Math.abs(aheadOfPlan))} behind the plan`
-         : `${amount(aheadOfPlan)} ahead of the plan`;
+ // The gap to the plan's line at the month's close, served and signed so the card and the
+ // board hero cannot disagree. "Over"/"short", not ahead/behind, which are pace levels.
+ // Nothing due is checked before the sign; an exact match is no direction; no window, no line.
+ const monthGap: { value: string; note: string | null; tone: string } =
+  scheduledByClose === null || aheadAtClose === null
+   ? { value: 'No plan window', note: null, tone: '' }
+   : scheduledByClose === 0
+     ? { value: 'Nothing due', note: null, tone: '' }
+     : aheadAtClose < 0
+       ? {
+          value: amount(Math.abs(aheadAtClose)),
+          // States the subtraction: with nothing allocated the figure equals the
+          // plan beside it and read as printed twice.
+          note: `plan ${amount(scheduledByClose)} less ${amount(allocated)} allocated`,
+          tone: 'pocketCard__factValue--short',
+         }
+       : {
+          value: 'Nothing to add',
+          note: aheadAtClose === 0 ? null : `${amount(aheadAtClose)} over the plan`,
+          tone: 'pocketCard__factValue--over',
+         };
+
+ const byClose = closeDate === null ? 'by month end' : `by ${formatCalendarDate(closeDate)}`;
 
  return (
   <Link
@@ -141,15 +181,16 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
    <div className='pocketCard__head'>
     <h3 className='pocketCard__name'>{name}</h3>
 
-    {/* Completed takes a tick, every other level a square, via the shared helper, so card, hero
-        and detail agree on which reading is finished; the shape survives colour blindness. */}
+    {/* The level is decided on the server and only named here. A reached goal takes a star,
+        every other level a square, via the shared helper so all views draw the same mark. */}
     <span className={`pocketCard__status pocketCard__status--${tone}`}>
-     {pocketMarkIsTick(level) ? (
-      <StatusTick />
+     {pocketMarkIsStar(level) ? (
+      <StatusStar tone={pocketStarTone(level)} />
      ) : (
       <StatusSquare alert={pocketSquareClass(level)} />
      )}
      {POCKET_STATUS_WORD[level]}
+     {statusDays}
     </span>
    </div>
 
@@ -178,16 +219,51 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
    </div>
 
    <p className='pocketCard__amounts'>
-    <span className='pocketCard__allocated'>{amount(allocated)}</span>
-    {/* Labelled "Target" rather than joined by "of": "of" would say the first
-        amount is a part of the second, which is false for an over-funded pocket
-        ("$5.00 of $1.38"). */}
+    <span className='pocketCard__allocated'>
+     <span className='pocketCard__allocatedLabel'>Allocated:</span>{' '}
+     {amount(allocated)}
+    </span>
+    {/* Both figures are named. "of a" reads oddly on an over-funded pocket
+        ("$5.00 of a Target: $1.38"); the wording is the owner's choice. */}
     <span className='pocketCard__target'>
-     <span className='pocketCard__targetLabel'>Target</span> {amount(target)}
+     of a <span className='pocketCard__targetLabel'>Target:</span>{' '}
+     {amount(target)}
     </span>
    </p>
 
+   {/* THIS MONTH, against the plan's line at the close of the month. */}
    <dl className='pocketCard__facts'>
+    {scheduledByClose !== null && (
+     <div className='pocketCard__fact'>
+      <dt className='pocketCard__factLabel'>Plan {byClose}</dt>
+      <dd className='pocketCard__factValue'>{amount(scheduledByClose)}</dd>
+      {/* The line is daily and cumulative, so a plan begun mid-month asks only for its days;
+          a small figure is not a month's instalment. */}
+      {planInstalment !== null && (
+       <dd className='pocketCard__factNote pocketCard__factNote--wrap'>
+        total since {formatCalendarDate(planStart)} ·{' '}
+        {amount(planInstalment / DAYS_PER_MONTH)} a day
+       </dd>
+      )}
+     </div>
+    )}
+
+    <div className='pocketCard__fact'>
+     {/* What to put in this month: the line beside it, less what is allocated. */}
+     <dt className='pocketCard__factLabel'>To allocate {byClose}</dt>
+     <dd className={`pocketCard__factValue ${monthGap.tone}`.trim()}>
+      {monthGap.value}
+     </dd>
+     {monthGap.note !== null && (
+      <dd className='pocketCard__factNote pocketCard__factNote--wrap'>
+       {monthGap.note}
+      </dd>
+     )}
+    </div>
+   </dl>
+
+   {/* THE WHOLE GOAL, against the target and the deadline, under a dashed rule. */}
+   <dl className='pocketCard__facts pocketCard__facts--goal'>
     <div className='pocketCard__fact'>
      {/* The same words the board hero and the detail panel use for this figure. */}
      <dt className='pocketCard__factLabel'>
@@ -195,7 +271,7 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
      </dt>
      <dd
       className={`pocketCard__factValue ${
-       isExcess ? 'pocketCard__factValue--ok' : ''
+       isExcess ? 'pocketCard__factValue--target' : ''
       }`.trim()}
      >
       {amount(Math.abs(remaining))}
@@ -211,6 +287,13 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
      >
       {paceText}
      </dd>
+     {/* The pace the plan itself set, beside the one the deadline now asks for:
+         the ratio of the two is what the status compares. */}
+     {requiredMonthly !== null && requiredMonthly > 0 && planInstalment !== null && (
+      <dd className='pocketCard__factNote pocketCard__factNote--wrap'>
+       planned {amount(planInstalment)} a month on average
+      </dd>
+     )}
     </div>
 
     <div className='pocketCard__fact'>
@@ -230,32 +313,23 @@ function PocketCard({ pocket, previousRoute }: PocketCardPropType) {
     </div>
    </dl>
 
-   {/* On track and At risk both mean deadline ahead, target not met; this line
-       is the only thing that tells them apart. */}
-   <p
-    className={`pocketCard__gap ${
-     aheadOfPlan !== null && aheadOfPlan < 0 ? '' : 'pocketCard__gap--none'
-    }`.trim()}
-   >
-    {scheduleText}
-   </p>
-
-   {/* A count, not names: the detail screen lists the accounts one by one and
-       the card has no room for two of them. */}
+   {/* A count, not names: the detail screen lists the accounts. Coverage is a word, since a
+       shortfall belongs to an account shared by several pockets, so the card cannot say how
+       much of this pocket is unbacked. */}
    <p className='pocketCard__sources'>
     {sourceCount === 0
      ? 'No funding account yet'
      : `Funded by ${plural(sourceCount, 'account')}`}
+    {(sourceCount > 0 || uncovered) && (
+     <span
+      className={`pocketCoverage pocketCoverage--${
+       uncovered ? 'uncovered' : 'covered'
+      }`}
+     >
+      {uncovered ? 'Uncovered' : 'Covered'}
+     </span>
+    )}
    </p>
-
-   {/* Orthogonal to the readings above and louder than any of them: a funded
-       pocket can still be uncovered. Folded by the server across the accounts,
-       so nothing here derives it. */}
-   {uncovered && (
-    <p className='pocketCard__uncovered'>
-     Funding accounts no longer hold what this pocket committed
-    </p>
-   )}
   </Link>
  );
 }

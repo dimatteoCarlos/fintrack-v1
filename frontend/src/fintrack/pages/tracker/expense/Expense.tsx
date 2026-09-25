@@ -16,6 +16,9 @@ import TopCard from '../components/TopCard.tsx';
 import CardSeparator from '../components/CardSeparator.tsx';
 import DropDownSelection from '../../../general_components/dropdownSelection/DropDownSelection.tsx';
 import CardNoteSave from '../components/CardNoteSave.tsx';
+import EmptyListNotice, {
+ resolveEmptyCase,
+} from '../components/EmptyListNotice.tsx';
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import CoinSpinner from '../../../loader/coin/CoinSpinner.tsx';
 import {
@@ -30,6 +33,13 @@ import {
   DEFAULT_CURRENCY,
   PAGE_LOC_NUM,
 } from '../../../helpers/constants.ts';
+import {
+  MESSAGE_DURATION,
+  noticeCarriesLink,
+  TRACKER_MESSAGES,
+} from '../trackerMessages.ts';
+//---
+// 📝 DATA TYPE IMPORTS
 import {
   AccountByTypeResponseType,
   BalanceBankRespType,
@@ -70,10 +80,7 @@ const initialExpenseData: ExpenseInputDataType = {
   currency: DEFAULT_CURRENCY,
 };
 const VARIANT_DEFAULT: VariantType = 'tracker';
-// The one non-confirmation message this screen sends. Named so the render can tell it apart exactly:
-// field flags outlive the prompt, so inferring from them would paint "Processing..." as an error.
-const CORRECTION_PROMPT = 'Please correct the highlighted errors.';
-
+// Main component: Expense tracker movement
 function Expense(): JSX.Element {
   // Only bank accounts are used for operations (e.g. expenses): all existing ones except the slack account.
   const router = useLocation();
@@ -128,7 +135,21 @@ function Expense(): JSX.Element {
     apiData: BankAccountsResponse,
     isLoading: isLoadingBankAccounts,
     error: fetchedErrorBankAccounts,
+    status: bankAccountsStatus,
+    // ...rest
   } = useFetch<AccountByTypeResponseType>(fetchUrl as string);
+ // The backend answers 404 "No accounts of type" for a user with none, and
+ // useFetch turns that into error null. Status is null until a fetch ends.
+ const isBankListSettled = !isLoadingBankAccounts && !fetchedErrorBankAccounts;
+ const receivedBankAccounts = isBankListSettled
+  ? (BankAccountsResponse?.data?.accountList ?? [])
+  : [];
+ const bankEmptyCase = resolveEmptyCase(
+  isBankListSettled && bankAccountsStatus === 404,
+  receivedBankAccounts.map((acc) => acc.account_start_date),
+  transactionActualDate,
+ );
+  // Memoized account options, recomputed only when the accounts response changes.
   const optionsExpenseAccounts = useMemo(() => {
     if (fetchedErrorBankAccounts) {
       return ACCOUNT_OPTIONS_DEFAULT;
@@ -200,18 +221,22 @@ function Expense(): JSX.Element {
     void fetchBudgetStatus(budgetMonth);
   }, [fetchBudgetStatus, budgetMonth, reloadTrigger]);
 
-  // Option identity is not option status: a name carried over while another month is loading is the same
-  // account but its figures are not, and would show under the wrong month.
+  // A name carried over while another month loads is the same account but its figures are not.
+  // Closed categories never re-enter this picker; shared with the empty-case check so both agree.
+  const activeBudgetAccounts = useMemo(
+    () => budgetAccounts.filter((account) => account.closedDate === null),
+    [budgetAccounts],
+  );
+
   const optionsExpenseCategories = useMemo(() => {
     if (fetchedErrorCategoryBudgetAccounts) {
       return CATEGORY_OPTIONS_DEFAULT;
     }
 
     // Filtered by the chosen day like the bank list above: a category that did not exist yet is not an
-    // option, and the server would refuse it. closedDate excludes unconditionally: closed never
-    // re-enters this picker, though the Budget board still shows it for its open months.
-    return budgetAccounts
-      .filter((account) => account.closedDate === null && isOpenOnChosenDay(account.accountStartDate))
+    // option, and the server would refuse it.
+    return activeBudgetAccounts
+      .filter((account) => isOpenOnChosenDay(account.accountStartDate))
       .map((account) => {
       const hasFigures =
         !isLoadingCategoryBudgetAccounts &&
@@ -243,7 +268,7 @@ function Expense(): JSX.Element {
       };
     });
   }, [
-    budgetAccounts,
+    activeBudgetAccounts,
     fetchedErrorCategoryBudgetAccounts,
     isLoadingCategoryBudgetAccounts,
     isOpenOnChosenDay,
@@ -311,7 +336,9 @@ function Expense(): JSX.Element {
     if (showValidation.account) {
       setValidationMessages((prev) => ({
         ...prev,
-        account: selectedOption?.value ? '' : '* Please select an account',
+        account: selectedOption?.value
+          ? ''
+          : TRACKER_MESSAGES.accountFieldRequired,
       }));
     }
   }
@@ -378,7 +405,12 @@ function Expense(): JSX.Element {
       debouncedProcessValidationAndUpdateFn(name, value);
     }
   }
-  function showMessage(message: string, duration = 4000) {
+  //---
+  // The default serves the two failures below; the confirmations pass their own.
+  function showMessage(
+    message: string,
+    duration: number = MESSAGE_DURATION.action,
+  ) {
     setMessageToUser(message);
     setTimeout(() => setMessageToUser(null), duration);
   }
@@ -401,17 +433,22 @@ function Expense(): JSX.Element {
     );
     if (fullFormErrors && Object.keys(fullFormErrors).length > 0) {
       setValidationMessages(fullFormErrors);
-      setMessageToUser(CORRECTION_PROMPT);
-      setTimeout(() => setMessageToUser(null), 4000);
-      return;
+      setMessageToUser(TRACKER_MESSAGES.correction);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.action);
+      return; //abort
     }
     if (!dataValidated) {
-      showMessage('Validation failed. Please check your inputs.');
+      showMessage(TRACKER_MESSAGES.validationFailure);
       return;
     }
-    showMessage('Processing transaction...', 2000);
-    // Server side: updates the balances of the bank and category budget accounts (user_accounts) and
-    // records both transaction descriptions with the account info.
+    showMessage(TRACKER_MESSAGES.processing, MESSAGE_DURATION.confirmation);
+    // Post the movement transaction: updates the bank account and category budget account
+    // balances in user_accounts.
+
+    //record both transaction descriptions: transfer and receive transactions with the correspondent account info.
+
+    //endpoint ex: http://localhost:5000/api/fintrack/transaction/transfer-between-accounts/?movement=expense
+
     try {
       const payload: PayloadType = {
         ...(dataValidated as ExpenseValidatedDataType & { type?: string }),
@@ -435,7 +472,11 @@ function Expense(): JSX.Element {
 
       if (import.meta.env.VITE_ENVIRONMENT === 'development') {
       }
-      showMessage('Transaction recorded successfully!', 3000);
+      //------------------------
+      showMessage(
+        TRACKER_MESSAGES.transactionRecorded,
+        MESSAGE_DURATION.confirmation,
+      );
     } catch (error) {
       const { message, status, isAuthError } = handleError(error);
 
@@ -510,7 +551,7 @@ function Expense(): JSX.Element {
       timer = setTimeout(() => {
         setMessageToUser(null);
         setIsReset(false);
-      }, 4000);
+      }, MESSAGE_DURATION.confirmation);
     }
     return () => clearTimeout(timer);
   }, [data, isLoading]);
@@ -528,7 +569,7 @@ function Expense(): JSX.Element {
       if (expenseData.note === '') {
         setValidationMessages((prev) => ({
           ...prev,
-          note: '* Please write the note',
+          note: TRACKER_MESSAGES.noteFieldRequired,
         }));
       } else {
         setValidationMessages((prev) => {
@@ -593,9 +634,20 @@ function Expense(): JSX.Element {
     value: expenseData.amount as string,
     selectOptions: accountOptions,
   };
-  // The category list's three fetch states. The option label is a string and can carry neither a
-  // skeleton nor a button, so they get their own surface. They degrade only the control that failed:
-  // a budget-service outage must not take expense entry down.
+  // The category list's fetch states get their own surface (an option label cannot hold a skeleton or button).
+  // They degrade only the failed control, so a budget-service outage does not block expense entry.
+  // Resolved only once the status has landed, so an empty list is never claimed before the answer arrives.
+  const categoryEmptyCase =
+    fetchedErrorCategoryBudgetAccounts ||
+    isLoadingCategoryBudgetAccounts ||
+    !isBudgetStatusLoaded
+      ? null
+      : resolveEmptyCase(
+          activeBudgetAccounts.length === 0,
+          activeBudgetAccounts.map((account) => account.accountStartDate),
+          transactionActualDate,
+        );
+
   function renderCategoryStatus(): JSX.Element | null {
    if (fetchedErrorCategoryBudgetAccounts) {
     return (
@@ -625,16 +677,8 @@ function Expense(): JSX.Element {
     );
    }
 
-   if (optionsExpenseCategories.length === 0) {
-    return (
-     <div className='categoryStatus'>
-      <span className='categoryStatus__text'>
-       No budget categories yet. Create one to record an expense.
-      </span>
-     </div>
-    );
-   }
-
+   // The empty case is not rendered here: it takes the dropdown's place above,
+   // because a category list with nothing to offer is not a control.
    return null;
   }
   // Separate UI for "checking" and "not authenticated".
@@ -697,6 +741,15 @@ function Expense(): JSX.Element {
 
           customSelectHandler={accountSelectHandler}
           transactionDateProps={transactionDateProps}
+          accountNotice={
+            bankEmptyCase && (
+              <EmptyListNotice
+               kind='bank'
+               action='record an expense'
+               emptyCase={bankEmptyCase}
+              />
+            )
+          }
         />
 
         <CardSeparator />
@@ -704,17 +757,28 @@ function Expense(): JSX.Element {
         <div className='state__card--bottom'>
           <div className='card--title card--title--top'>
             Category{' '}
+            {/* Silent while the notice stands in for the dropdown below: that
+                notice is this field's message. */}
             <span className='validation__errMsg'>
-              {validationMessages['category']}
+              {categoryEmptyCase ? '' : validationMessages['category']}
             </span>
           </div>
 
-          <DropDownSelection
-            dropDownOptions={categoryOptions}
-            updateOptionHandler={categorySelectHandler}
-            isReset={isReset}
-            setIsReset={setIsReset}
-          />
+          {categoryEmptyCase ? (
+            <EmptyListNotice
+             kind='category'
+             action='record an expense'
+             emptyCase={categoryEmptyCase}
+             linkShownElsewhere={noticeCarriesLink('bank', bankEmptyCase?.case)}
+            />
+          ) : (
+            <DropDownSelection
+              dropDownOptions={categoryOptions}
+              updateOptionHandler={categorySelectHandler}
+              isReset={isReset}
+              setIsReset={setIsReset}
+            />
+          )}
 
           {renderCategoryStatus()}
 
@@ -724,10 +788,14 @@ function Expense(): JSX.Element {
             dataHandler={updateTrackerData_Zod}
             inputNote={expenseData.note}
             onSaveHandler={onSaveHandler}
+            // A notice stands where a dropdown would be, so there is nothing to
+            // select and nothing the button could submit.
             isDisabled={
               isLoading ||
               isLoadingBankAccounts ||
-              isLoadingCategoryBudgetAccounts
+              isLoadingCategoryBudgetAccounts ||
+              !!bankEmptyCase ||
+              !!categoryEmptyCase
             }
             showError={showValidation.note}
           />
@@ -746,7 +814,9 @@ function Expense(): JSX.Element {
             messageToUser={messageToUser}
             variant='tracker'
             tone={
-              messageToUser === CORRECTION_PROMPT ? 'correction' : 'confirmation'
+              messageToUser === TRACKER_MESSAGES.correction
+                ? 'correction'
+                : 'confirmation'
             }
           />
         </div>

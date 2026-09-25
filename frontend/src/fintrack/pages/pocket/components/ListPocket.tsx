@@ -37,11 +37,21 @@ const FILTER_KEYS: PocketQuickFilter[] = [
  'atRisk',
  'overdue',
  'uncovered',
+ 'overPlan',
+ 'shortOfPlan',
 ];
 const toQuickFilter = (value: string | null): PocketQuickFilter =>
  FILTER_KEYS.includes(value as PocketQuickFilter)
   ? (value as PocketQuickFilter)
   : 'all';
+
+// The last day of the board's month, 'YYYY-MM-DD', from its 'YYYY-MM' label:
+// day 0 of the following month, read in UTC so it never leaves the month.
+const monthCloseDate = (month: string): string => {
+ const [year, monthNumber] = month.split('-').map(Number);
+ const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+ return `${month.slice(0, 7)}-${String(lastDay).padStart(2, '0')}`;
+};
 
 const toSortDirection = (
  value: string | null,
@@ -59,6 +69,7 @@ function ListPocket({ previousRoute }: { previousRoute: string }) {
  const loadedMonth = usePocketBoardStore((state) => state.loadedMonth);
  const error = usePocketBoardStore((state) => state.error);
  const refreshBoard = usePocketBoardStore((state) => state.refreshBoard);
+ const referenceMonth = usePocketBoardStore((state) => state.referenceMonth);
  const isLoaded = loadedMonth !== null;
 
  // Toolbar state lives in the URL, not useState: a pocket's detail route is
@@ -183,6 +194,7 @@ function ListPocket({ previousRoute }: { previousRoute: string }) {
      <PocketCard
       pocket={pocket}
       previousRoute={previousRoute}
+      closeDate={referenceMonth === null ? null : monthCloseDate(referenceMonth)}
       key={`pocket-${pocket.pocketId}`}
      />
     ))}

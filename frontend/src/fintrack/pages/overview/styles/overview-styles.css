@@ -592,6 +592,14 @@ a.icon {
  flex: 1 1 0;
 }
 
+/* index.css sizes every element at 16px, so each box between the subtitle and
+   its words restates inherit, or the line renders at 16px under a 12px rule. */
+.overviewLayout .domainCard__sub > span,
+.overviewLayout .domainCard__lines > span {
+ font-size: inherit;
+}
+
+/*------------*/
 /* The six-month trend. Elements with a height, not a canvas: var(--token)
    resolves on them and the values stay in the accessibility tree. */
 
@@ -605,14 +613,13 @@ a.icon {
 }
 
 /* A chart left alone on the last row of the two-column grid spans it, so
-   "Committed to pockets" keeps one line at 480px. */
+   "Allocated to pockets" keeps one line at 480px. */
 .overviewLayout .trendChart:last-child:nth-child(odd) {
  grid-column: 1 / -1;
 }
 
-/* The chart's own name, in the head the domain cards use. Not .domainCard__label: it
-   capitalises every word, which turns "Committed to pockets" into a title, and it
-   hardcodes a letter-spacing. */
+/* The chart's name, in the domain cards' head. Not .domainCard__label: it capitalises every word
+   and hardcodes letter-spacing, which suits a one-word domain name but not a phrase. */
 .overviewLayout .trendChart__label {
  font-size: var(--font-size-sm);
  font-weight: var(--font-weight-semibold);
@@ -764,6 +771,207 @@ a.icon {
  color: var(--color-content-on-dark-subtle);
 }
 
+/* Financial Goals' closing line: where the allocated money sits. */
+.overviewLayout .snapshot__concentration {
+ margin: 0;
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-subtle);
+}
+
+/* The allocated money split by pocket: the Pareto dialog's track and segments
+   (.paretoBar__track, .paretoBar__segment) at the card's width. */
+.overviewLayout .snapshot__composition {
+ display: flex;
+ overflow: hidden;
+ width: 100%;
+ height: var(--size-status-square);
+ border-radius: var(--radius-full);
+ background: var(--color-surface-app);
+}
+
+.overviewLayout .snapshot__segment {
+ flex: 0 0 auto;
+ min-width: var(--border-width-thick);
+ background: var(--rankedRow-ink);
+ box-shadow: inset calc(-1 * var(--border-width-thin)) 0 0
+  var(--color-surface-app);
+}
+
+/* A pocket named in the line, led by its segment's colour so the line reads as
+   the bar's legend. */
+.overviewLayout .snapshot__pocket {
+ font-size: inherit;
+}
+
+.overviewLayout .snapshot__swatch {
+ display: inline-block;
+ width: var(--size-status-square);
+ height: var(--size-status-square);
+ margin-inline-end: var(--space-1);
+ border-radius: var(--radius-sm);
+ background: var(--rankedRow-ink);
+ vertical-align: middle;
+}
+
+/* The way into the pocket Pareto, in the look of .domainCard__drill: a button,
+   because it opens a dialog and goes nowhere. */
+.overviewLayout .snapshot__drill {
+ display: inline-flex;
+ align-items: center;
+ gap: var(--space-1);
+ align-self: flex-start;
+ padding: var(--space-1) 0;
+ border: none;
+ background: none;
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ letter-spacing: var(--letter-spacing-wide);
+ color: var(--color-content-on-dark-subtle);
+ cursor: pointer;
+ transition: color var(--motion-fast);
+}
+
+.overviewLayout .snapshot__drillArrow {
+ font-size: inherit;
+ transition: transform var(--motion-fast);
+}
+
+.overviewLayout .snapshot__drill:hover {
+ color: var(--color-content-on-dark);
+}
+
+.overviewLayout .snapshot__drill:hover .snapshot__drillArrow {
+ transform: translateX(var(--space-1));
+}
+
+.overviewLayout .snapshot__drill:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: var(--border-width-thick);
+ border-radius: var(--radius-sm);
+}
+
+.overviewLayout .snapshot__drill:active {
+ color: var(--color-content-on-dark-muted);
+}
+
+.overviewLayout .snapshot__drill:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .overviewLayout .snapshot__drill,
+ .overviewLayout .snapshot__drillArrow {
+  transition: none;
+ }
+
+ .overviewLayout .snapshot__drill:hover .snapshot__drillArrow {
+  transform: none;
+ }
+}
+
+/* The pocket Pareto's dialog. Not portalled, so its rules sit under the page
+   it opens from, and ParetoBar inside it keeps its own. */
+.overviewLayout .allocationPareto__overlay {
+ position: fixed;
+ inset: 0;
+ z-index: var(--z-modal);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ padding: var(--space-4);
+ background-color: var(--color-surface-overlay);
+}
+
+.overviewLayout .allocationPareto__panel {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-4);
+ width: 100%;
+ max-width: var(--layout-card-width);
+ max-height: 80vh;
+ overflow-y: auto;
+ padding: var(--space-5) var(--space-4);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-xl);
+ background-color: var(--color-surface-raised);
+ color: var(--color-content-on-dark);
+ box-shadow: var(--shadow-overlay);
+}
+
+.overviewLayout .allocationPareto__panel:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: var(--border-width-thick);
+}
+
+.overviewLayout .allocationPareto__head {
+ display: flex;
+ align-items: flex-start;
+ justify-content: space-between;
+ gap: var(--space-3);
+}
+
+.overviewLayout .allocationPareto__titles {
+ display: flex;
+ flex-direction: column;
+ gap: var(--space-1);
+ min-width: 0;
+}
+
+.overviewLayout .allocationPareto__title {
+ margin: 0;
+ font-size: var(--font-size-base);
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-on-dark);
+}
+
+.overviewLayout .allocationPareto__scope {
+ margin: 0;
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-subtle);
+}
+
+.overviewLayout .allocationPareto__close {
+ flex: none;
+ padding: var(--space-1) var(--space-2);
+ border: var(--border-width-thin) solid var(--color-border-subtle);
+ border-radius: var(--radius-sm);
+ background: none;
+ font-family: inherit;
+ font-size: var(--font-size-sm);
+ line-height: 1;
+ color: var(--color-content-on-dark-muted);
+ cursor: pointer;
+ transition:
+  background-color var(--motion-fast),
+  color var(--motion-fast);
+}
+
+.overviewLayout .allocationPareto__close:hover {
+ background-color: var(--color-surface-hover-on-dark);
+ color: var(--color-content-on-dark);
+}
+
+.overviewLayout .allocationPareto__close:focus-visible {
+ outline: var(--border-width-thick) solid var(--color-accent);
+ outline-offset: var(--border-width-thick);
+}
+
+.overviewLayout .allocationPareto__close:active {
+ background-color: var(--color-surface-active-on-dark);
+}
+
+.overviewLayout .allocationPareto__close:disabled {
+ opacity: 0.5;
+ pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .overviewLayout .allocationPareto__close {
+  transition: none;
+ }
+}
+
 /* The rule is what separates the month from what it is being measured against.
    auto-fit rather than a fixed three, so the third cell drops under the other
    two on a narrow card instead of squeezing all three. */
@@ -836,13 +1044,14 @@ a.icon {
 /* Income delta arrow (.domainCard__delta--up/--down below): same direction-not-verdict
    rule, and income is the other card with no square. Only the arrow and the figure are
    painted; "vs prior month" keeps the running colour so the clause reads as a sentence. */
-/* Expense, Investment, PnL and Pocket stack their lines in a column inside .domainCard__sub so the square stays beside the
-   whole statement. --space-1, not --space-2: these are lines of one statement, so the gap is smaller. */
+/* Expense, Investment, PnL and Pocket stack their lines in .domainCard__sub so the square stays beside
+   the whole statement; --space-1 because they are lines of one statement. */
 .overviewLayout .domainCard__lines {
  display: flex;
  flex-direction: column;
  gap: var(--space-1);
  min-width: 0;
+ font-size: inherit;
 }
 
 /* Heading row, bar and verdict row as a column, so the bar spans the width the figures are measured
@@ -851,6 +1060,7 @@ a.icon {
  display: flex;
  flex-direction: column;
  gap: var(--space-1);
+ font-size: inherit;
 }
 
 /* What it is on the left, how much on the right. No --foot rule on purpose: the foot is the row as the
@@ -861,6 +1071,7 @@ a.icon {
  justify-content: space-between;
  flex-wrap: wrap;
  gap: var(--space-2);
+ font-size: inherit;
 }
 
 /* The label takes .domainCard__label's look; the amount takes .domainCard__figure's weight and ink at the
@@ -891,11 +1102,13 @@ a.icon {
  align-items: center;
  gap: var(--space-2);
  min-width: 0;
+ font-size: inherit;
 }
 
-/* Spending outside any live category. Subtle rather than muted: it states a fact and
-   grades nothing, so it sits a step below every clause that grades. */
+/* Spending outside any live category: a fact that grades nothing, so subtle and a step below graded clauses.
+   xs is stated, not inherited, since the pocket card's aside sits outside the subtitle. */
 .overviewLayout .domainCard__aside {
+ font-size: var(--font-size-xs);
  color: var(--color-content-on-dark-subtle);
 }
 
@@ -908,10 +1121,12 @@ a.icon {
 }
 
 .overviewLayout .domainCard__delta--up {
+ font-size: inherit;
  color: var(--color-amount-positive);
 }
 
 .overviewLayout .domainCard__delta--down {
+ font-size: inherit;
  color: var(--color-amount-negative);
 }
 
@@ -1009,9 +1224,62 @@ a.icon {
  color: var(--color-status-alert);
 }
 
-/* Pins the bottom navbar: overflow-x: auto also computes overflow-y to auto, making the shell a scroll
-   container the sticky navbar cannot stick against; clip avoids that. Scoped with :has() because
-   .home__layout is every screen's shell; ScrollJump reads window.scrollY, so the document must scroll. */
+/* The pocket card passes its square's class, not the budget's three words, so
+   without these its share stayed grey whatever the square said. neutral and
+   unknown keep the grey above, as the square does. */
+.overviewLayout .domainCard__share--alert {
+ color: var(--color-status-alert);
+}
+
+.overviewLayout .domainCard__share--warning {
+ color: var(--color-status-warning);
+}
+
+.overviewLayout .domainCard__share--info {
+ color: var(--color-status-info);
+}
+
+/* The pocket card's counts, ruled off under the target block. Wraps between
+   counts, never inside one. The size is stated here: index.css sizes every
+   element at 16px. */
+.overviewLayout .domainCard__counts {
+ display: flex;
+ flex-wrap: wrap;
+ align-items: baseline;
+ gap: var(--space-1) var(--space-3);
+ padding-top: var(--space-2);
+ border-top: var(--border-width-thin) solid var(--color-border-subtle);
+ font-size: var(--font-size-xs);
+ line-height: var(--line-height-body);
+ color: var(--color-content-on-dark-muted);
+ font-variant-numeric: tabular-nums;
+}
+
+.overviewLayout .domainCard__count {
+ font-size: inherit;
+ white-space: nowrap;
+}
+
+.overviewLayout .domainCard__countNumber {
+ font-size: inherit;
+ font-weight: var(--font-weight-semibold);
+ color: var(--color-content-on-dark);
+}
+
+/* The board's overcommitted flag (pocket-styles.css:1449), at 2xs because the
+   card never sets 3xs. */
+.overviewLayout .domainCard__count--alert {
+ font-size: var(--font-size-2xs);
+ font-weight: var(--font-weight-medium);
+ letter-spacing: var(--letter-spacing-wide);
+ text-transform: uppercase;
+ color: var(--color-status-alert);
+}
+
+/*------------*/
+/* Keeps the bottom navbar (already position: sticky) on screen while Overview scrolls.
+   .home__layout's overflow-x: auto makes the shell a scroll container that never scrolls, so sticky had no effect;
+   clip keeps the horizontal containment without that. Scoped with :has() so other screens' shells are untouched. */
 .home__layout:has(.overviewLayout) {
  overflow-x: clip;
  /* The cap must go too, or the pin lets go past 880px: a sticky child is held inside its containing
@@ -1160,6 +1428,16 @@ a.icon {
  font-size: var(--font-size-xs);
  letter-spacing: var(--letter-spacing-wide);
  color: var(--color-financial-negative);
+}
+
+/* A pocket's status, in the board's mark and word, quieter than the name. */
+.overviewLayout .paretoBar__status {
+ display: inline-flex;
+ flex: 0 0 auto;
+ align-items: center;
+ gap: var(--space-1);
+ font-size: var(--font-size-xs);
+ color: var(--color-content-on-dark-subtle);
 }
 
 .overviewLayout .paretoBar__amount {

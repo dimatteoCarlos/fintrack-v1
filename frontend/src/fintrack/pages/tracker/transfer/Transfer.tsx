@@ -22,6 +22,7 @@ import {
   ACCOUNT_OPTIONS_DEFAULT,
   PAGE_LOC_NUM,
 } from '../../../helpers/constants.ts';
+import { MESSAGE_DURATION, TRACKER_MESSAGES } from '../trackerMessages.ts';
 
 import type {
   DropdownOptionType,
@@ -49,6 +50,13 @@ import CardSeparator from '../components/CardSeparator.tsx';
 import { useTransactionDate } from '../../../hooks/useTransactionDate.ts';
 import DropDownSelection from '../../../general_components/dropdownSelection/DropDownSelection.tsx';
 import CardNoteSave from '../components/CardNoteSave.tsx';
+import EmptyListNotice, {
+ resolveEmptyCase,
+} from '../components/EmptyListNotice.tsx';
+import {
+ EmptyListKindType,
+ noticeCarriesLink,
+} from '../trackerMessages.ts';
 import RadioInput from '../../../general_components/radioInput/RadioInput.tsx';
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import { fetchNewBalance } from '../../../../auth/auth_utils/fetchNewTotalBalance.ts';
@@ -99,10 +107,21 @@ const inputRadioOptionsAccountBottomCard: RadioOptionType<TransferAccountType>[]
     { value: 'investment', label: 'Invest' },
     { value: 'income_source', label: 'Rev. Income' },
   ];
-// The one message on this screen that is not a confirmation; compared exactly
-// rather than inferred from validation state (see Expense.tsx for why).
-const CORRECTION_PROMPT = 'Please correct the fields';
 
+// Each radio names one account type, so each leg's notice speaks about that
+// type alone: 'No investment accounts yet', never 'No accounts yet'.
+const EMPTY_LIST_KIND_BY_ACCOUNT_TYPE: Record<
+  TransferAccountType,
+  EmptyListKindType
+> = {
+  bank: 'bank',
+  investment: 'investment',
+  category_budget: 'category',
+  income_source: 'income_source',
+};
+//==============================
+// ⚛️ MAIN COMPONENT: TRANSFER
+// Moves money between accounts of the allowed types (bank, investment).
 function Transfer(): JSX.Element {
   const router = useLocation();
   const trackerState = router.pathname.split('/')[PAGE_LOC_NUM];
@@ -151,6 +170,7 @@ function Transfer(): JSX.Element {
     apiData: originAccountsResponse,
     isLoading: isLoadingOriginAccounts,
     error: fetchedErrorOriginAccounts,
+    status: originAccountsStatus,
   } = useFetch<AccountByTypeResponseType>(fetchOriginAccountUrl as string);
 
   // Only a category_budget origin needs this month's spend against budget joined in: its account_balance is
@@ -290,6 +310,7 @@ function Transfer(): JSX.Element {
     apiData: destinationAccountsResponse,
     isLoading: isLoadingDestinationAccounts,
     error: fetchedErrorDestinationAccounts,
+    status: destinationAccountsStatus,
   } = useFetch<AccountByTypeResponseType>(fetchDestinationAccountUrl as string);
 
   // Total balance, refetched when reloadTrigger changes.
@@ -330,9 +351,45 @@ function Transfer(): JSX.Element {
     ],
   );
 
-  // A selection may stop qualifying when the date moves back. Both legs are
-  // cleared and both dropdowns reset together: clearing one while the other keeps
-  // its label would show a value the state no longer holds.
+  // Each leg answers 404 when the owner holds no account of its radio's type. Resolved only once a fetch has settled,
+  // so an empty list is never claimed before the answer arrives. Both read the unfiltered list on purpose: a leg
+  // emptied only by the other side's selection has options again once that changes.
+  const originEmptyCase =
+    isLoadingOriginAccounts || fetchedErrorOriginAccounts
+      ? null
+      : resolveEmptyCase(
+          originAccountsStatus === 404,
+          (originAccountsResponse?.data?.accountList ?? []).map(
+            (acc) => acc.account_start_date,
+          ),
+          transactionActualDate,
+        );
+
+  const destinationEmptyCase =
+    !fetchDestinationAccountUrl ||
+    isLoadingDestinationAccounts ||
+    fetchedErrorDestinationAccounts
+      ? null
+      : resolveEmptyCase(
+          destinationAccountsStatus === 404,
+          (destinationAccountsResponse?.data?.accountList ?? []).map(
+            (acc) => acc.account_start_date,
+          ),
+          transactionActualDate,
+        );
+
+  const originNoticeKind =
+    EMPTY_LIST_KIND_BY_ACCOUNT_TYPE[
+      formData.originAccountType ?? initialMovementData.originAccountType!
+    ];
+  const destinationNoticeKind =
+    EMPTY_LIST_KIND_BY_ACCOUNT_TYPE[
+      formData.destinationAccountType ??
+        initialMovementData.destinationAccountType!
+    ];
+
+  // A selection may stop qualifying when the date moves back. Both legs are cleared and both dropdowns reset together,
+  // or the form would show a label its state no longer holds.
   useEffect(() => {
     const originStillOffered =
       !formData.origin ||
@@ -512,7 +569,8 @@ function Transfer(): JSX.Element {
     e.preventDefault();
     if (resetFn) resetFn();
     setShowMessage(true);
-    setMessageToUser('Processing transaction...');
+    setMessageToUser(TRACKER_MESSAGES.processing);
+    //--data validation messages --
     activateAllValidations();
     
     const { fieldErrors, dataValidated } = validateAll();
@@ -531,18 +589,18 @@ function Transfer(): JSX.Element {
     console.log('🔍 [DEBUG] Entrando al if de fieldErrors');
     
       setValidationMessages(fieldErrors);
-      setMessageToUser(CORRECTION_PROMPT);
+      setMessageToUser(TRACKER_MESSAGES.correction);
       setTimeout(() => {
         setShowMessage(false);
         setMessageToUser(null);
-      }, 4000);
+      }, MESSAGE_DURATION.action);
       return;
     }
     // The POST updates the account balances (user_accounts) and records both legs,
     // transfer and receive, with the matching account info.
     try {
       if (!dataValidated) {
-        throw new Error('Validation failed. Please check your inputs.');
+        throw new Error(TRACKER_MESSAGES.validationFailure);
       }
       const payload: PayloadType = {
         ...dataValidated,
@@ -557,9 +615,7 @@ function Transfer(): JSX.Element {
 
       if (response?.error) {
         throw new Error(
-          response?.error ||
-            error ||
-            'An unexpected error occurred during submission.',
+          response?.error || error || TRACKER_MESSAGES.submissionFailure,
         );
       }
 
@@ -575,7 +631,8 @@ function Transfer(): JSX.Element {
 
       if (import.meta.env.VITE_ENVIRONMENT === 'development') {
       }
-      setMessageToUser('Transaction recorded successfully!');
+      //-----------------------------
+      setMessageToUser(TRACKER_MESSAGES.transactionRecorded);
       setShowMessage(true);
       resetForm();
       setReloadTrigger((prev) => prev + 1);
@@ -584,7 +641,7 @@ function Transfer(): JSX.Element {
         setMessageToUser(null);
         setShowMessage(false);
         setIsReset(false);
-      }, 4000);
+      }, MESSAGE_DURATION.confirmation);
 
       if (resetFn) resetFn();
     } catch (error) {
@@ -594,7 +651,7 @@ function Transfer(): JSX.Element {
       setTimeout(() => {
         setMessageToUser(null);
         setShowMessage(false);
-      }, 5000);
+      }, MESSAGE_DURATION.action);
     }
   }
   useEffect(() => {
@@ -650,6 +707,15 @@ function Transfer(): JSX.Element {
             labelId: 'origin',
           }}
           transactionDateProps={transactionDateProps}
+          accountNotice={
+            originEmptyCase && (
+              <EmptyListNotice
+               kind={originNoticeKind}
+               action='record a transfer'
+               emptyCase={originEmptyCase}
+              />
+            )
+          }
         />
 
         <CardSeparator />
@@ -678,18 +744,29 @@ function Transfer(): JSX.Element {
           <div className='validation__errMsg'>
             {validationMessages['destination']}
           </div>
-          {/* ariaLabel is "To" (the word above it), not the placeholder: the
-              placeholder reads "Select Account" on both dropdowns and is empty
-              while the account list loads. */}
-          <DropDownSelection
-            dropDownOptions={destinationAccountOptions}
-            updateOptionHandler={handleDestinationChange}
-            ariaLabel='To'
-            isReset={isReset}
-            setIsReset={setIsReset}
-            setIsResetDropdown={setIsResetDestinationAccount}
-            isResetDropdown={isResetDestinationAccount}
-          />
+          {/* "To" names this dropdown; the placeholder reads "Select Account" on both dropdowns and is empty while
+              the account list loads. */}
+          {destinationEmptyCase ? (
+            <EmptyListNotice
+             kind={destinationNoticeKind}
+             action='record a transfer'
+             emptyCase={destinationEmptyCase}
+             linkShownElsewhere={noticeCarriesLink(
+              originNoticeKind,
+              originEmptyCase?.case,
+             )}
+            />
+          ) : (
+            <DropDownSelection
+              dropDownOptions={destinationAccountOptions}
+              updateOptionHandler={handleDestinationChange}
+              ariaLabel='To'
+              isReset={isReset}
+              setIsReset={setIsReset}
+              setIsResetDropdown={setIsResetDestinationAccount}
+              isResetDropdown={isResetDestinationAccount}
+            />
+          )}
 
           <CardNoteSave
             title={'note'}
@@ -697,10 +774,14 @@ function Transfer(): JSX.Element {
             dataHandler={handleNoteChange}
             inputNote={formData.note}
             onSaveHandler={onSaveHandler}
+            // A notice stands where a dropdown would be, so there is nothing to
+            // select and nothing the button could submit.
             isDisabled={
               isLoading ||
               isLoadingOriginAccounts ||
-              isLoadingDestinationAccounts
+              isLoadingDestinationAccounts ||
+              !!originEmptyCase ||
+              !!destinationEmptyCase
             }
             showError={showValidation.note}
           />
@@ -715,7 +796,9 @@ function Transfer(): JSX.Element {
             messageToUser={messageToUser}
             variant='tracker'
             tone={
-              messageToUser === CORRECTION_PROMPT ? 'correction' : 'confirmation'
+              messageToUser === TRACKER_MESSAGES.correction
+                ? 'correction'
+                : 'confirmation'
             }
           />
         </div>

@@ -24,6 +24,11 @@ import {
   SOURCE_OPTIONS_DEFAULT,
   PAGE_LOC_NUM,
 } from '../../../helpers/constants.ts';
+import {
+  MESSAGE_DURATION,
+  noticeCarriesLink,
+  TRACKER_MESSAGES,
+} from '../trackerMessages.ts';
 
 import type {
   AccountByTypeResponseType,
@@ -45,6 +50,9 @@ import TopCard from '../components/TopCard.tsx';
 import CardSeparator from '../components/CardSeparator.tsx';
 import DropDownSelection from '../../../general_components/dropdownSelection/DropDownSelection.tsx';
 import CardNoteSave from '../components/CardNoteSave.tsx';
+import EmptyListNotice, {
+ resolveEmptyCase,
+} from '../components/EmptyListNotice.tsx';
 import { MessageToUser } from '../../../general_components/messageToUser/MessageToUser.tsx';
 import { authFetch } from '../../../../auth/auth_utils/authFetch.ts';
 export type ShowValidationType = {
@@ -64,10 +72,7 @@ const initialIncomeData: IncomeInputDataType = {
   currency: DEFAULT_CURRENCY,
 };
 const VARIANT_DEFAULT: VariantType = 'tracker';
-// The one message this screen sends down the message channel that is not a confirmation; compared exactly
-// rather than inferred from validation state (see the same constant in Expense.tsx).
-const CORRECTION_PROMPT = 'Please correct the highlithed fields';
-
+// Main component: Income tracker movement
 function Income(): JSX.Element {
   // Rule: only bank accounts receive income amounts. The account options are all existing bank accounts except
   // the slack account, which is not shown.
@@ -124,7 +129,20 @@ function Income(): JSX.Element {
     apiData: BankAccountsResponse,
     isLoading: isLoadingBankAccounts,
     error: fetchedErrorBankAccounts,
+    status: bankAccountsStatus,
   } = useFetch<AccountByTypeResponseType>(fetchUrl as string);
+ // The backend answers 404 "No accounts of type" for a user with none, and
+ // useFetch turns that into error null. Status is null until a fetch ends.
+ const isBankListSettled = !isLoadingBankAccounts && !fetchedErrorBankAccounts;
+ const receivedBankAccounts = isBankListSettled
+  ? (BankAccountsResponse?.data?.accountList ?? [])
+  : [];
+ const bankEmptyCase = resolveEmptyCase(
+  isBankListSettled && bankAccountsStatus === 404,
+  receivedBankAccounts.map((acc) => acc.account_start_date),
+  transactionActualDate,
+ );
+  // Data transformation: account dropdown options, memoized to avoid recalculation.
   const optionsIncomeAccounts = useMemo(
     () =>
       BankAccountsResponse?.data?.accountList?.length &&
@@ -157,7 +175,18 @@ function Income(): JSX.Element {
     apiData: sources,
     isLoading: isLoadingSources,
     error: errorSources,
+    status: sourcesStatus,
   } = useFetch<AccountByTypeResponseType>(fetchSourceUrl as string);
+ // Same empty answer as the bank list above.
+ const isSourceListSettled = !isLoadingSources && !errorSources;
+ const receivedSources = isSourceListSettled
+  ? (sources?.data?.accountList ?? [])
+  : [];
+ const sourceEmptyCase = resolveEmptyCase(
+  isSourceListSettled && sourcesStatus === 404,
+  receivedSources.map((acc) => acc.account_start_date),
+  transactionActualDate,
+ );
 
   const sourceOptions = useMemo(
     () => ({
@@ -273,22 +302,23 @@ function Income(): JSX.Element {
     e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>,
   ) {
     e.preventDefault();
-    setMessageToUser('Processing transaction...');
+    setMessageToUser(TRACKER_MESSAGES.processing);
+    //--data validation messages --
     activateAllValidations();
     const { fieldErrors, dataValidated } = validateAll();
     if (Object.keys(fieldErrors).length > 0) {
       setValidationMessages(fieldErrors);
-      setMessageToUser(CORRECTION_PROMPT);
+      setMessageToUser(TRACKER_MESSAGES.correction);
       setTimeout(() => {
         setMessageToUser(null);
-      }, 4000);
+      }, MESSAGE_DURATION.action);
       return;
     }
     // Server side: updates the balances of the bank account and of the income_source account (user_accounts)
     // and records both transaction descriptions with the corresponding account info.
     try {
       if (!dataValidated) {
-        throw new Error('Validation failed. Please check your inputs.');
+        throw new Error(TRACKER_MESSAGES.validationFailure);
       }
       const payload: PayloadType = {
         ...(dataValidated as IncomeValidatedDataType & { type?: string }),
@@ -303,9 +333,7 @@ function Income(): JSX.Element {
 
       if (response?.error) {
         throw new Error(
-          response?.error ||
-            postError ||
-            'An unexpected error occurred during submission.',
+          response?.error || postError || TRACKER_MESSAGES.submissionFailure,
         );
       }
 
@@ -331,12 +359,16 @@ function Income(): JSX.Element {
       setReloadTrigger((prev) => prev + 1);
       setIsReset(true);
       setIsResetDropdown(true);
-      setTimeout(() => setMessageToUser(null), 3000);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.confirmation);
+
+      // setTimeout(() => {
+      //   setIsReset(false);
+      // }, 1500);
     } catch (err) {
       console.error('Submission error:', postError);
       const errorMessage = handleApiError(err);
       setMessageToUser(errorMessage);
-      setTimeout(() => setMessageToUser(null), 5000);
+      setTimeout(() => setMessageToUser(null), MESSAGE_DURATION.action);
     }
   }
   // Clears the UI reset flags shortly after they are raised.
@@ -376,22 +408,42 @@ function Income(): JSX.Element {
           setIsResetDropdown={setIsResetDropdown}
           customSelectHandler={handleAccountChange}
           transactionDateProps={transactionDateProps}
+          accountNotice={
+            bankEmptyCase && (
+              <EmptyListNotice
+               kind='bank'
+               action='record income'
+               emptyCase={bankEmptyCase}
+              />
+            )
+          }
         />
         <CardSeparator />
         <div className='state__card--bottom '>
           <div className='card--title card--title--top'>
             Source
+            {/* Silent while the notice stands in for the dropdown below: that
+                notice is this field's message. */}
             <span className='validation__errMsg'>
-              {validationMessages['source']}
+              {sourceEmptyCase ? '' : validationMessages['source']}
             </span>
           </div>
 
-          <DropDownSelection
-            dropDownOptions={sourceOptions}
-            updateOptionHandler={handleSourceChange}
-            isReset={isReset}
-            setIsReset={setIsReset}
-          />
+          {sourceEmptyCase ? (
+            <EmptyListNotice
+             kind='income_source'
+             action='record income'
+             emptyCase={sourceEmptyCase}
+             linkShownElsewhere={noticeCarriesLink('bank', bankEmptyCase?.case)}
+            />
+          ) : (
+            <DropDownSelection
+              dropDownOptions={sourceOptions}
+              updateOptionHandler={handleSourceChange}
+              isReset={isReset}
+              setIsReset={setIsReset}
+            />
+          )}
 
           <CardNoteSave
             title={'note'}
@@ -399,7 +451,15 @@ function Income(): JSX.Element {
             dataHandler={handleNoteChange}
             inputNote={incomeData.note}
             onSaveHandler={onSaveHandler}
-            isDisabled={isLoading || isLoadingBankAccounts || isLoadingSources}
+            // A notice stands where a dropdown would be, so there is nothing to
+            // select and nothing the button could submit.
+            isDisabled={
+              isLoading ||
+              isLoadingBankAccounts ||
+              isLoadingSources ||
+              !!bankEmptyCase ||
+              !!sourceEmptyCase
+            }
             showError={showValidation.note}
           />
         </div>
@@ -413,7 +473,9 @@ function Income(): JSX.Element {
             messageToUser={messageToUser}
             variant='tracker'
             tone={
-              messageToUser === CORRECTION_PROMPT ? 'correction' : 'confirmation'
+              messageToUser === TRACKER_MESSAGES.correction
+                ? 'correction'
+                : 'confirmation'
             }
           />
         </div>

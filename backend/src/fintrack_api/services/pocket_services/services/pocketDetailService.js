@@ -15,6 +15,11 @@ import { makePocketStatus } from '../core/makePocketStatus.js';
 import { makeAccountAllocation } from '../core/makeAccountAllocation.js';
 import { makeAllocationEntry } from '../core/makeAllocationEntry.js';
 import { makeActualRate } from '../core/actualRate.js';
+import {
+ makeCloseSchedule,
+ monthCloseDate,
+ previousCloseDate,
+} from '../core/closeSchedule.js';
 import { toAmount, money } from '../../budget_services/core/money.js';
 
 // A missing pocket and another user's pocket both answer 403: splitting them
@@ -127,8 +132,8 @@ export const pocketDetailService = {
 
   const status = makePocketStatus(row, today);
 
-  // Added here, not in makePocketStatus: the board shares that function and
-  // never fetches one pocket's full history, which this screen already has.
+  // Added here, not in makePocketStatus, which reads no ledger. The board
+  // derives the same rate for its total in pocketBoardService.
   const { actualRate, projectedCompletion } = makeActualRate(
    historyRows,
    status.planStart,
@@ -136,11 +141,18 @@ export const pocketDetailService = {
    status.remaining,
   );
 
+  // The current month's close, the same figures the board's card shows, so the
+  // detail can state what to allocate by month end.
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const monthClose = monthCloseDate(monthStart);
+
   const pocket = {
    ...status,
    actualRate,
    projectedCompletion,
    uncovered: sources.some((source) => source.covered === false),
+   monthClose,
+   ...makeCloseSchedule(status, monthClose, previousCloseDate(monthStart)),
   };
 
   // sourceCount is for the card, which has no room for the table; this screen

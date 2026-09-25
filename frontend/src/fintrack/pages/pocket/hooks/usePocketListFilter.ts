@@ -17,10 +17,15 @@ export const DEFAULT_SORT_DIRECTION: Record<PocketSortKey, PocketSortDirection> 
  remaining: 'desc',
 };
 
-// One value beside the seven levels, and it is orthogonal to all of them: a
-// pocket can be completed and still uncovered, so this is not an eighth level.
-// 'all' is the absence of a filter rather than a value the rows carry.
-export type PocketQuickFilter = PocketStatusLevel | 'all' | 'uncovered';
+// One value beside the seven levels, orthogonal to them: a pocket can be completed and still uncovered.
+// 'all' means no filter. 'overPlan' and 'shortOfPlan' are the two signs of aheadAtClose,
+// the money gap at month close; they are not levels, since a level compares paces.
+export type PocketQuickFilter =
+ | PocketStatusLevel
+ | 'all'
+ | 'uncovered'
+ | 'overPlan'
+ | 'shortOfPlan';
 
 type PocketListFilterInput = {
  rows: PocketStatus[];
@@ -52,6 +57,10 @@ const passesQuickFilter = (
 ): boolean => {
  if (quickFilter === 'all') return true;
  if (quickFilter === 'uncovered') return pocket.uncovered;
+ if (quickFilter === 'overPlan')
+  return pocket.aheadAtClose !== null && pocket.aheadAtClose > 0;
+ if (quickFilter === 'shortOfPlan')
+  return pocket.aheadAtClose !== null && pocket.aheadAtClose < 0;
 
  // Served, never derived: the server decides the level once, so all seven go
  // through this one comparison.

@@ -25,7 +25,7 @@ const SERIES: {
 }[] = [
  { key: 'income', label: 'Income', nature: 'flow' },
  { key: 'expense', label: 'Expense', nature: 'flow' },
- { key: 'pocket', label: 'Committed to pockets', nature: 'position' },
+ { key: 'pocket', label: 'Allocated to pockets', nature: 'position' },
 ];
 
 // 'YYYY-MM' to 'Apr'; trend months have no day to drop, unlike the card windows.

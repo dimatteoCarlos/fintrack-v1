@@ -20,7 +20,7 @@ export type LevelThreeProgress = {
   word: string;
   // The suffix of the mark's colour modifier, the square vocabulary's own.
   tone: string;
-  isTick: boolean;
+  isStar: boolean;
  };
 };
 
@@ -78,15 +78,8 @@ function LevelThreeRow({
        aria-hidden='true'
        focusable='false'
       >
-       {progress.status.isTick ? (
-        <polyline
-         points='2 6.5 5 9.5 10 2.5'
-         fill='none'
-         stroke='currentColor'
-         strokeWidth='2'
-         strokeLinecap='round'
-         strokeLinejoin='round'
-        />
+       {progress.status.isStar ? (
+        <polygon points='6 0.5 7.41 4.56 11.71 4.65 8.28 7.24 9.53 11.35 6 8.9 2.47 11.35 3.72 7.24 0.29 4.65 4.59 4.56' fill='currentColor' />
        ) : (
         <rect width='12' height='12' rx='2' fill='currentColor' />
        )}

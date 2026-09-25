@@ -13,9 +13,9 @@ export type PocketStatusLevel =
  | 'atRisk'
  | 'overdue';
 
-// Class appended by the shared StatusSquare: behind and ahead take --color-status-behind (violet, 5.88:1)
-// and --color-status-ahead (green, 8.34:1). onTrack is 'neutral': the bare square paints an undeclared
-// `--square`. completed is '' because it is drawn as a tick: ask `pocketMarkIsTick`, not this map.
+// The class the shared StatusSquare appends.
+// onTrack uses an explicit 'neutral': the bare square painted an undeclared variable's teal fallback.
+// completed maps to '' because it is drawn as a star; ask `pocketMarkIsStar` before painting a square.
 const SQUARE_CLASS: Record<PocketStatusLevel, string> = {
  completed: '',
  aboveTarget: 'info',
@@ -26,14 +26,18 @@ const SQUARE_CLASS: Record<PocketStatusLevel, string> = {
  overdue: 'alert',
 };
 
-// Levels marked by shape instead of hue, decided here so the card, hero strip and detail panel agree. Only
-// `completed` qualifies: under deuteranopia the seven levels collapse to two hue families (completed,
-// aboveTarget, ahead, onTrack and behind sit within 1.11:1), so only a shape still separates it.
-export const pocketMarkIsTick = (level: PocketStatusLevel): boolean =>
- level === 'completed';
+// Levels of a reached goal are marked by a star, decided here so card, hero strip and detail panel agree.
+// A shape still separates them when colour vision collapses the hues.
+export const pocketMarkIsStar = (level: PocketStatusLevel): boolean =>
+ level === 'completed' || level === 'aboveTarget';
 
-// Modifier on the reading's left border, from the same level as the square so the two cannot disagree.
-// completed keeps the --ok border although its mark is a tick: a border is a line, so hue is all it has.
+// The star's colour: green for a goal met exactly, blue for one passed.
+export const pocketStarTone = (level: PocketStatusLevel): 'complete' | 'info' =>
+ level === 'aboveTarget' ? 'info' : 'complete';
+
+// The border modifier comes from the same level as the square, so the two cannot disagree.
+// onTrack resolves to --color-status-neutral for both.
+// completed keeps the --ok border: a line cannot be a shape, so hue is all this row can carry.
 const READING_MODIFIER: Record<PocketStatusLevel, string> = {
  completed: 'summaryPocket__reading--ok',
  aboveTarget: 'summaryPocket__reading--info',
@@ -49,10 +53,10 @@ const READING_MODIFIER: Record<PocketStatusLevel, string> = {
 // the hero strip lower-cases the word it gets.
 export const POCKET_STATUS_WORD: Record<PocketStatusLevel, string> = {
  completed: 'Completed',
- aboveTarget: 'Above target',
- // "Ahead", not "Ahead of plan" (the readings card's sentence form): this map feeds
- // a chip, a filter option and a strip of one- or two-word entries, and the longer
- // phrase would be the only one to wrap.
+ // Over and not Above: over / short is the board's word pair for money.
+ aboveTarget: 'Over target',
+ // "Ahead", not "Ahead of plan": the chip, filter option and strip hold one- or two-word labels,
+ // and the longer phrase would be the only one to wrap.
  ahead: 'Ahead',
  onTrack: 'On track',
  behind: 'Behind',

@@ -39,15 +39,18 @@ type PocketFundingAccountsPropType = {
  // Count of distinct accounts holding an allocation above zero, so the closed card costs no request.
  // Bounded at the close of the reported month while the rows below are not; the body note covers it.
  sourceAccountCount: number;
- // The reported month and the latest month, both YYYY-MM. They are equal only
- // when the reader has not stepped back, the one case where the heading and the
- // rows answer about the same instant.
+ // Of those, how many are committed past their balance. Served with the count
+ // above, so the closed card can say it without the rows.
+ overAllocatedAccountCount: number;
+ // The reported month and the latest month, both YYYY-MM on the owner's calendar.
+ // They are equal only while the reader has not stepped back.
  referenceMonth: string | null;
  currentMonth: string | null;
 };
 
 function PocketFundingAccounts({
  sourceAccountCount,
+ overAllocatedAccountCount,
  referenceMonth,
  currentMonth,
 }: PocketFundingAccountsPropType) {
@@ -126,7 +129,7 @@ function PocketFundingAccounts({
   answered && accounts.length === 0
    ? 'No bank account was returned, so there is nothing this board could be funded from.'
    : answered && !carriesFigures
-     ? 'The accounts answered, but none of them carried what it has committed to a pocket. The figure is served by the accounts read, so this is a gap in the answer and not an empty board.'
+     ? 'The accounts answered, but none of them carried what it has allocated to pockets. The figure is served by the accounts read, so this is a gap in the answer and not an empty board.'
      : 'No account has committed cash to a pocket yet. Committing from one lists it here.';
 
  const amountFor = (account: PocketEligibleAccount, value?: number) => {
@@ -157,18 +160,28 @@ function PocketFundingAccounts({
      </span>
     </span>
 
-    <button
-     type='button'
-     className={`pocketHero__toggle${isOpen ? ' is-active' : ''}`}
-     onClick={() => setIsOpen((open) => !open)}
-     aria-expanded={isOpen}
-     aria-controls={BODY_ID}
-     aria-label={
-      isOpen ? 'Collapse funding accounts' : 'Expand funding accounts'
-     }
-    >
-     <ArrowDownLightSvg className='pocketHero__toggleChevron' />
-    </button>
+    {/* The first balancing step, stated on the closed card as Plan variance
+        states its split. Absent at zero, the same flag the rows wear. */}
+    <span className='pocketHero__cardHeadEnd'>
+     {overAllocatedAccountCount > 0 && (
+      <span className='pocketHero__accountFlag'>
+       {overAllocatedAccountCount} overcommitted
+      </span>
+     )}
+
+     <button
+      type='button'
+      className={`pocketHero__toggle${isOpen ? ' is-active' : ''}`}
+      onClick={() => setIsOpen((open) => !open)}
+      aria-expanded={isOpen}
+      aria-controls={BODY_ID}
+      aria-label={
+       isOpen ? 'Collapse funding accounts' : 'Expand funding accounts'
+      }
+     >
+      <ArrowDownLightSvg className='pocketHero__toggleChevron' />
+     </button>
+    </span>
    </div>
 
    {isOpen && (
@@ -244,7 +257,9 @@ function PocketFundingAccounts({
          </span>
 
          <span className='pocketHero__accountRight'>
+          {/* Labelled like its two neighbours, with the hero's word for it. */}
           <span className='pocketHero__accountAmount'>
+           <span className='pocketHero__accountAmountLabel'>allocated</span>{' '}
            {amountFor(account, account.allocated)}
           </span>
 
@@ -256,7 +271,7 @@ function PocketFundingAccounts({
               survives monochrome print and colour blindness. Same wording as the
               pocket detail's source rows. */}
           {account.isOverAllocated === true && (
-           <span className='pocketHero__accountFlag'>over-allocated</span>
+           <span className='pocketHero__accountFlag'>overcommitted</span>
           )}
          </span>
 

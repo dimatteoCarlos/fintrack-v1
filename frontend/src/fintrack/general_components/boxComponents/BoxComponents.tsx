@@ -39,9 +39,18 @@ export function StatusSquare({
   </span>;
 }
 
-// The square's sibling for a FINISHED reading, the only mark on the pocket scale
-// told apart by shape. It takes no props: a tick means one thing. aria-hidden,
-// like the square, because both stand beside a word that already names the state.
-export function StatusTick() {
-  return <span className='status__tick' aria-hidden='true'></span>;
+//-----StatusStar
+// A star marks a reached goal: it reads as an achievement and survives colour blindness.
+// aria-hidden, like the square: both sit beside a word that already names the state.
+export function StatusStar({ tone }: { tone: 'complete' | 'info' }) {
+  return (
+    <svg
+      className={`status__star status__star--${tone}`}
+      viewBox='0 0 12 12'
+      aria-hidden='true'
+      focusable='false'
+    >
+      <polygon points='6 0.5 7.41 4.56 11.71 4.65 8.28 7.24 9.53 11.35 6 8.9 2.47 11.35 3.72 7.24 0.29 4.65 4.59 4.56' fill='currentColor' />
+    </svg>
+  );
 }

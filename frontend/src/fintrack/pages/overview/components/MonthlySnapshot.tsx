@@ -38,8 +38,9 @@ const FAVOURABLE_WHEN_ABOVE: Record<MonthlySnapshotDomain, boolean> = {
 const DOMAIN_LABEL: Record<MonthlySnapshotDomain, string> = {
  income: 'Income',
  expense: 'Expense',
- // Matches the app's Pocket screen, which this card summarises.
- pocket: 'Pockets',
+ // Named after the Pocket screen this card summarises; "net committed" because the row is
+ // the month's movement, not the allocated balance.
+ pocket: 'Pockets · net committed',
 };
 
 const money = (currency: string, value: number) =>

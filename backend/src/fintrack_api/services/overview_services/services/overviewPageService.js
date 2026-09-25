@@ -143,8 +143,15 @@ export const overviewPageService = {
     makeMonthlySnapshot({ domain: 'expense', months: expenseMonths, currency: ACCOUNTING_CURRENCY_CODE }),
     makeMonthlySnapshot({ domain: 'pocket', months: pocketMonths, currency: ACCOUNTING_CURRENCY_CODE }),
    ],
-   financialGoals: makeFinancialGoals({ goals, currency: ACCOUNTING_CURRENCY_CODE }),
-   // Not an aggregation and not bounded by the month; every row carries its own currency.
+   financialGoals: makeFinancialGoals({
+    goals,
+    currency: ACCOUNTING_CURRENCY_CODE,
+    progress: pocket.card.progress,
+    levels: pocket.pocketLevels,
+   }),
+   // Not an aggregation and not bounded by the month: the teaser answers what
+   // happened last, which is why it carries no currency of its own — every row
+   // already has one (D7).
    recentActivity: { transactions: recentActivity },
 
    // Calculator series published verbatim so a chart matches its figure. trend has keys only for

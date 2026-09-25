@@ -126,9 +126,14 @@ export type OverviewPocketCard = OverviewDomainCardBase & {
  // Money committed past the goal: the fourth term of allocated - excess + remaining = target, needed
  // because remaining is clamped per pocket. null on a board with no pockets (a sum over nothing is not 0).
  excess: number | null;
- fundedCount: number;
+ // The board's two bands, folded on the server from its levelCounts.
+ targetReachedCount: number;
+ inProgressCount: number;
  overdueCount: number;
  uncoveredCount: number;
+ // Source accounts committed past their balance: the accounts behind
+ // uncoveredCount, which counts pockets.
+ overAllocatedAccountCount: number;
 };
 
 // Shares none of the base: a position, not a flow, so no totalAmount and no window. Its comparison
@@ -238,9 +243,20 @@ export type MonthlySnapshot = {
  meta: OverviewMeta;
 };
 
-// The three goal figures, and no fourth. No percentage is published: dividing in
-// the browser would make it decide what a null or zero target means, and the
-// server answers that by withholding the target.
+// One pocket's place in the allocated total. cumulativeShare is 0-1, this pocket
+// plus every one above it; its own share is the difference from the row above.
+export type OverviewPocketAllocation = {
+ pocketId: number;
+ name: string;
+ amount: number;
+ cumulativeShare: number;
+ // The pocket board's level for this pocket; null when the board did not
+ // classify it. Optional until a backend serving it is deployed.
+ level?: PocketStatus['level'] | null;
+};
+
+// The three figures of block 05, the pocket card's overall progress and where
+// the allocated money sits. Nothing here is divided in the browser.
 export type OverviewFinancialGoals = {
  // Always a number. Counts every pocket, including those with no target: money
  // set aside is set aside whether or not it was promised to a goal.
@@ -248,10 +264,14 @@ export type OverviewFinancialGoals = {
  // null and never 0 when no pocket carries a target: an absent target is not a
  // target of zero, which would state that a goal was set and reached.
  goalsTotalTarget: number | null;
- // The plain subtraction, not floored: saving past the goal reads as a negative
- // remainder, and clamping would report the goal as exactly met. null whenever the
- // target is.
+ // Clamped at zero per pocket before summing, so never negative. null whenever
+ // the target is.
  goalsTotalRemaining: number | null;
+ // The pocket card's progress, a rate over 100. null whenever the target is.
+ goalsOverallProgress: number | null;
+ // Every pocket, largest allocated first and ties by name. Empty when nothing
+ // is allocated.
+ allocationByPocket: OverviewPocketAllocation[];
  currency: string;
  meta: OverviewMeta;
 };

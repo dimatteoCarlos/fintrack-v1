@@ -80,7 +80,9 @@ const SAVING_GOALS_QUERY = `
     COALESCE(SUM(pa.amount) FILTER (
       WHERE pa.allocation_actual_date < (($2::timestamp + INTERVAL '1 month') AT TIME ZONE $3)
     ), 0) AS balance,
-    p.target_amount AS target
+    p.target_amount AS target,
+    p.name AS name,
+    p.pocket_id AS pocket_id
   FROM pockets p
   LEFT JOIN pocket_allocations pa ON pa.pocket_id = p.pocket_id
   WHERE p.user_id = $1
@@ -154,15 +156,8 @@ export async function getFreeCash(pool, userId, referenceMonth, timeZone = 'UTC'
  return toAmount(rows[0]?.free_cash ?? 0);
 }
 
-/**
- * One row per pocket: what is committed to it and its target.
- * balance is the committed total at month close, not money the pocket holds.
- * target is never null today, but the caller's null branch keeps the contract's null semantics.
- *
- * @param {string} userId - UUID from the token
- * @param {string} month - the month to read at, as 'YYYY-MM-01'
- * @param {string} timeZone - IANA zone of the account owner
- * @returns {Promise<Array<{balance: number, target: number|null}>>}
+/** One row per pocket: balance is the committed total at month close, not money held; target is never null today.
+ * @returns {Promise<Array<{balance: number, target: number|null, name: string, pocketId: number}>>}
  */
 export async function getSavingGoals(pool, userId, month, timeZone = 'UTC') {
  const { rows } = await pool.query(SAVING_GOALS_QUERY, [userId, month, timeZone]);
@@ -170,6 +165,8 @@ export async function getSavingGoals(pool, userId, month, timeZone = 'UTC') {
  return rows.map((row) => ({
   balance: toAmount(row.balance ?? 0),
   target: row.target === null || row.target === undefined ? null : toAmount(row.target),
+  name: row.name,
+  pocketId: row.pocket_id,
  }));
 }
 

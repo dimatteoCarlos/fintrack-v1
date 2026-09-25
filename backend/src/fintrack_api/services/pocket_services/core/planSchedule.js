@@ -1,6 +1,8 @@
-// The plan's line: what a pocket should hold by a date, and how far the pace it needs has drifted.
-// Stored values only (target, deadline, plan day), no ledger history. The line is continuous in days,
-// so it does not jump on the 1st; both paces are daily rates, so a pocket on its line rates 1.
+// backend/src/fintrack_api/services/pocket_services/core/planSchedule.js
+
+// The plan's own line: what a pocket should hold by a given date, and how far its needed pace drifted from its own.
+// A division of stored values (target, deadline, plan start), not a projection; the achieved rate is in actualRate.js.
+// Continuous in days, so short plans have a line, day-one instalments are not inflated and the 1st does not jump it.
 
 import { toAmount, money } from '../../budget_services/core/money.js';
 
@@ -20,17 +22,8 @@ export const daysBetween = (fromDate, toDate) =>
    MILLISECONDS_PER_DAY,
  );
 
-/**
- * The plan's line for one pocket, at one evaluation date.
- *
- * @param {object} plan
- * @param {import('decimal.js').Decimal} plan.targetAmount
- * @param {import('decimal.js').Decimal} plan.allocatedAmount
- * @param {string} plan.planStart - YYYY-MM-DD, the day the plan was made
- * @param {string} plan.desiredDate - YYYY-MM-DD, the deadline
- * @param {number} plan.daysRemaining - from the evaluation date to the deadline
- * @param {string} evaluationDate - YYYY-MM-DD on the owner's calendar
- * @returns {{planInstalment: number|null, scheduledByNow: number|null, aheadOfPlan: number|null, paceRatio: number|null}}
+/** The plan's line for one pocket at one evaluation date (YYYY-MM-DD, owner's calendar).
+ * @returns {object} planInstalment, scheduledByNow, aheadOfPlan and paceRatio, each number|null
  */
 export function makePlanSchedule(
  { targetAmount, allocatedAmount, planStart, desiredDate, daysRemaining },
