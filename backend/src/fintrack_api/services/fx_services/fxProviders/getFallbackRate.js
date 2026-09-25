@@ -279,5 +279,4 @@ if (args.from || args.to) {
       ),
     );
   }
-} else {
 }

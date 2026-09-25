@@ -142,8 +142,6 @@ const useUpdateProfileFormLogic = ({
     const changed = fieldNames.some(
       (key) => String(formData[key] ?? '') !== String(initialData[key] ?? ''),
     );
-    if (import.meta.env.VITE_ENVIRONMENT === 'developmentX') {
-    }
     return changed;
   }, [formData, initialData]);
 

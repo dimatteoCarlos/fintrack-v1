@@ -470,8 +470,6 @@ function Expense(): JSX.Element {
       // Caches holding transaction-derived data are now stale. Issues no request.
       notifyTransactionRecorded();
 
-      if (import.meta.env.VITE_ENVIRONMENT === 'development') {
-      }
       //------------------------
       showMessage(
         TRACKER_MESSAGES.transactionRecorded,

@@ -187,7 +187,7 @@ export const updateProfile = async (req, res, next) => {
   } catch (error) {
     await client.query('ROLLBACK');
     console.error(
-      `[UPDATE PROFILE ERROR] User: ${userId}, IP: ${req.ip}`,
+      `[UPDATE PROFILE ERROR] User: ${req.user?.userId}, IP: ${req.ip}`,
       error,
     );
     next(createError(500, 'Internal server error'));

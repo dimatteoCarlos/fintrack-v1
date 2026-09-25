@@ -622,15 +622,11 @@ function Transfer(): JSX.Element {
       // Caches holding transaction-derived data are now stale. Issues no request.
       notifyTransactionRecorded();
 
-      if (import.meta.env.VITE_ENVIRONMENT === 'development') {
-      }
       const newTotalBalance = await fetchNewBalance();
       if (typeof newTotalBalance === 'number') {
         setAvailableBudget(newTotalBalance);
       }
 
-      if (import.meta.env.VITE_ENVIRONMENT === 'development') {
-      }
       //-----------------------------
       setMessageToUser(TRACKER_MESSAGES.transactionRecorded);
       setShowMessage(true);

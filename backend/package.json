@@ -52,7 +52,11 @@
     "uuid": "11.1.1"
   },
   "eslintConfig": {
-    "extends": "standard"
+    "root": true,
+    "env": { "node": true, "es2022": true },
+    "parserOptions": { "ecmaVersion": "latest", "sourceType": "module" },
+    "extends": "eslint:recommended",
+    "rules": { "no-unused-vars": "off" }
   },
   "engines": {
     "node": "22.x"

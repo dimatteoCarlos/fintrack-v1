@@ -954,8 +954,7 @@ export const dashboardMovementTransactionsByType = async (req, res, next) => {
     if (error instanceof Error) {
       console.error(
         pc.red(
-          // startDate and endDate are declared inside the try block, out of scope here
-          `Error while getting movement transactions in the period between ${startDate} and ${endDate}`,
+          `Error while getting movement transactions in the period between ${req.query.start} and ${req.query.end}`,
         ),
       );
       if (process.env.NODE_ENV === 'development') {

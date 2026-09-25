@@ -315,16 +315,18 @@ export async function initializeDatabase() {
           }
         }),
       ).then((results) => {
-        if (results.status === 'fulfilled') {
-          console.log(
-            `Table ${mainTables[indx].tblName} was successfully truncated .`,
-          );
-        } else if (results.status === 'rejected') {
-          console.error(
-            `Table ${mainTables[indx].tblName} failed to truncate:`,
-            results.reason,
-          );
-        }
+        results.forEach((result, indx) => {
+          if (result.status === 'fulfilled') {
+            console.log(
+              `Table ${mainTables[indx].tblName} was successfully truncated .`,
+            );
+          } else if (result.status === 'rejected') {
+            console.error(
+              `Table ${mainTables[indx].tblName} failed to truncate:`,
+              result.reason,
+            );
+          }
+        });
       });
     }
     //====================================
